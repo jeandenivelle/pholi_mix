@@ -1,0 +1,133 @@
+
+%dir logic
+   // Directory where class definitions will be written.
+
+%namespace logic
+   // Namespace in which the resulting types will be put.
+
+// 'type' is called 'structural type' in the report.
+// It has been called 'metatype' in the past.
+// In Dec. 2024, I changed the implementation: We will also
+// resolve names in structural types.
+
+%define type ( type_form ) 
+%option prim { type_form, type_obj } =>
+%option struct { type_struct } => # def : exact
+%option unchecked { type_unchecked } => # id : identifier
+%option func { type_func } => result : type, [ arg : type ]  
+
+%h_incl {
+	#include "tvm/includes.h"
+	#include "identifier.h"
+        #include "exact.h"
+        #include "proof.h"
+	#include "util/print.h"
+} 
+
+%h_methods
+{
+   void print( std::ostream& out ) const;
+}  
+
+%define term ( op_error ) 
+%option exact { op_exact } => # ex : exact
+%option debruijn { op_debruijn } => # index : size_t  
+%option unchecked { op_unchecked } => # id : identifier
+%option nullary { op_false, op_error, op_true } =>
+%option unary { op_not, op_prop } => sub : term  
+%option binary { op_and, op_or, op_implies, op_equiv, 
+                 op_lazy_and, op_lazy_implies, op_meta_implies, 
+                 op_equals } => sub1: term, sub2: term 
+%option quant { op_forall, op_exists }
+      => body : term, [ var : vartype ]
+
+%option let { op_let } => var : vartype, val : term, body : term
+   // There is no need for the untyped variant, because one can
+   // always use a meaningless identifier as type, which will be corrected
+   // during type checking. 
+
+%option apply { op_apply } => func : term, [ arg : term ] 
+%option lambda { op_lambda } => body : term, [ var : vartype ]
+%option named { op_named } => sub : term, # lab : std::string
+
+%h_incl { 
+	#include "tvm/includes.h" 
+	#include "type.h"
+} 
+
+%h_before {    
+   struct vartype
+   {
+      std::string pref;   // This is a suggestion only
+      type tp; 
+
+      vartype( const std::string& pref, type tp )
+         : pref( pref ), tp( tp )
+      { }
+
+   };
+
+   bool very_equal( const vartype& , const vartype& );
+} 
+
+
+%h_methods
+{
+   void print( std::ostream& out ) const; 
+}
+
+%h_after {
+   std::ostream& operator << ( std::ostream& , const vartype& );
+
+   bool 
+   very_equal( const std::vector< proof > & , const std::vector< proof > & );
+} 
+
+%cpp_back {
+
+   bool logic::very_equal( const vartype& vt1, const vartype& vt2 )
+   {
+      return vt1. pref == vt2. pref && vt1. tp. very_equal_to( vt2. tp ); 
+   }
+
+   std::ostream& logic::operator << ( std::ostream& out, const vartype& vt )
+   {
+      out << vt. pref << " : " << vt. tp;
+      return out;
+   }
+} 
+
+
+%define belief ( bel_empty )   
+%prefix ident : identifier
+
+%option empty { bel_empty } => 
+%option struct { bel_struct } => def : structdef 
+%option symbol { bel_symbol } => tp : type 
+%option def { bel_def } => val : term, tp : type
+
+%option form { bel_axiom, bel_thm } => 
+   fm : term, prop : proof, [ tp : type ]
+      // tp can be used for overload resolution.
+
+%option field { bel_fld } => sdef : exact, offset : size_t 
+   // The meanings are:
+   //    sdef is the exact structural type that we belong to,
+   //    and offset is our index in this struct.
+
+%option constr { bel_constr } => # tp : exact
+   // Constructor, e.g. Seq(O,O(O)). 
+   // tp is the type that we are the constructor of. 
+
+%h_incl {
+   #include "tvm/includes.h"
+   #include "structdef.h" 
+   #include "term.h"
+}
+
+%h_methods
+{
+   void print( std::ostream& out ) const;
+}
+
+

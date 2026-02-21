@@ -1,0 +1,114 @@
+
+%comment PHOLI
+
+%rootdirs 
+   Source = .
+   Lexing = /home/nivelle/programs
+   Tvm = /home/nivelle/programs
+   Maph = /home/nivelle/programs/maphoon
+   Treegen = /home/nivelle/programs/treegen2023
+   Util = /home/nivelle/programs
+
+%dir Source
+%exec pholi
+%sources
+   pholi.cpp
+   identifier.cpp
+   tests.cpp
+   errorstack.cpp
+   filehasher.cpp
+
+%dir Source/logic 
+%sources
+   type.cpp
+   term.cpp
+   selector.cpp
+   belief.cpp
+   structdef.cpp
+   beliefstate.cpp
+   replacements.cpp
+   counters.cpp
+   cmp.cpp
+   context.cpp
+   position.cpp
+   structural.cpp
+   uniquenamestack.cpp
+   printing.cpp
+   pretty.cpp
+
+%dir Source/calc
+%sources
+   selector.cpp
+   polarity.cpp
+   kleene.cpp
+   util.cpp
+   expander.cpp
+   localexpander.cpp
+   projection.cpp
+   sequent.cpp
+   proofterm.cpp
+   printing.cpp
+   prefix.cpp
+   atp.cpp
+ 
+%dir Source/parsing
+%sources
+   tokenizer.cpp
+   symbol.cpp
+   parser.cpp
+
+%dir Lexing/lexing2023
+%sources
+   stateset.cpp
+   partition.cpp
+   filereader.cpp
+
+%options 
+   Wall
+   Wno-switch
+   Wno-invalid-offsetof
+   Wno-unused-function
+   pedantic-errors
+   std=c++23
+
+%includedirs
+   Lexing
+   Util
+   Tvm
+   Source   
+
+%preproc $(Treegen)/treegen logic/treedefs.rec 
+%dir Source/logic
+%in 
+   treedefs.rec
+%out
+   selector.h
+   selector.cpp
+   type.h
+   type.cpp
+   term.h
+   term.cpp
+   belief.h
+   belief.cpp
+
+%preproc $(Treegen)/treegen calc/treedefs.rec
+%dir Source/calc
+%in
+   treedefs.rec
+%out 
+   selector.h
+   selector.cpp
+   proofterm.h
+   proofterm.cpp
+
+%preproc $(Maph)/maphoon $(Source)/parsing/grammar.m $(Source)/parsing $(Maph) 
+%dir Source/parsing
+%in
+   grammar.m
+%out
+   parser.h
+   parser.cpp
+   symbol.h
+   symbol.cpp 
+   
+
