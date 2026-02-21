@@ -1,0 +1,248 @@
+
+%dir calc
+%namespace calc
+
+%define proofterm ( prf_nop ) 
+
+%option cut { prf_cut } => fm : logic::term
+
+%option chain { prf_chain } => [ step : proofterm ] 
+%option nop { prf_nop } => 
+
+%option flatten { prf_flatten } => ind : ssize_t 
+
+%option copy { prf_copy } => segname : std::string, ind : ssize_t
+%option erase { prf_erase } => ind : ssize_t
+
+%option orexistselim { prf_orexistselim } => ind : ssize_t, 
+   name : std::string, [ branch : proofterm ] 
+
+%option orexistselimintro { prf_orexistselimintro } => 
+   ind : ssize_t, alt : size_t, name : std::string, 
+   eigen : std::vector< std::string >, [ sub : proofterm ]
+      // If you don't combine these two rules, you get too many segments.
+      // Without explicit eigennames, you cannot refer to introduced 
+      // variables in proofs.
+
+%option expand { prf_expand } => 
+   ind : ssize_t, ident : identifier, occ : size_t 
+
+%option expandlocal { prf_expandlocal } => 
+   ind : ssize_t, name : std::string, occ : size_t
+
+%option betapi { prf_betapi } => ind : ssize_t
+
+%option forallintro { prf_forallintro } =>
+   parent : proofterm, [ var : logic::vartype ]
+
+%option forallelim { prf_forallelim } => 
+   ind : ssize_t, [ value : logic::term ] 
+      // Replace ind by an instance.
+
+%option deflocal { prf_deflocal } =>
+   name : std::string, val : logic::term, [ sub : proofterm ]
+
+%option import { prf_import } =>
+   ident : identifier, [ tp : logic::type ]
+
+%option simplify { prf_simplify } => 
+   // Always the complete toplevel.
+
+%option fake { prf_fake } => goal : logic::term
+
+%option show { prf_show } => comment : std::string
+
+%h_incl {
+   #include "sequent.h"
+}
+
+%h_before {
+   bool very_equal( const std::vector< logic::term > & v1, const std::vector< logic::term > & v2 );
+}
+
+%h_methods {
+
+   void print( indentation ind, std::ostream& out ) const;
+}
+
+
+%cpp_back
+{
+   void calc::proofterm::print( indentation ind, std::ostream& out ) const
+   {
+      switch( sel( ))
+      {
+
+      case prf_cut:
+         out << ind << "cut: " << view_cut( ). fm( ) << "\n";
+         return;
+
+      case prf_chain: 
+         {
+            out << ind << "chain\n";
+            auto ch = view_chain( );
+            for( size_t i = 0; i != ch. size( ); ++ i )
+               ch. step(i). print( ind + 3, out );
+            return;
+         }
+
+      case prf_nop:
+         out << ind << "nop\n";
+         return;
+
+      case prf_flatten:
+         out << ind << "flatten " << view_flatten( ). ind( ) << "\n";
+         return; 
+
+      case prf_orexistselim:
+         {
+            auto elim = view_orexistselim( ); 
+            out << ind << "orexistselim\n";
+            for( size_t i = 0; i != elim. size( ); ++ i )
+            {
+               out << ind << "branch " << i << ":\n";
+               elim. branch(i). print( ind + 3, out );
+            }
+            return;
+         }
+
+      case prf_orexistselimintro: 
+         {
+            auto elim = view_orexistselimintro( );
+            out << ind << "orexistselimintro " << elim. ind( ) << "/";
+            out << elim. alt( ) << "\n";
+            out << ind << "name " << elim. name( ) << "\n";
+            for( size_t i = 0; i != elim. size( ); ++ i )
+            {
+               elim. sub(i). print( ind + 3, out ); 
+            }
+            return;
+         }
+
+      case prf_expand:
+         {
+            auto exp = view_expand( );
+            out << ind << "expand ";
+            out << exp. ident( ) << "/" << exp. occ( );
+            out << " in " << exp. ind( ) << "\n";
+            return;  
+         }
+
+      case prf_expandlocal:
+         {
+            auto exp = view_expandlocal( );
+            out << ind << "expandlocal ";
+            out << exp. name( ) << "/" << exp. occ( );
+            out << " in " << exp. ind( ) << "\n";
+            return;
+         }
+
+      case prf_betapi:
+         {
+            out << ind << "pibeta " << view_betapi( ). ind( ) << "\n";
+            return;
+         }
+
+      case prf_copy:
+         {
+            auto copy = view_copy( );
+            out << ind << "copy " << copy. segname( );
+            out << '[' << copy. ind( ) << "]\n";
+            return;
+         }
+
+      case prf_erase:
+         {
+            out << ind << "erase " << view_erase( ). ind( ) << "\n";
+            return;
+         }
+
+      case prf_deflocal:
+         {
+            auto def = view_deflocal( );
+            out << ind << "define ";
+            out << def. name( ) << " := " << def. val( ) << "\n";
+            out << ind << "in\n";
+            for( size_t i = 0; i != def. size( ); ++ i )
+            {
+               def. sub(i). print( ind + 3, out );
+            }
+            return;
+         }
+
+      case prf_import:
+         {
+            auto imp = view_import( );
+            out << ind << "import " << imp. ident( );
+            if( imp. size( ))
+            {
+               out << "( " << imp. tp(0); 
+               for( size_t i = 1; i != imp. size( ); ++ i )
+                  out << ", " << imp. tp(i);
+               out << " )";  
+            }
+            out << '\n';
+            return;
+         }
+
+      case prf_forallintro:
+         {
+            auto intro = view_forallintro( );
+            out << ind << "forallintro with";
+            for( size_t i = 0; i != intro. size( ); ++ i )
+            {
+               if(i)
+                  out << ", ";
+               out << intro. var(i);
+            }
+            out << "\n";
+            intro. parent( ). print( ind + 3, out );
+            return; 
+         }
+ 
+      case prf_forallelim:
+         {
+            auto elim = view_forallelim( );
+            out << ind << "forallelim";
+            for( size_t i = 0; i != elim. size( ); ++ i )
+            {
+               if(i) 
+                  out << ", ";
+               else
+                  out << ' ';
+               out << elim. value(i);
+            }
+            out << " in " << elim. ind( ) << "\n";
+            return;
+         }
+
+      case prf_simplify:
+         {
+            out << ind << "simplify\n";
+            return;
+         }
+
+      case prf_fake:
+         {
+            out << ind << "faking ";
+            auto mag = view_fake( );
+            out << mag. goal( ) << "\n";
+            return;
+         }
+
+      case prf_show:
+         {
+            auto show = view_show( );
+            out << ind << "show as ";
+            out << "\"" << show. comment( ) << "\"\n";
+            return;
+         }
+      }
+
+      out << sel( ) << "\n";
+      throw std::logic_error( "don't know how to print" );
+   }
+
+}
+
+ 
