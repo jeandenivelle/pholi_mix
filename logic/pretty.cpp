@@ -294,7 +294,7 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
       case op_or:            out << " | "; break;
       case op_implies:       out << " -> "; break;
       case op_equiv:         out << " <-> "; break;
-      case op_meta_implies:  out << " --> "; break;
+      case op_meta_implies:  out << " -> "; break;
       case op_equals:        out << " == "; break;
 
       default: out << " ??? "; break;
