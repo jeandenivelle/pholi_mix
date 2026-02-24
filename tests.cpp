@@ -16,6 +16,8 @@
 #include "calc/proofoperators.h"
 #include "calc/atp.h"
 
+#include "natded/eval.h"
+
 #include "parsing/parser.h"
 
 void tests::add_settheory( logic::beliefstate& blfs )
@@ -143,69 +145,6 @@ void tests::add_settheory( logic::beliefstate& blfs )
                                              identifier( ) + "Settheory" ) } ) ));
 }
 
-#if 0
-void tests::alternating( )
-{
-   std::cout << "testing flattening:\n\n";
-
-   using namespace logic;
-
-   type O = type( logic::type_obj );
-   type T = type( logic::type_form );
-   type O2T = type( type_func, T, { O } );
-   type O2O = type( type_func, O, { O } );
-
-   type Seq = type( type_unchecked, identifier( ) + "Seq" );
-   type X = type( type_unchecked, identifier( ) + "X" );
-
-   auto fm = term( op_lazy_implies, "A"_unchecked, "B"_unchecked );
-   fm = ! term( op_prop, fm );
-
-   calc::dnf< logic::term > res;
-   res. append( calc::exists( { }, forall( {{ "xx", T }, { "yy", O }},
-                                      ( "aa"_unchecked || 
-                                        exists( {{"C", T }}, "bb1"_unchecked || "bb2"_unchecked ))) &&
-                                    ( "xx"_unchecked || "yy"_unchecked  ))); 
-
-   calc::anf< logic::term > anf;
-   anf. append( calc::forall( {{ "aa", O2O }, { "bb", O } }, std::move( res )) );
- 
-   std::cout << "before:\n";
-   std::cout << anf << "\n\n";
-   anf = flatten( std::move( anf ));
-   std::cout << "after:\n";
-   std::cout << anf << "\n\n";
- 
-#if 0
-   if constexpr( false ) 
-   {
-      std::cout << "\n\n";
-      std::cout << "testing removelets\n";
-      auto f = ( 0_db == 2_db );
-      f = apply( "ppp"_unchecked, { 0_db, 1_db, 2_db } );
-      f = term( op_let, { "zz", O }, apply( "gg"_unchecked, { 0_db } ), f );
-      f = !f;
-      f = term( op_let, { "yy", T }, apply( "ff"_unchecked, { 1_db } ), f );
-      f = term( op_forall, f, {{ "x", T }, { "y", O2O }} ); 
-      f = term( op_exists, f, {{ "a", O }, { "b", T }} );
-      f = term( op_lambda, f, {{ "hallo", O2T }} );
-      {
-         context ctxt;
-         pretty::print( std::cout, blfs, ctxt, f );
-      }
-
-      calc::sequent seq( blfs ); 
-      logic::context ctxt;
-      f = removelets( seq, ctxt, std::move(f) ); 
-      {
-         context ctxt; 
-         pretty::print( std::cout, blfs, ctxt, f );
-      }
-      return; 
-   }
-#endif
-}
-#endif
 
 void tests::pretty( const logic::beliefstate& blfs )
 {
@@ -934,8 +873,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
 }
 
 
-
-void tests::truthtables( )
+void tests::natded( )
 {
    using namespace logic;
 
@@ -948,6 +886,14 @@ void tests::truthtables( )
    auto OO2T = type( type_func, T, { O, O } );
    auto OOO2T = type( type_func, T, { O, O, O } );
    auto tp = type( type_func, T, {O} );
+
+   auto fm = logic::forall( { { "x", O }}, 
+      lazy_implies( prop( 0_db ), 0_db || ! 0_db ));
+   std::cout << fm << "\n";
+
+   natded::interpretation intp;
+   std::cout << eval( intp, fm ) << "\n";
+
 #if 0
    term from = exists( {{ "x", logic::type_obj }}, apply( "P"_unchecked, { 0_db } ) && apply( "Q"_unchecked, { 0_db } ));
 

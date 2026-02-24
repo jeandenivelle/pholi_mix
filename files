@@ -50,6 +50,12 @@
    printing.cpp
    prefix.cpp
    atp.cpp
+
+%dir Source/natded
+%sources
+   truthval.cpp
+   interpretation.cpp
+   eval.cpp
  
 %dir Source/parsing
 %sources

@@ -23,11 +23,9 @@ namespace tests
    void smallproofs( const logic::beliefstate& blfs, errorstack& err );
    void bigproof( const logic::beliefstate& blfs, errorstack& err );
 
-   void unification( const logic::beliefstate& blfs, errorstack& err );
-
    void pretty( const logic::beliefstate& blfs );
 
-   void truthtables( );
+   void natded( );
       // check properties that can be checked by truth tables. 
 
    void parser( logic::beliefstate& blfs );

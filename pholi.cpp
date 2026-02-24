@@ -1,5 +1,4 @@
 
-
 #include "errorstack.h"
 #include "filehasher.h"
 
@@ -79,6 +78,9 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
+   tests::natded( ); 
+   return 0;
+
    errorstack err;
    logic::beliefstate blfs;  
    filehasher seen;
