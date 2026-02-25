@@ -886,27 +886,37 @@ void tests::natded( )
    auto OOO2T = type( type_func, T, { O, O, O } );
    auto tp = type( type_func, T, {O} );
 
-   auto fm = logic::exists( { { "x", T }, { "y", T } }, 
-      meta_implies( implies( 0_db, 1_db ), 
-         meta_implies( !lazy_and( 1_db, 0_db ), lazy_implies( 1_db, ! 0_db ) ) ));
+   std::vector< std::pair< logic::term, logic::term >> check;
 
-   std::cout << fm << "\n";
+   check. push_back( { logic::term( logic::op_true ),
+                       logic::forall( {{ "P", T }}, lazy_implies( prop( 0_db ), implies( 0_db, 0_db ) )) } );
 
-   natded::interpretation intp;
-   std::cout << eval( intp, fm ) << "\n";
+   check. push_back( { logic::term( logic::op_false ),
+                       logic::forall( {{ "P", T }}, lazy_implies( prop( 0_db ), 0_db )) } );
 
-#if 0
-   term from = exists( {{ "x", logic::type_obj }}, apply( "P"_unchecked, { 0_db } ) && apply( "Q"_unchecked, { 0_db } ));
+   check. push_back( { ! 0_db, implies( 0_db, logic::term( logic::op_false )) } );
+   
+   check. push_back( { 1_db && 0_db, logic::forall( {{ "R", T }}, 
+                   lazy_implies( prop( 0_db ),
+                      implies( implies( 2_db, implies( 1_db, 0_db )), 0_db ))) } );
 
-   logic::context ctxt;
-   logic::beliefstate blfs;
+   check. push_back( { lazy_and( 1_db, 0_db ), logic::forall( {{ "R", T }},
+                   lazy_implies( prop( 0_db ),
+                      implies( lazy_implies( 2_db, implies( 1_db, 0_db )), 0_db ))) } );
 
-   // std::cout << from << "\n";
-   pretty::print( std::cout, blfs, ctxt, from );
-   // std::cout << into << "\n";
-   pretty::print( std::cout, blfs, ctxt, into );
-   std::cout << "\n\n";
-   semantics::check_preceq( { { identifier( ) + "P", O2T }, { identifier( ) + "Q", O2T }}, from, into );
-#endif
+   check. push_back( { 1_db || 0_db, logic::forall( {{ "R", T }},
+                  lazy_implies( prop( 0_db ),
+                     implies( implies( 2_db, 0_db ),
+                        implies( implies( 1_db, 0_db ), 0_db )))) } );
+
+   check. push_back( { equiv( 1_db, 0_db ), 
+                  lazy_implies( 0_db, 1_db ) && lazy_implies( 1_db, 0_db ) } );
+ 
+   for( const auto& p : check )
+   {
+      auto fm = logic::forall( {{ "P", T }, { "Q", T }}, p. first == p. second );
+      natded::interpretation intp;
+      std::cout << eval( intp, fm ) << "\n"; 
+   }
 }
 
