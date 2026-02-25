@@ -30,7 +30,6 @@
    counters.cpp
    cmp.cpp
    context.cpp
-   position.cpp
    structural.cpp
    uniquenamestack.cpp
    printing.cpp

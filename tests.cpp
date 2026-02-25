@@ -306,7 +306,6 @@ void tests::betareduction( logic::beliefstate& blfs, errorstack& err )
    std::cout << "res = " << res << "\n";
    std::cout << "change = " << change << "\n";
    std::cout << beta << "\n";
-
 }
 
 
@@ -887,8 +886,10 @@ void tests::natded( )
    auto OOO2T = type( type_func, T, { O, O, O } );
    auto tp = type( type_func, T, {O} );
 
-   auto fm = logic::forall( { { "x", O }}, 
-      lazy_implies( prop( 0_db ), 0_db || ! 0_db ));
+   auto fm = logic::exists( { { "x", T }, { "y", T } }, 
+      meta_implies( implies( 0_db, 1_db ), 
+         meta_implies( !lazy_and( 1_db, 0_db ), lazy_implies( 1_db, ! 0_db ) ) ));
+
    std::cout << fm << "\n";
 
    natded::interpretation intp;
