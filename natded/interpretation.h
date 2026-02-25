@@ -21,7 +21,7 @@ namespace natded
       interpretation( ) noexcept = default;
 
       size_t size( ) const { return values. size( ); }
-      truthval gettruth( size_t index ) const
+      truthval getvalue( size_t index ) const
          { return values[ values. size( ) - index - 1 ]; }
 
       void append( truthval tv ) { values. push_back( tv ); }
@@ -29,7 +29,6 @@ namespace natded
 
       void print( std::ostream& out ) const; 
    };
-
 
 }
 

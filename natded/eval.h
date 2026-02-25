@@ -16,9 +16,12 @@ namespace natded
 
    truthval operator && ( truthval tv1, truthval tv2 );
    truthval operator || ( truthval tv1, truthval tv2 );
+   truthval implies( truthval tv1, truthval tv2 );
+   truthval equiv( truthval tv1, truthval tv2 );
   
    truthval lazy_and( truthval tv1, truthval tv2 );
    truthval lazy_implies( truthval tv1, truthval tv2 );
+   truthval meta_implies( truthval tv1, truthval tv2 );
 
    truthval eval( interpretation& intp, const logic::term& fm ); 
 } 

@@ -1,8 +1,7 @@
 
 #include "truthval.h"
 
-const char*
-natded::getcstring( truthval val ) 
+const char* natded::getcstring( truthval val ) 
 {
    switch( val )
    {
