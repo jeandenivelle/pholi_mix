@@ -1,0 +1,64 @@
+
+struct Nat := 
+   0 : Obj;
+   succ : Obj( Obj );
+end;
+
+def isclosed( s: Nat ) ( P: Form(Obj) ) :=
+    P( s.0 ) & [ x: Obj ] P( x ) -> P( s. succ( x )) : Form;
+
+thm isclosed_prop : [ s : Nat, P : Form( Obj ) ] 
+   strict(P) -> # isclosed( s, P ); 
+
+def gen( s: Nat )( x : Obj ) :=
+   [ P : Form( Obj ) ] { strict(P) } -> s. isclosed(P) -> P(x) : Form ;
+
+thm gen_prop : [ s : Nat, x : Obj ] # s. gen(x) ; 
+
+thm gen_0 :    [ s : Nat ] s. gen( s. 0 ) ; 
+thm gen_succ : [ s : Nat, x : Obj ] s. gen(x) -> s. gen( s. succ(x)) ;
+
+thm induction : [ s : Nat, P : Form( Obj ) ] 
+   { stricton( s. gen, P ) } -> P( s.0 ) -> 
+      ( [ x: Obj ] { s. gen(x) } -> P(x) -> P( s. succ(x)) ) -> 
+         [ x: Obj ] { s. gen(x) } -> P(x);
+
+def homrel( s1,s2: Nat )( R: Form(Obj,Obj) ) :=
+   R( s1.0, s2.0 ) & [ x1,x2: Obj ] { s1. gen(x1) & s2. gen(x2) } -> 
+        R( x1, x2 ) -> R( s1. succ(x1), s2. succ(x2) ) : Form; 
+
+def freegen( s1 : Nat ) :=
+   [ s2 : Nat ] < R : Form( Obj, Obj ) > 
+   { stricton( prod( s1. gen, s2. gen ), R ) } &
+      homrel( s1, s2, R ) & linear( s1. gen, s2. gen, R ) : Form ;
+
+def minhomrel( s1,s2: Nat ) :=
+   minimal( prod( s1. gen, s2. gen ), homrel( s1, s2 )) : Form(Obj,Obj) ; 
+
+thm minhomrel_prop :
+   [ s1, s2 : Nat ] [ x1, x2 : Obj ]
+      { s1. gen(x1) & s2. gen(x2) } -> # minhomrel( s1, s2, x1, x2 );
+
+thm minhomrel_zero :
+   [ s1, s2 : Nat ] minhomrel( s1, s2, s1. 0, s2. 0 );
+
+thm minhomrel_succ : 
+   [ s1, s2 : Nat ] [ x1, x2: Obj ]
+      { s1. gen( x1 ) & s2. gen( x2 ) } ->       
+      minhomrel( s1, s2, x1, x2 ) 
+          -> minhomrel( s1, s2, s1. succ( x1 ), s2. succ( x2 ));
+
+thm just : [ s1,s2: Nat ] [ x1,x2: Obj ] 
+   { s1. gen(x1) & s2.gen(x2) } -> minhomrel( s1, s2, x1, x2 ) -> 
+      x1 == s1.0 & x2 == s2.0 | 
+      < y1,y2: Obj > { s1. gen(y1) & s2. gen(y2) } & 
+          minhomrel( s1, s2, y1, y2 ) & 
+             x1 == s1. succ(y1) & x2 == s2. succ(y2);
+
+thm resolve : 
+   [ P,Q,R : Form( Obj ) ] 
+      { [ x : Obj ] #P(x) & #Q(x) & #R(x) } ->
+      ( [ x : Obj ] P(x) | Q(x) ) &
+      ( [ y : Obj ] !P(y) | R(y) ) ->
+      ( [ z : Obj ] Q(z) | R(z) ); 
+

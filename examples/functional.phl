@@ -1,0 +1,28 @@
+
+
+// Can be overloaded for different arities:
+
+
+def func( P : Form( Obj ), Q : Form( Obj, Obj )) :=
+   ??( x : Obj ) the( ??( y : Obj ) Q(x,y) ) : Obj( Obj ); 
+
+
+thm func : [ P : Form( Obj ) ] 
+   strict(P) -> 
+   [ Q : Form( Obj, Obj ) ] stricton( P, ?? ( x : Obj ) < y : Obj > Q(x,y) ) ->
+   functional( P, Q ) -> from_to( P, Q, func( P, Q )) ; 
+   
+def from_to( P : Form( Obj ), Q : Form( Obj, Obj )) ( f : Obj( Obj )) :=
+    [ x1 : Obj ] { P(x1) } -> Q(x1, f(x1)) : Form;
+
+/*
+def from_to( P : Form( Obj, Obj ), Q : Form( Obj )) ( f : Obj( Obj, Obj )) :=
+   [ x1, x2 : Obj ] P( x1, x2 ) -> Q( f(x1,x2) ) : Form;
+
+def from_to( P : Form( Obj, Obj, Obj ), Q : Form( Obj ))
+            ( f : Obj( Obj, Obj, Obj )) :=
+   [ x1, x2, x3 : Obj ] P( x1, x2, x3 ) -> Q( f( x1, x2, x3 )) : Form;
+*/
+
+eof
+

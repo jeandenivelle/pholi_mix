@@ -16,11 +16,8 @@
 #include "normalforms.h"
 #include "pretty.h"
 
-// create a file normal forms:
-
 namespace calc
 {
-
  
    struct sequent
    {
@@ -28,15 +25,22 @@ namespace calc
       struct seqform
       {
          std::variant< unf< logic::term >, dnf< logic::term > > fm; 
+            // In case we are UNF, there must be at least one
+            // quantified variable.
 
          size_t csize;   // context size at moment of creation. 
          bool blocked;   // True if formula is blocked/subsumed.
 
-         bool is_unf( ) const;
-         bool is_dnf( ) const;
+         bool is_unf( ) const 
+            { return holds_alternative< unf< logic::term >> ( fm ); } 
+         bool is_dnf( ) const 
+            { return holds_alternative< dnf< logic::term >> ( fm ); }
 
-         void get_unf( );
-         void get_dnf( );
+         const unf< logic::term > & opt_unf( ) const 
+            { return get< unf< logic::term >> ( fm ); }
+         const dnf< logic::term > & opt_dnf( ) const 
+            { return get< dnf< logic::term >> ( fm ); }
+
       };
 
  
@@ -44,7 +48,7 @@ namespace calc
       indexedstack< std::string, size_t > db;
          // db is needed because we typecheck terms during 
          // proofchecking. 'db' stands for De Bruijn. 
-         // size_t looks from the beginning!
+         // We look from the beginning!
 
       std::vector< seqform > formulas;
 
@@ -135,7 +139,6 @@ namespace calc
       const segment& at( size_t ind ) const { return seg. at( ind ); }
       segment& at( size_t ind ) { return seg. at( ind ); }
 #endif
-
    };
 
 }

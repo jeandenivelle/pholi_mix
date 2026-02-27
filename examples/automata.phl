@@ -1,0 +1,47 @@
+
+struct Monoid := 
+   Sigma : Form( Obj );       // The objects that are not a product.
+   one : Obj;                 
+   prod : Obj( Obj, Obj ); 
+end;
+
+def strict( m : Monoid ) :=
+   strict( m. Sigma ) : Form ;
+
+def isclosed( m : Monoid ) ( P: Form(Obj) ) :=
+   ( [ x : Obj ] m. Sigma(x) -> P(x) ) & 
+   P( m. one ) &
+   ( [ x1, x2 : Obj ] P(x1) & P(x2) -> P( m. prod( x1, x2 )) ) : Form;
+
+def gen( m : Monoid )( x : Obj ) :=
+   [ P : Form( Obj ) ] { strict(P) } -> m. isclosed(P) -> P(x) : Form ;
+
+thm prop : [ m : Monoid ] strict(m) -> strict( m. gen ) ;
+
+def homrel( m1,m2: Monoid )( P: Form(Obj,Obj) ) :=
+   P( m1.one, m2.one ) & [ x1,x2, y1,y2: Obj ]  
+      { m1. gen( x1 ) & m1. gen( x2 ) } -> 
+      { m2. gen( y1 ) & m2. gen( y2 ) } ->  
+        P( x1, y1 ) & P(x2,y2) -> P( m1.prod(x1,x2), m2.prod(y1,y2) ) : Form; 
+
+// thm prop : [ m1, m2 : Monoid ] strict(m1) & strict(m2) -> 
+   
+
+def minhomrel( m1, m2 : Monoid )( x1,x2: Obj ) :=
+   [ P: Form(Obj,Obj) ] { stricton( prod( m1. gen, m2. gen ), P ) } -> 
+      homrel( m1, m2, P ) -> P( x1, x2 ) : Form ;
+
+def wordsys( m1 : Monoid ) := 
+   [ m2 : Monoid ] { strict( m2 ) } -> 
+      < P : Form( Obj, Obj ) > { strict( prod( m1. gen, m2. gen )) } &
+      homrel( m1, m2, P ) & functional( m1.gen, m2.gen, P ) : Form;
+ 
+eof 
+thm just : [ s1,s2: Seq ] [ x1,x2: Obj ] 
+   { s1. gen(x1) & s2.gen(x2) } -> minhomrel( s1, s2, x1, x2 ) -> 
+      x1 == s1.0 & x2 == s2.0 | 
+      < y1,y2: Obj > { s1. gen( y1 ) & s2. gen( y2 ) } & 
+          minhomrel( s1, s2, y1, y2 ) & 
+             x1 == s1. succ( y1 ) & x2 == s2. succ( y2 );
+
+
