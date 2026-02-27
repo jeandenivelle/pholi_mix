@@ -2,6 +2,8 @@
 #include "sequent.h"
 #include "logic/pretty.h"
 
+#if 0
+
 auto calc::sequent::segment::at( ssize_t ind ) const 
    -> const forall< disjunction< exists< logic::term >>> & 
 {
@@ -187,4 +189,5 @@ calc::sequent::pretty( pretty_printer& out ) const
    }
 }
 
+#endif
 

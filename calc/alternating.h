@@ -5,8 +5,7 @@
 #include "logic/term.h"
 #include "logic/context.h"
 
-#include "propositional.h"
-#include "quantifiers.h"
+#include "normalforms.h"
 
 #include "polarity.h"
 #include "kleene.h"
@@ -21,14 +20,6 @@ namespace calc
 
    logic::term apply_prop( const logic::term& f, polarity pol );
       // Return prop(f) or not( prop(f)).
-
-
-   template< typename F >
-   using dnf = disjunction< exists<F>> ;
-
-   template< typename F >
-   using anf = conjunction< forall< dnf<F>>> ;
-
 
    kleene kleening( logic::selector sel, polarity pol );
 

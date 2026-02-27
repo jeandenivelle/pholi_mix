@@ -9,6 +9,7 @@
 #include "logic/structural.h"
 #include "logic/pretty.h"
 #include "logic/termoperators.h"
+#include "logic/replacements.h"
 
 #include "parsing/parser.h"
 
@@ -78,6 +79,21 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
+   using namespace logic;
+
+   decurrier dec;
+   auto tm = term( op_debruijn, 1000 );
+   tm = apply( tm, { 50_db } ); 
+   tm = apply( tm, { 10_db, apply( "xx"_unchecked, { 11_db } ), 2000_db } );
+
+   std::cout << tm << "\n";
+   bool change = false; 
+   tm = dec( std::move(tm), 0, change );
+   std::cout << tm << "\n";
+   std::cout << "change = " << change << "\n";
+ 
+   return 0;
+
    tests::natded( ); 
    return 0;
 

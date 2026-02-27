@@ -176,11 +176,11 @@ namespace logic
    };
 
 
-   // This is incomplete beta-reduction:
+   // This is both complete and incomplete beta-reduction:
 
    struct betareduction 
    {
-      size_t counter; 
+      uint64_t counter; 
 
       betareduction( ) noexcept
          : counter(0) 
@@ -188,6 +188,24 @@ namespace logic
 
       term operator( ) ( term t, size_t vardepth, bool& change );
          // Not const method, because we count the reductions.
+
+      void print( std::ostream& out ) const; 
+   };
+
+
+   // A decurrier replaces f( t_1, ..., t_m )( u_1, ..., u_n ) by
+   // f( t_1, ..., t_m, u_1, ..., u_n ).
+   // It is the opposite of Currying.
+
+   struct decurrier 
+   {
+      uint64_t counter;
+
+      decurrier( ) noexcept 
+         : counter(0)
+      { } 
+
+      term operator( ) ( term t, size_t vardepth, bool& change ); 
 
       void print( std::ostream& out ) const; 
    };

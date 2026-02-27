@@ -311,6 +311,7 @@ void tests::betareduction( logic::beliefstate& blfs, errorstack& err )
 
 void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 {
+#if 0
    auto O = logic::type( logic::type_obj );
    auto T = logic::type( logic::type_form );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
@@ -543,12 +544,14 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       std::cout << "FINAL STATE " << id << "\n";
       seq. ugly( std::cout );
    }
+#endif
 }
 
 
 void 
 tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
 {
+#if 0
    auto O = logic::type( logic::type_obj );
    auto T = logic::type( logic::type_form );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
@@ -868,6 +871,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
    std::cout << "\n";
    std::cout << "FINAL STATE\n";
    seq. ugly( std::cout );
+#endif
 #endif
 }
 

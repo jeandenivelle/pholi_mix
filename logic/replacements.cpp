@@ -296,6 +296,34 @@ void logic::betareduction::print( std::ostream& out ) const
   out << "betareduction(" << counter << ")";
 }
 
+
+logic::term
+logic::decurrier::operator( ) ( term t, size_t vardepth, bool& change )
+{
+   if( t. sel( ) == op_apply )
+   {
+      auto ap1 = t. view_apply( );
+      if( ap1. func( ). sel( ) == op_apply )
+      {
+         auto res = ap1. extr_func( );   
+         auto ap2 = res. view_apply( );
+         
+         for( size_t i = 0; i != ap1. size( ); ++ i )
+            ap2. push_back( ap1. extr_arg(i));
+
+         change = true; 
+         return res;
+      }
+   }   
+   return t; 
+}
+
+void logic::decurrier::print( std::ostream& out ) const
+{
+   out << "decurrier("<< counter << ")";
+}
+
+
 logic::term
 logic::rewriterule::operator( ) ( const term& t, size_t vardepth,
                                   bool& change ) 
