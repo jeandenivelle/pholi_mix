@@ -2,21 +2,19 @@
 #include "sequent.h"
 #include "logic/pretty.h"
 
+
+void calc::sequent::seqform::ugly( std::ostream& out ) const
+{
+   if( is_dnf( ))
+      out << get_dnf( );
+
+   out << " / " << ctxtsize;
+   if( blocked ) out << "   (blocked)";
+   out << "\n";
+}
+
+
 #if 0
-
-auto calc::sequent::segment::at( ssize_t ind ) const 
-   -> const forall< disjunction< exists< logic::term >>> & 
-{
-   auto it = find( ind );
-   return *it; 
-}
-
-auto calc::sequent::segment::at( ssize_t ind ) 
-   -> forall< disjunction< exists< logic::term >>> &
-{
-   auto it = find( ind );
-   return *it; 
-}
 
 void calc::sequent::segment::erase( ssize_t ind )
 {
@@ -57,6 +55,8 @@ calc::sequent::segment::find( ssize_t ind ) const
       return stack. end( ) + ind;
 }
 
+#endif
+
 size_t
 calc::sequent::assume( const std::string& name,
                        const logic::type& tp )
@@ -77,10 +77,12 @@ calc::sequent::define( const std::string& name,
    return nr;
 }
 
-void calc::sequent::push_back( const std::string& name )
+void calc::sequent::append( dnf< logic::term > d )
 {
-   seg. push_back( segment( name,  ctxt. size( )));
+   stack. push_back( seqform( std::move(d), ctxt. size( )));
 }
+
+#if 0
 
 void calc::sequent::pop_back( )
 {
@@ -90,13 +92,14 @@ void calc::sequent::pop_back( )
    seg. pop_back( );
 }
 
-const calc::sequent::segment& calc::sequent::back( ) const 
-{
-   if( seg. size( ) == 0 )
-      throw std::logic_error( "back: there are no segments" );
+#endif
 
-   return seg. back( );
+const calc::sequent::seqform& 
+calc::sequent::sequent::at( ssize_t ind ) const 
+{
 }
+
+#if 0
 
 calc::sequent::segment& calc::sequent::back( )
 {  
@@ -105,8 +108,6 @@ calc::sequent::segment& calc::sequent::back( )
 
    return seg. back( );
 }
-
-
 
 #if 0
 
@@ -139,6 +140,9 @@ void calc::sequent::restore( size_t ss )
    db. restore(ss);
 }
 
+#endif
+
+
 void calc::sequent::ugly( std::ostream& out ) const
 {
    out << "Sequent:\n";
@@ -147,18 +151,15 @@ void calc::sequent::ugly( std::ostream& out ) const
    out << "Definitions:\n";
    for( const auto& def : defs )
       out << "   #" << def. first << " := " << def. second << "\n";
-  
-   out << "\n"; 
-   out << "Segments:\n";
-   for( const auto& s : seg ) 
+
+   out << "Stack:\n";
+   for( size_t i = 0; i != stack. size( ); ++ i )
    {
-      out << "   segment " << s. name << ", ";
-      out << "contextsize = " << s. contextsize << ":\n";
-      for( size_t i = 0; i != s. stack. size( ); ++ i )
-         out << "      " << i << " : " << s. stack[i] << "\n";
-   } 
+      out << "   " << i << " : "; stack[i]. ugly( out );
+   }
 }
 
+#if 0
 
 void 
 calc::sequent::pretty( pretty_printer& out ) const

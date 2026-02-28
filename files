@@ -39,7 +39,7 @@
 %sources
    selector.cpp
    polarity.cpp
-   kleene.cpp
+   kleene_operators.cpp
    util.cpp
    expander.cpp
    localexpander.cpp
@@ -47,6 +47,7 @@
    sequent.cpp
    proofterm.cpp
    printing.cpp
+   proofchecking.cpp
    prefix.cpp
    atp.cpp
 

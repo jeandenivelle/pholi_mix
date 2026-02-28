@@ -8,7 +8,7 @@
 #include "normalforms.h"
 
 #include "polarity.h"
-#include "kleene.h"
+#include "kleene_operators.h"
 
 namespace calc
 {

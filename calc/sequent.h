@@ -24,25 +24,32 @@ namespace calc
 
       struct seqform
       {
-         std::variant< unf< logic::term >, dnf< logic::term > > fm; 
+         std::variant< unf< logic::term >, dnf< logic::term >> fm; 
             // In case we are UNF, there must be at least one
             // quantified variable.
 
-         size_t csize;   // context size at moment of creation. 
-         bool blocked;   // True if formula is blocked/subsumed.
+         size_t ctxtsize;  // context size at moment of creation. 
+         bool blocked;     // True if formula is blocked/subsumed.
+         std::string comment;  
 
+         seqform( dnf< logic::term > d, size_t ctxtsize ) 
+            : fm( std::move(d)), 
+              ctxtsize( ctxtsize ),
+              blocked( false )
+         { }
+ 
          bool is_unf( ) const 
             { return holds_alternative< unf< logic::term >> ( fm ); } 
          bool is_dnf( ) const 
             { return holds_alternative< dnf< logic::term >> ( fm ); }
 
-         const unf< logic::term > & opt_unf( ) const 
+         const unf< logic::term > & get_unf( ) const 
             { return get< unf< logic::term >> ( fm ); }
-         const dnf< logic::term > & opt_dnf( ) const 
+         const dnf< logic::term > & get_dnf( ) const 
             { return get< dnf< logic::term >> ( fm ); }
 
+         void ugly( std::ostream& out ) const; 
       };
-
  
       logic::context ctxt;
       indexedstack< std::string, size_t > db;
@@ -50,7 +57,7 @@ namespace calc
          // proofchecking. 'db' stands for De Bruijn. 
          // We look from the beginning!
 
-      std::vector< seqform > formulas;
+      std::vector< seqform > stack;
 
       std::map< size_t, logic::term > defs;
          // If a position in ctxt is a definition, its value is here.
@@ -71,8 +78,6 @@ namespace calc
          // We use Python style indexing. That means that -1 is the last
          // element, and 0 is the first element: 
 
-         const forall< disjunction< exists< logic::term >>> & 
-         at( ssize_t ind ) const; 
 
          forall< disjunction< exists< logic::term >>> &
             at( ssize_t ind );
@@ -87,12 +92,6 @@ namespace calc
          std::vector< forall< disjunction< exists< logic::term >>>>
                  :: const_iterator;
 
-         iterator begin( ) { return stack. begin( ); }
-         iterator end( ) { return stack. end( ); }
-            // Be careful with those, because the order is from
-            // bottom of stack to top of stack. They are useful
-            // for copying or processing.
-
          void clear( ) { stack. clear( ); }    
             // Forget about everything. Used to think that it was so easy.
 
@@ -106,15 +105,10 @@ namespace calc
          // const_iterator find( ssize_t ind ) const; 
       };
 
-
-      std::vector< assumption > asmstack;
-         // Stack of assumptions. 
-
-      sequent( ) noexcept { } 
+      sequent( ) noexcept = default;
       sequent( sequent&& ) noexcept = default;
       sequent& operator = ( sequent&& ) noexcept = default;
 
-      // size_t size( ) const { return seg. size( ); }
 
       void ugly( std::ostream& out ) const;  
       void pretty( pretty_printer& out ) const;
@@ -128,9 +122,16 @@ namespace calc
 
       void restore( size_t ss );
 
-      void push_back( const std::string& name );
+      void append( unf< logic::term > u ); 
+      void append( dnf< logic::term > d );
+     
       void pop_back( );
          // Add or remove a segment.
+
+      const seqform& at( ssize_t ind ) const; 
+      seqform& at( ssize_t ind );
+
+      size_t size( ) const { return stack. size( ); }
 
 #if 0
       const segment& back( ) const;
@@ -139,6 +140,7 @@ namespace calc
       const segment& at( size_t ind ) const { return seg. at( ind ); }
       segment& at( size_t ind ) { return seg. at( ind ); }
 #endif
+
    };
 
 }

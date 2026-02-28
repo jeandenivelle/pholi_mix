@@ -30,7 +30,8 @@ def homrel( s1,s2: Nat )( R: Form(Obj,Obj) ) :=
 def freegen( s1 : Nat ) :=
    [ s2 : Nat ] < R : Form( Obj, Obj ) > 
    { stricton( prod( s1. gen, s2. gen ), R ) } &
-      homrel( s1, s2, R ) & linear( s1. gen, s2. gen, R ) : Form ;
+      homrel( s1, s2, R ) & linear( s1. gen, 
+         ?? ( n1, n2 : Obj ) { s2. gen(n2) } & R( n1, n2 )) : Form ;
 
 def minhomrel( s1,s2: Nat ) :=
    minimal( prod( s1. gen, s2. gen ), homrel( s1, s2 )) : Form(Obj,Obj) ; 

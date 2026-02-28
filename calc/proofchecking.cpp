@@ -26,6 +26,8 @@ void calc::printbar( std::ostream& out )
       out << '-';
 }
 
+#if 0
+
 auto 
 calc::lift( forall< disjunction< exists< logic::term >>> cls, size_t dist )
    -> forall< disjunction< exists< logic::term >>>
@@ -57,6 +59,8 @@ calc::betapi( const logic::beliefstate& blfs,
    }
    while( beta. counter || proj. counter );
 }
+
+#endif
 
 std::optional< logic::type >
 calc::checktype( const logic::beliefstate& blfs,
@@ -91,6 +95,8 @@ calc::checktype( const logic::beliefstate& blfs,
    return tp; 
 }
 
+#if 0
+
 // Function should be moved, and also used when a proof is started.
 
 bool 
@@ -117,6 +123,7 @@ calc::applicable( const logic::belief& blf,
    return true;
 }
 
+#endif
 
 void
 calc::checkproof( const logic::beliefstate& blfs,
@@ -127,6 +134,7 @@ calc::checkproof( const logic::beliefstate& blfs,
    switch( prf. sel( ))
    {
 
+#if 0
    case prf_flatten: 
       {
          auto flat = prf. view_flatten( ); 
@@ -512,6 +520,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          return; 
       }
 
+#endif
    case prf_cut:
       {
          auto cut = prf. view_cut( );
@@ -531,9 +540,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          auto f2 = logic::term( logic::op_not, fm );
          auto f3 = std::move( fm );
 
-         seq. back( ). push( forall( disjunction{ 
-                exists(f1), exists(f2), exists(f3) } ));
-
+         seq. append( disjunction{ exists(f1), exists(f2), exists(f3) } );
          return;
       }
 
@@ -550,7 +557,7 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          return; 
       }
-
+#if 0
    case prf_expand:
       {
          auto exp = prf. view_expand( ); 
@@ -656,7 +663,17 @@ calc::checkproof( const logic::beliefstate& blfs,
          seq. back( ). erase( er. ind( ));
          return;
       }
+#endif
 
+   case prf_orrepl:
+      {
+         auto repl = prf. view_orrepl( );
+          
+
+         throw std::logic_error( "orrepl not finished" );
+      }
+
+#if 0
    case prf_deflocal: 
       {
          auto def = prf. view_deflocal( );
@@ -708,6 +725,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          std::cout << "deflocal is not terribly well tested\n";
          return; 
       }
+
 #if 0
    case prf_forallintro:
       {
@@ -970,6 +988,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          seq. pretty( out );
          return;
       } 
+#endif
    }
 
    std::cout << prf. sel( ) << "\n";

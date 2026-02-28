@@ -14,8 +14,8 @@
 %option copy { prf_copy } => segname : std::string, ind : ssize_t
 %option erase { prf_erase } => ind : ssize_t
 
-%option orexistselim { prf_orexistselim } => ind : ssize_t, 
-   name : std::string, [ branch : proofterm ] 
+%option orrepl { prf_orrepl } => 
+   ind : ssize_t, alt : size_t, [ sub : proofterm ] 
 
 %option orexistselimintro { prf_orexistselimintro } => 
    ind : ssize_t, alt : size_t, name : std::string, 
@@ -94,15 +94,15 @@
          out << ind << "flatten " << view_flatten( ). ind( ) << "\n";
          return; 
 
-      case prf_orexistselim:
+      case prf_orrepl:
          {
-            auto elim = view_orexistselim( ); 
-            out << ind << "orexistselim\n";
-            for( size_t i = 0; i != elim. size( ); ++ i )
-            {
-               out << ind << "branch " << i << ":\n";
-               elim. branch(i). print( ind + 3, out );
-            }
+            auto repl = view_orrepl( ); 
+            out << ind << "orrepl ";
+            out << repl. ind( ) << ", " << repl. alt( ) << "\n";
+
+            for( size_t i = 0; i != repl. size( ); ++ i )
+               repl. sub(i). print( ind + 3, out );
+
             return;
          }
 

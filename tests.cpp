@@ -551,7 +551,6 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 void 
 tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
 {
-#if 0
    auto O = logic::type( logic::type_obj );
    auto T = logic::type( logic::type_form );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
@@ -565,11 +564,11 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
       throw std::runtime_error( "cannot continue" );
 
    auto seq = sequent( );
+
    auto nr = seq. define( "goal",
                           blfs. at( f. front( )). view_form( ). fm( ),
                           logic::type( logic::type_form ));
 
-   seq. push_back( "goal" );
    seq. ugly( std::cout );
 
    std::cout << "start of a big proof --------------------------\n";
@@ -600,6 +599,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
       indhyp = lambda( {{ "n1", Nat }, { "n2", Nat }}, indhyp );
    }
 
+#if 0
    auto propproof = chain(
       { 
          proofterm( prf_expandlocal, -1, "goal", 0 ),
@@ -657,6 +657,9 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
          proofterm( prf_show, "PROP-UNFINISHED" ) 
       } );
 
+#endif
+
+#if 0
    auto mainproof =
       chain( { proofterm( prf_expandlocal, -1, "goal", 0 ),  
                proofterm( prf_flatten, -1 ),
@@ -777,85 +780,12 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                proofterm( prf_show, "AFTER DEFLOCAL" )
              });
 
-#if 0
-   auto prf3 = proofterm( prf_ident, identifier( ) + "forall0001" );
-   auto inst = apply( "Q0001"_unchecked, { "s0001"_unchecked, "s0002"_unchecked } );
-
-   auto base = "base0001"_assumption;
-   base = expand( "Q0001", 0, base );
-   base = clausify( base );
-   base = simplify( base );
-   base = show( "base case", base );
-
-   auto step = select( { 3 }, "exists0001"_assumption ); 
-   step = expand( "Q0001", 0, step );
-   step = clausify( step );
-   step = proofterm( prf_forallelim, step, 1, { "x0003"_unchecked, "x0004"_unchecked } );
-   step = simplify( step );
-
-   auto inst1 = proofterm( prf_forallelim, clausify( "gen_succ"_assumption ), 0, 
-                           { "s0001"_unchecked, "y0001"_unchecked } );
-   auto inst2 = proofterm( prf_forallelim, clausify( "gen_succ"_assumption ), 0,
-                           { "s0002"_unchecked, "y0002"_unchecked } );
-   auto inst3 = clausify( "minhomrel_succ"_assumption );
-   inst3 = proofterm( prf_forallelim, inst3, 0, { "s0001"_unchecked, "s0002"_unchecked, 
-                                                  "y0001"_unchecked, "y0002"_unchecked } );
-
-   auto left1 = "exists0001"_assumption;
-   left1 = select( {3}, left1 );
-   left1 = expand( "Q0001", 0, left1 );
-   left1 = clausify( left1 );
-   left1 = proofterm( prf_forallelim, left1, 1, { "x0003"_unchecked, "x0004"_unchecked } );
-   auto thm = proofterm( prf_forallelim, clausify( "minhomrel_zero"_assumption ), 0, { "s0001"_unchecked, "s0002"_unchecked } );
-
-   left1 = andintro( { left1, thm, "exists0001"_assumption, "base0002"_assumption } );
-   left1 = simplify( left1 );
-   left1 = show( "little step to the left", left1 );
-
-   step = orelim( clausify( expand( "Q0001", 0, "exists0001"_assumption )), 2, 
-                  "base", left1,
-                  "step", existselim( "step0002"_assumption, 0, "aaaa", show( "the little step to right", 
-                simplify( andintro( { step, "aaaa0001"_assumption, inst1, inst2, inst3 } )) )));
-   // I believe the proof is on the right track. We also need for minhomrel. 
-
-   step = existselim( "step0001"_assumption, 0, "exists", step );
-
-   auto goal2 = "alt0002"_assumption;
-   // goal2 = proofterm( prf_expand, identifier( ) + "Q0001", 0, goal2 );
-   goal2 = expand( "homrel", 0, goal2 );
-   goal2 = clausify( goal2 );
-   goal2 = orelim( goal2, 0, "base", base, "step", step );
-
-   auto goal3 = expand( "Q0001", 0, "alt0003"_assumption );
-   goal3 = show( "(the final goal, contradicts main0001 I think)", goal3 );
-
-   prf3 = proofterm( prf_forallelim, prf3, 0, { inst } );
-   prf3 = proofterm( prf_orelim, prf3, 0, 
-      { { "alt1", show( "looks like a type condition", fakecontr ) }, { "alt2", goal2 }, { "alt3", goal3 }} );
-
-   prf3 = proofterm( prf_define, "Q", indhyp, prf3 );
-
-   auto disj = proofterm( prf_ident, identifier( ) + "main0001" );
-   disj = expand( "minhomrel", 0, disj );
-   disj = expand( "minimal", 0, disj );
-   disj = proofterm( prf_show, "expanded disj", disj );
-
-   auto prf2 = proofterm( prf_orelim, disj, 2, {{ "forall", prf3 }} );
-
-   prf2. print( indentation( ), std::cout ); 
- 
-   auto res = 
-      deduce( proofterm( prf_existselim, exists, 0, "main", prf2 ), seq, err );
-
-   if( res. has_value( ))
-      std::cout << "evaluation of main proof returned: " << res. value( ) << "\n";
-   else
-      std::cout << "(evaluation of main proof failed)\n";
 #endif
 
-#if 0
    auto proof = chain( 
-      { proofterm( prf_propcut, "goal"_unchecked ), 
+      { proofterm( prf_cut, "goal"_unchecked ),
+        proofterm( prf_orrepl, -1, 1, { prf_nop } )  } );
+#if 0
         orexistselim( -1, "notprop", 
         { propproof, 
           chain(
@@ -864,15 +794,13 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
            }
        ) })
       });
-
+#endif
    proof. print( indentation( ), std::cout );
 
    checkproof( blfs, proof, seq, err );
    std::cout << "\n";
    std::cout << "FINAL STATE\n";
    seq. ugly( std::cout );
-#endif
-#endif
 }
 
 

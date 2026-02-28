@@ -92,11 +92,6 @@ int main( int argc, char* argv[] )
    std::cout << tm << "\n";
    std::cout << "change = " << change << "\n";
  
-   return 0;
-
-   tests::natded( ); 
-   return 0;
-
    errorstack err;
    logic::beliefstate blfs;  
    filehasher seen;
@@ -104,14 +99,7 @@ int main( int argc, char* argv[] )
    includefile( blfs, seen, "examples/standard.phl", err ); 
    includefile( blfs, seen, "aa1", err );
    includefile( blfs, seen, "examples/natural.phl", err );
-   // includefile( blfs, "examples/automata.phl" );
-
-   auto conj = calc::forall< calc::conjunction< logic::term >> (
-                  calc::conjunction( { 1_db, 2_db } ));
-
-   logic::pretty::uniquenamestack names;
-   auto print = calc::pretty_printer( std::cout, blfs );
-   print << conj << "\n";
+   // includefile( blfs, seen, "examples/automata.phl", err );
 
    seen. print( std::cout );
 
@@ -122,7 +110,6 @@ int main( int argc, char* argv[] )
    std::cout << "(after type checking)\n";
 
    tests::pretty( blfs );
-   return 0;
 
    std::cout << blfs << "\n";
 
@@ -130,7 +117,7 @@ int main( int argc, char* argv[] )
 
    // tests::truthtables( );
 
-   tests::smallproofs( blfs, err );
+   // tests::smallproofs( blfs, err );
    tests::bigproof( blfs, err );
 
    std::cout << err << "\n";

@@ -17,12 +17,6 @@ namespace calc
       return proofterm( prf_chain, sub );
    }
 
-   inline proofterm orexistselim( ssize_t ind, const std::string& name, 
-                                  std::initializer_list< proofterm > sub )
-   {
-      return proofterm( prf_orexistselim, ind, name, sub );
-   }
- 
    inline proofterm show( const std::string& label )
       { return proofterm( prf_show, label ); }
 

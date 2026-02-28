@@ -1,5 +1,5 @@
 
-#include "kleene.h"
+#include "kleene_operators.h"
 
 const char* calc::getcstring( kleene kl )
 {

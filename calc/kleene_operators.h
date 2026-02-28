@@ -11,7 +11,7 @@ namespace calc
    const char* getcstring( kleene );
 
    inline std::ostream& operator << ( std::ostream& out, kleene kl )
-      { out << getcstring( kl ); return out; }
+      { out << getcstring(kl); return out; }
 }
 
 #endif
