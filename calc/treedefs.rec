@@ -74,7 +74,7 @@
       {
 
       case prf_cut:
-         out << ind << "cut: " << view_cut( ). fm( ) << "\n";
+         out << ind << "cut " << view_cut( ). fm( ) << "\n";
          return;
 
       case prf_chain: 

@@ -22,13 +22,6 @@ void calc::sequent::segment::erase( ssize_t ind )
    stack. erase( it );
 }
 
-bool
-calc::sequent::segment::inrange( ssize_t ind ) const
-{
-   ssize_t ss = stack. size( );
-   return ind >= -ss && ind < ss;
-}
-
 auto
 calc::sequent::segment::find( ssize_t ind ) 
    -> segment::iterator
@@ -94,10 +87,44 @@ void calc::sequent::pop_back( )
 
 #endif
 
-const calc::sequent::seqform& 
-calc::sequent::sequent::at( ssize_t ind ) const 
+bool
+calc::sequent::hasindex( ssize_t ind ) const
 {
+   ssize_t ss = stack. size( );
+   return ind >= -ss && ind < ss;
 }
+
+const calc::sequent::seqform& calc::sequent::at( ssize_t ind ) const 
+{
+   if( !hasindex( ind ))
+      throw std::range_error( "sequent: index out of range" );
+  
+   auto it = ind >= 0 ? ( stack. begin( ) + ind ) : ( stack. end( ) + ind );
+   return *it;
+}
+
+calc::sequent::seqform& calc::sequent::at( ssize_t ind ) 
+{     
+   if( !hasindex( ind ))
+      throw std::range_error( "sequent: index out of range" ); 
+ 
+   auto it = ind >= 0 ? ( stack. begin( ) + ind ) : ( stack. end( ) + ind );
+   return *it;
+}           
+
+void calc::sequent::block( ssize_t ind ) 
+{
+   size_t k = ( ind >= 0 ) ? ind : stack. size( ) - ind - 1;
+      // This is the real index in stack.
+
+   if( !stack[k]. blocked )
+   {
+      stack[k]. blocked = true;
+      if( levels. size( ) > 0 )
+         levels. back( ). blocking. push_back(k); 
+   }
+}
+
 
 #if 0
 

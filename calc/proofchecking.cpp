@@ -668,8 +668,31 @@ calc::checkproof( const logic::beliefstate& blfs,
    case prf_orrepl:
       {
          auto repl = prf. view_orrepl( );
-          
+         if( !seq. hasindex( repl. ind( )))
+         {
+            throw std::logic_error( "orrepl: wrong index" );
 
+         } 
+
+         if( !seq. at( repl. ind( )). is_dnf( ))
+         {
+            throw std::logic_error( "orrepl: formula is not DNF" );
+         }
+
+         const auto& dnf = seq. at( repl. ind( )). get_dnf( );
+         if( repl. alt( ) >= dnf. size( ))
+         {
+            throw std::logic_error( "orrepl: alternative does not exist" ); 
+         }
+
+         const auto& choice = dnf. at( repl. alt( ));
+         std::cout << choice << "\n";
+
+         size_t lev = seq. nrlevels( );
+         seq. addlevel( );
+
+         seq. block( repl. ind( ));
+         seq. append( disjunction( 
          throw std::logic_error( "orrepl not finished" );
       }
 

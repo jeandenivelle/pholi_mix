@@ -63,21 +63,26 @@ namespace calc
          // If a position in ctxt is a definition, its value is here.
          // We look from the beginning of course. 
 
-      struct assumption
+      struct level
       {
-         size_t ind;  
-            // Index in formulas of the assumed formula. 
+         size_t ctxtsize; 
+         size_t stacksize; 
+            // Sizes of context and stack.
 
          std::vector< size_t > blocking;
-            // Indices of formulas that we are blocking.
-  
+            // Indices of formulas that are blocked at this level.
+ 
+         level( size_t ctxtsize, size_t stacksize )
+            : ctxtsize( ctxtsize ),
+              stacksize( stacksize )
+         { }
+ 
 #if 0 
          void push( forall< disjunction< exists< logic::term >>> form )
             { stack. push_back( std::move( form )); }
 
          // We use Python style indexing. That means that -1 is the last
          // element, and 0 is the first element: 
-
 
          forall< disjunction< exists< logic::term >>> &
             at( ssize_t ind );
@@ -105,15 +110,14 @@ namespace calc
          // const_iterator find( ssize_t ind ) const; 
       };
 
+      std::vector< level > levels;
+
       sequent( ) noexcept = default;
       sequent( sequent&& ) noexcept = default;
       sequent& operator = ( sequent&& ) noexcept = default;
 
-
       void ugly( std::ostream& out ) const;  
       void pretty( pretty_printer& out ) const;
-
-      // The number returned can be used for restoring the context:
 
       size_t assume( const std::string& name, const logic::type& tp );
 
@@ -128,10 +132,18 @@ namespace calc
       void pop_back( );
          // Add or remove a segment.
 
+      bool hasindex( ssize_t ind ) const; 
       const seqform& at( ssize_t ind ) const; 
       seqform& at( ssize_t ind );
+         // We use Python style circular indexing.
 
-      size_t size( ) const { return stack. size( ); }
+      size_t nrlevels( ) const { return levels. size( ); }
+      void addlevel( ) 
+         { levels. push_back( level( ctxt. size( ), stack. size( ))); }
+
+      void block( ssize_t ind );
+         // If we have a choice level, we register the blocking,
+         // so that it can be restored.
 
 #if 0
       const segment& back( ) const;
