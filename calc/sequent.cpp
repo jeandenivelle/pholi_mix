@@ -114,7 +114,7 @@ calc::sequent::seqform& calc::sequent::at( ssize_t ind )
 
 void calc::sequent::block( ssize_t ind ) 
 {
-   size_t k = ( ind >= 0 ) ? ind : stack. size( ) - ind - 1;
+   size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
       // This is the real index in stack.
 
    if( !stack[k]. blocked )
@@ -125,6 +125,11 @@ void calc::sequent::block( ssize_t ind )
    }
 }
 
+size_t calc::sequent::liftdist( ssize_t ind ) const
+{
+   size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
+   return ctxt. size( ) - stack[k]. ctxtsize; 
+}
 
 #if 0
 
@@ -168,7 +173,6 @@ void calc::sequent::restore( size_t ss )
 }
 
 #endif
-
 
 void calc::sequent::ugly( std::ostream& out ) const
 {

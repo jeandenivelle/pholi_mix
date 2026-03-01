@@ -145,6 +145,10 @@ namespace calc
          // If we have a choice level, we register the blocking,
          // so that it can be restored.
 
+      size_t liftdist( ssize_t ind ) const;
+         // The distance over which the formula at ind must be lifted
+         // so that it can be put at the end of the context. 
+
 #if 0
       const segment& back( ) const;
       segment& back( );

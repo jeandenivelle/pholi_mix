@@ -26,22 +26,22 @@ void calc::printbar( std::ostream& out )
       out << '-';
 }
 
-#if 0
-
-auto 
-calc::lift( forall< disjunction< exists< logic::term >>> cls, size_t dist )
-   -> forall< disjunction< exists< logic::term >>>
+namespace
 {
-   std::cout << "lifting " << cls << " over distance " << dist << "\n";
-   if( dist > 0 )
+   template< typename F > F lift( F f, size_t dist )
    {
-      auto lift = logic::lifter( dist );
-      return outermost( lift, std::move( cls ), 0 );
+      std::cout << "lifting " << f << " over distance " << dist << "\n";
+      if( dist != 0 )
+      {
+         auto lift = logic::lifter( dist );
+         return outermost( lift, std::move(f), 0 );
+      }
+      else
+         return f;
    }
-   else
-      return cls; 
 }
 
+#if 0
 void
 calc::betapi( const logic::beliefstate& blfs,
               forall< disjunction< exists< logic::term >>> & tm )
@@ -668,31 +668,45 @@ calc::checkproof( const logic::beliefstate& blfs,
    case prf_orrepl:
       {
          auto repl = prf. view_orrepl( );
-         if( !seq. hasindex( repl. ind( )))
+         size_t ind = repl. ind( );
+         size_t alt = repl. alt( );
+
+         if( !seq. hasindex( ind ))
          {
             throw std::logic_error( "orrepl: wrong index" );
 
          } 
 
-         if( !seq. at( repl. ind( )). is_dnf( ))
+         if( !seq. at( ind ). is_dnf( ))
          {
             throw std::logic_error( "orrepl: formula is not DNF" );
          }
 
-         const auto& dnf = seq. at( repl. ind( )). get_dnf( );
-         if( repl. alt( ) >= dnf. size( ))
+         if( alt >= seq. at( ind ). get_dnf( ). size( ))
          {
             throw std::logic_error( "orrepl: alternative does not exist" ); 
          }
 
-         const auto& choice = dnf. at( repl. alt( ));
-         std::cout << choice << "\n";
+         // Now we are certain that the rule will be applied.
 
-         size_t lev = seq. nrlevels( );
+         auto chosen = seq. at( ind ). get_dnf( ). at( alt );
+         std::cout << chosen << "\n";
+         chosen = lift( std::move( chosen ), seq. liftdist( ind ));
+         std::cout << "chosen after lift: " << chosen << "\n"; 
+
+         size_t lev = seq. nrlevels( ); 
          seq. appendlevel( );
 
          seq. block( repl. ind( ));
-         seq. append( disjunction( 
+         seq. append( disjunction( { std::move( chosen ) } ));
+
+         for( size_t i = 0; i != repl. size( ); ++ i )
+         {
+            auto prf = repl. extr_sub(i);
+            checkproof( blfs, prf, seq, err ); 
+            repl. update_sub( i, std::move( prf )); 
+         }
+
          throw std::logic_error( "orrepl not finished" );
       }
 
@@ -995,10 +1009,14 @@ calc::checkproof( const logic::beliefstate& blfs,
          return;
       }
 
+#endif
+
    case prf_nop:
       {
          return;   // Truly nothing was done. 
       }
+
+#if 0
 
    case prf_show:
       {

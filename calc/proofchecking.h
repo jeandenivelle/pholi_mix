@@ -22,8 +22,6 @@ namespace calc
    betapi( const logic::beliefstate& blfs, 
            forall< disjunction< exists< logic::term >>> & tm );
 
-   forall< disjunction< exists< logic::term >>>
-   lift( forall< disjunction< exists< logic::term >>> cls, size_t dist );
 
    std::optional< logic::type >
    checktype( const logic::beliefstate& blfs,
