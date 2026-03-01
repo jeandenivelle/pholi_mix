@@ -138,7 +138,7 @@ namespace calc
          // We use Python style circular indexing.
 
       size_t nrlevels( ) const { return levels. size( ); }
-      void addlevel( ) 
+      void appendlevel( ) 
          { levels. push_back( level( ctxt. size( ), stack. size( ))); }
 
       void block( ssize_t ind );

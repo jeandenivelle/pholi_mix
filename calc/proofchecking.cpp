@@ -689,7 +689,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          std::cout << choice << "\n";
 
          size_t lev = seq. nrlevels( );
-         seq. addlevel( );
+         seq. appendlevel( );
 
          seq. block( repl. ind( ));
          seq. append( disjunction( 
