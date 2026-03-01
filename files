@@ -39,8 +39,8 @@
 %sources
    selector.cpp
    polarity.cpp
-   kleene_operators.cpp
    util.cpp
+   flatten.cpp
    expander.cpp
    localexpander.cpp
    projection.cpp

@@ -1,6 +1,6 @@
 
-#ifndef CALC_ALTERNATING_
-#define CALC_ALTERNATING_
+#ifndef CALC_FLATTEN_
+#define CALC_FLATTEN_
 
 #include "logic/term.h"
 #include "logic/context.h"
@@ -8,7 +8,6 @@
 #include "normalforms.h"
 
 #include "polarity.h"
-#include "kleene_operators.h"
 
 namespace calc
 {
@@ -21,11 +20,15 @@ namespace calc
    logic::term apply_prop( const logic::term& f, polarity pol );
       // Returns prop(f) or not( prop(f)).
 
-   kleene kleening( logic::selector sel, polarity pol );
+   bool decomp_cnf( logic::selector op, polarity pol );
+   bool decomp_dnf( logic::selector op, polarity pol );
+      // True if the operator is decomposable.
+      // We don't need to specify what we become, because
+      // that is always clear from op.
 
-   anf< logic::term > flatten( anf< logic::term > conj );
+   cnf< logic::term > flatten( cnf< logic::term > conj );
    dnf< logic::term > flatten( dnf< logic::term > disj );
-
+   
    void 
    extract( std::vector< logic::vartype > & ctxt,
             polarity pol,

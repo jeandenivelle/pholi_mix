@@ -79,6 +79,9 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
+   tests::flatten( );
+   return 0;
+
    using namespace logic;
 
    decurrier dec;

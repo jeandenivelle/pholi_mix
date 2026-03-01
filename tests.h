@@ -10,7 +10,7 @@ namespace tests
 {
    void add_settheory( logic::beliefstate& blfs );
 
-   void alternating( );
+   void flatten( );
 
    void simplify( );
 

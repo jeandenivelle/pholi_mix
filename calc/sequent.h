@@ -129,9 +129,6 @@ namespace calc
       void append( unf< logic::term > u ); 
       void append( dnf< logic::term > d );
      
-      void pop_back( );
-         // Add or remove a segment.
-
       bool hasindex( ssize_t ind ) const; 
       const seqform& at( ssize_t ind ) const; 
       seqform& at( ssize_t ind );

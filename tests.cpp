@@ -9,7 +9,7 @@
 
 #include "calc/proofterm.h"
 #include "calc/proofchecking.h"
-#include "calc/alternating.h"
+#include "calc/flatten.h"
 #include "calc/removelets.h"
 #include "calc/expander.h"
 #include "calc/projection.h"
@@ -144,6 +144,38 @@ void tests::add_settheory( logic::beliefstate& blfs )
                                      { type( type_unchecked, 
                                              identifier( ) + "Settheory" ) } ) ));
 }
+
+void tests::flatten( )
+{
+   using namespace logic;
+
+   auto O = type( type_obj );
+   auto T = type( type_form );
+
+   auto N2T = type( type_func, T, { } );
+
+   auto O2T = type( type_func, T, { O } );
+   auto O2O = type( type_func, O, { O } );
+   auto OO2T = type( type_func, T, { O, O } );
+   auto OOO2T = type( type_func, T, { O, type( type_struct, exact(44)), O } );
+
+   term tm = ( 0_db && 1_db ) || ( 0_db != 1_db );
+
+   auto cnf = calc::cnf( calc::conjunction( { calc::forall( tm ) } )); 
+   auto dnf = calc::dnf( calc::disjunction( { calc::exists( !tm ) } ));
+   std::cout << cnf << "\n";
+   std::cout << dnf << "\n";
+
+   cnf = flatten( std::move( cnf ));
+   dnf = flatten( std::move( dnf ));
+
+   std::cout << "\n";
+
+   std::cout << cnf << "\n";
+   std::cout << dnf << "\n";
+
+}
+
 
 
 void tests::pretty( const logic::beliefstate& blfs )
@@ -784,7 +816,11 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
 
    auto proof = chain( 
       { proofterm( prf_cut, "goal"_unchecked ),
-        proofterm( prf_orrepl, -1, 1, { prf_nop } )  } );
+        proofterm( prf_orrepl, -1, 1, 
+        { prf_nop,
+          proofterm( prf_expandlocal, -1, "goal", 0 ),
+          proofterm( prf_flatten, -1 ) 
+        } ) } );
 #if 0
         orexistselim( -1, "notprop", 
         { propproof, 

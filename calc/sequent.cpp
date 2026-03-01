@@ -75,18 +75,6 @@ void calc::sequent::append( dnf< logic::term > d )
    stack. push_back( seqform( std::move(d), ctxt. size( )));
 }
 
-#if 0
-
-void calc::sequent::pop_back( )
-{
-   if( seg. size( ) == 0 )
-      throw std::logic_error( "pop_back( ) : nothing to pop" );
-
-   seg. pop_back( );
-}
-
-#endif
-
 bool
 calc::sequent::hasindex( ssize_t ind ) const
 {

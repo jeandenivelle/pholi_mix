@@ -13,7 +13,7 @@
 #include "projection.h"
 #include "outermost.h"
 #include "traverse.h"
-#include "alternating.h"
+#include "flatten.h"
 #include "atp.h"
 
 #include "printing.h"
@@ -134,14 +134,22 @@ calc::checkproof( const logic::beliefstate& blfs,
    switch( prf. sel( ))
    {
 
-#if 0
    case prf_flatten: 
       {
          auto flat = prf. view_flatten( ); 
-
-         if( !seq. back( ). inrange( flat. ind( )) )
+         if( !seq. hasindex( flat. ind( )))
             throw std::logic_error( "flatten: index out of range" );
 
+         if( seq. at( flat. ind( )). is_dnf( ))
+         {
+            auto f = lift( seq. at( flat. ind( )). get_dnf( ), 
+                           seq. liftdist( flat. ind( )));
+            std::cout << "f = " << f << "\n"; 
+            f = flatten( std::move(f) );
+            std::cout << "after flattening " << f << "\n";
+         }
+
+#if 0
          auto fm = std::move( seq. back( ). at( flat. ind( )) );
          seq. back( ). erase( flat. ind( )); 
 
@@ -151,10 +159,12 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          for( auto& c : conj )
             seq. back( ). push( std::move(c) );
-
+#endif
+         throw std::logic_error( "this is flatten" );
          return;
       }
 
+#if 0
    case prf_orexistselim:
       {
          auto elim = prf. view_orexistselim( ); 
@@ -576,9 +586,12 @@ calc::checkproof( const logic::beliefstate& blfs,
          return;
       }
 
+#endif
+
    case prf_expandlocal:
       {
          auto exp = prf. view_expandlocal( );
+         auto ind = exp. ind( );
          auto name = exp. name( );
 
          // We have an identifier, but we need a De Bruijn index:
@@ -597,25 +610,42 @@ calc::checkproof( const logic::beliefstate& blfs,
          auto p = seq. defs. find( var );
          if( p == seq. defs. end( ))
          {
-            throw std::logic_error( "variable has no definition" );
+            throw std::logic_error( "variable is not a definition" );
          }
-
-         if( seq. back( ). contextsize != seq. ctxt. size( ))
-            throw std::logic_error( "size of context does not fit to segment" );
 
          auto def = localexpander( seq. ctxt. size( ) - var - 1,  
                                    p -> second, 
                                    prf. view_expandlocal( ). occ( ));
-
-         if( !seq. back( ). inrange( exp. ind( )))
+        
+         if( !seq. hasindex( ind ))
             throw std::logic_error( "expandlocal: index out of range" );
 
+         // Now we need to look at the type of formula at hand:
+
+         if( seq. at( ind ). is_dnf( )) 
+         {
+            auto d = seq. at( ind ). get_dnf( );
+            d = lift( std::move(d), seq. liftdist( ind ));
+            std::cout << "after the lift " << d << "\n";
+            seq. block( ind );
+            seq. append( outermost( def, std::move(d), 0 ));
+            return;
+         }
+
+         if( seq. at( ind ). is_unf( ))
+         {
+
+
+         }
+#if 0
          seq. back( ). at( exp. ind( )) =
             outermost( def, std::move( seq. back( ). at( exp. ind( ))), 0 );
-
+#endif
+         seq. ugly( std::cout );
+         throw std::logic_error( "not finished epxand local" );
          return;
       }
-
+#if 0
    case prf_betapi:
       { 
          auto ind = prf. view_betapi( ). ind( );
