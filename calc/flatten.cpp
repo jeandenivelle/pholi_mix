@@ -76,13 +76,14 @@ logic::term calc::apply_prop( const logic::term& f, polarity pol )
 
 bool calc::decomp_cnf( logic::selector op, polarity pol )
 {
+
    if( pol == pol_pos )
    {
       switch( op ) 
       {
       case logic::op_true:
-      case logic::op_error:
       case logic::op_and: 
+      case logic::op_equiv:
       case logic::op_lazy_and:
       case logic::op_forall:
          return true; 
@@ -113,8 +114,8 @@ bool calc::decomp_dnf( logic::selector op, polarity pol )
    {
       switch( op )
       {
-      case logic::op_error:
       case logic::op_false:
+      case logic::op_error:
       case logic::op_or:
       case logic::op_implies:
       case logic::op_lazy_implies:
@@ -128,8 +129,10 @@ bool calc::decomp_dnf( logic::selector op, polarity pol )
    {
       switch( op ) 
       {
+      case logic::op_error:
       case logic::op_true:
       case logic::op_and:
+      case logic::op_equiv:
       case logic::op_lazy_and:
       case logic::op_forall:
          return true;
@@ -203,11 +206,13 @@ calc::extract( std::vector< logic::vartype > & ctxt,
    case op_false:
    case op_error:
    case op_true:
+      // Doing nothing means that the operator is transformed:
+
       if( decomp_cnf( fm. sel( ), pol ))
-         return;
+         return;  
       else
       {
-         conj. append( forall( ctxt, term( op_false )));
+         conj. append( forall( ctxt, apply( fm, pol ) ));
          return;
       }
 
@@ -244,30 +249,24 @@ calc::extract( std::vector< logic::vartype > & ctxt,
             extract( ctxt, pol, bin. sub2( ), conj );
          }
          else
-            conj. append( forall( ctxt, fm ));
+            conj. append( forall( ctxt, apply( fm, pol ) ));
          return;
       }
 
    case op_equiv:
       {
-         auto bin = fm. view_binary( ); 
-         if( pol == pol_pos )
+         // We always interpret as ( A -> B ) && ( B -> A ):
+
+         if( decomp_cnf( fm. sel( ), pol ))
          {
-            auto impl1 = logic::term( op_implies, bin. sub1( ), bin. sub2( ));
-            auto impl2 = logic::term( op_implies, bin. sub2( ), bin. sub1( ));
-            conj. append( forall( ctxt, impl1 ));
-            conj. append( forall( ctxt, impl2 ));
+            auto bin = fm. view_binary( ); 
+            auto impl1 = term( op_implies, bin. sub1( ), bin. sub2( ));
+            auto impl2 = term( op_implies, bin. sub2( ), bin. sub1( ));
+            extract( ctxt, pol, impl1, conj );
+            extract( ctxt, pol, impl2, conj );
          }
          else
-         {
-            auto disj1 = logic::term( op_or, 
-                            apply( bin. sub1( ), pol_neg ),
-                            apply( bin. sub2( ), pol_neg ));
-
-            auto disj2 = logic::term( op_or, bin. sub1( ), bin. sub2( ));
-            conj. append( forall( ctxt, disj1 )); 
-            conj. append( forall( ctxt, disj2 ));
-         }
+            conj. append( forall( ctxt, apply( fm, pol ) ));  
          return;
       }
 
@@ -318,11 +317,13 @@ calc::extract( std::vector< logic::vartype > & ctxt,
    case op_false:
    case op_error:
    case op_true:
+      // Doing nothing means that the operator is transformed:
+
       if( decomp_dnf( fm. sel( ), pol ))
          return;
       else
       {
-         disj. append( exists( ctxt, term( op_true )));
+         disj. append( exists( ctxt, apply( fm, pol ) ));
          return;
       }
 
@@ -365,27 +366,18 @@ calc::extract( std::vector< logic::vartype > & ctxt,
 
    case op_equiv:
       {
-         auto bin = fm. view_binary( );
-         if( pol == pol_pos )
-         {
-            auto conj1 = logic::term( op_and, bin. sub1( ), bin. sub2( ));
-            auto conj2 = logic::term( op_and,
-                            apply( bin. sub1( ), pol_neg ),
-                            apply( bin. sub2( ), pol_neg ));
+         // We always interpret as ( A -> B ) && ( B -> A ):
 
-            disj. append( exists( ctxt, conj1 ));
-            disj. append( exists( ctxt, conj2 ));
+         if( decomp_dnf( fm. sel( ), pol ))
+         {
+            auto bin = fm. view_binary( );
+            auto impl1 = term( op_implies, bin. sub1( ), bin. sub2( ));
+            auto impl2 = term( op_implies, bin. sub2( ), bin. sub1( ));
+            extract( ctxt, pol, impl1, disj );
+            extract( ctxt, pol, impl2, disj );
          }
          else
-         {
-            auto conj1 = logic::term( op_and, bin. sub1( ), 
-                                      apply( bin. sub2( ), pol_neg ));
-            auto conj2 = logic::term( op_and, bin. sub2( ), 
-                                      apply( bin. sub1( ), pol_neg ));
-            disj. append( exists( ctxt, conj1 ));
-            disj. append( exists( ctxt, conj2 ));
-         }
-
+            disj. append( exists( ctxt, apply( fm, pol ) )); 
          return;
       }
 
@@ -401,8 +393,6 @@ calc::extract( std::vector< logic::vartype > & ctxt,
       else
          disj. append( exists( ctxt, apply( fm, pol )));
       return;
-
-
    }
 
    std::cout << "extract-disj " << pol << " :  " << fm. sel( ) << "\n";
@@ -467,14 +457,14 @@ calc::extract_prop( std::vector< logic::vartype > & ctxt,
       {
          auto bin = fm. view_binary( );
          extract_prop( ctxt, pol, bin. sub1( ), conj );
-         auto op = op_implies;
 
-         conj. append( forall( ctxt, term( op, bin. sub1( ), 
-                                     term( op_prop, bin. sub2( ) )) ));
+         conj. append( forall( ctxt, 
+                        term( op_implies, bin. sub1( ), 
+                              term( op_prop, bin. sub2( ) )) ));
       } 
       else
          conj. append( forall( ctxt, apply_prop( fm, pol ) ));
-            // Can think of nothing better.
+
       return;
 
    case op_forall:
@@ -549,18 +539,18 @@ calc::extract_prop( std::vector< logic::vartype > & ctxt,
 
    case op_lazy_and:
    case op_lazy_implies:
-      if( pol == pol_pos )
-         disj. append( exists( ctxt, apply_prop( fm, pol ) ));
-      else
+      if( pol == pol_neg )
       {
          auto bin = fm. view_binary( );
          extract_prop( ctxt, pol, bin. sub1( ), disj );
-         pol = pol_pos;
 
          disj. append( exists( ctxt, 
-            term( op_and, apply( bin. sub1( ), pol ),
-                          apply_prop( bin. sub2( ), pol_neg )) ));
+            term( op_not, 
+               term( op_implies, bin. sub1( ),
+                  term( op_prop, bin. sub2( ) )))) );
       }
+      else
+         disj. append( exists( ctxt, apply_prop( fm, pol ) ));
       return;
 
    case op_forall:

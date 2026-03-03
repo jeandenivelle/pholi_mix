@@ -145,6 +145,7 @@ void tests::add_settheory( logic::beliefstate& blfs )
                                              identifier( ) + "Settheory" ) } ) ));
 }
 
+
 void tests::flatten( )
 {
    using namespace logic;
@@ -159,20 +160,33 @@ void tests::flatten( )
    auto OO2T = type( type_func, T, { O, O } );
    auto OOO2T = type( type_func, T, { O, type( type_struct, exact(44)), O } );
 
-   term tm = ( 0_db && 1_db ) || ( 0_db != 1_db );
+   term tm =  lazy_implies( "left"_unchecked, "right"_unchecked );
+   tm = term( op_exists, tm, { { "x", O }, { "y", T }} );
 
-   auto cnf = calc::cnf( calc::conjunction( { calc::forall( tm ) } )); 
-   auto dnf = calc::dnf( calc::disjunction( { calc::exists( !tm ) } ));
-   std::cout << cnf << "\n";
-   std::cout << dnf << "\n";
+   auto cnf_pos = calc::cnf( calc::conjunction( { calc::forall( prop( tm )) } )); 
+   auto dnf_pos = calc::dnf( calc::disjunction( { calc::exists( ! ! prop( tm )) } ));
+   auto cnf_neg = calc::cnf( calc::conjunction( { calc::forall( ! prop( tm )) } ));
+   auto dnf_neg = calc::dnf( calc::disjunction( { calc::exists( ! prop( tm )) } ));
 
-   cnf = flatten( std::move( cnf ));
-   dnf = flatten( std::move( dnf ));
+   std::cout << cnf_pos << "\n";
+   std::cout << dnf_pos << "\n"; 
+   std::cout << cnf_neg << "\n";
+   std::cout << dnf_neg << "\n";
+
+   cnf_pos = flatten( std::move( cnf_pos ));
+   dnf_pos = flatten( std::move( dnf_pos ));
+
+   cnf_neg = flatten( std::move( cnf_neg ));
+   dnf_neg = flatten( std::move( dnf_neg ));
 
    std::cout << "\n";
 
-   std::cout << cnf << "\n";
-   std::cout << dnf << "\n";
+   std::cout << "positive:\n";
+   std::cout << "   " << cnf_pos << "\n";
+   std::cout << "   " << dnf_pos << "\n";
+   std::cout << "negative:\n";
+   std::cout << "   " << cnf_neg << "\n";
+   std::cout << "   " << dnf_neg << "\n";
 
 }
 

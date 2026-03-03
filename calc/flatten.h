@@ -22,9 +22,9 @@ namespace calc
 
    bool decomp_cnf( logic::selector op, polarity pol );
    bool decomp_dnf( logic::selector op, polarity pol );
-      // True if the operator is decomposable.
-      // We don't need to specify what we become, because
-      // that is always clear from op.
+      // True if the operator is decomposable for the given normal form.
+      // We don't need to return the result, because
+      // that is always clear from op and the normal form. 
 
    cnf< logic::term > flatten( cnf< logic::term > conj );
    dnf< logic::term > flatten( dnf< logic::term > disj );
