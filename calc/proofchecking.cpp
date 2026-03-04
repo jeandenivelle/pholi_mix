@@ -30,7 +30,7 @@ namespace
 {
    template< typename F > F lift( F f, size_t dist )
    {
-      std::cout << "lifting " << f << " over distance " << dist << "\n";
+      // std::cout << "lifting " << f << " over distance " << dist << "\n";
       if( dist != 0 )
       {
          auto lift = logic::lifter( dist );
@@ -140,13 +140,37 @@ calc::checkproof( const logic::beliefstate& blfs,
          if( !seq. hasindex( flat. ind( )))
             throw std::logic_error( "flatten: index out of range" );
 
+         // If it is UNF, we know that it is non-trivial. 
+         // Hence, we can only flatten into UNF.
+
+
          if( seq. at( flat. ind( )). is_dnf( ))
          {
             auto f = lift( seq. at( flat. ind( )). get_dnf( ), 
                            seq. liftdist( flat. ind( )));
             std::cout << "f = " << f << "\n"; 
+            if( istrivial(f))
+            {
+               auto cnf = conjunction( { forall( f. at(0). body ) } );
+               cnf = flatten( std::move( cnf )); 
+               if( !istrivial( cnf ))
+               {
+                  seq. block( flat. ind( )); 
+                  seq. append( std::move( cnf ));
+                  return;
+               } 
+
+            }
             f = flatten( std::move(f) );
             std::cout << "after flattening " << f << "\n";
+            if( !istrivial(f))
+            {
+               seq. block( flat. ind( ));
+               seq. append( std::move(f)); 
+               return;
+            }
+
+            
          }
 
 #if 0
@@ -344,69 +368,52 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          return; 
       }
-
-   case prf_orexistselimintro:
+#endif 
+   case prf_existsrepl:
       {
-         auto elim = prf. view_orexistselimintro( ); 
-         auto mainform = std::move( seq. back( ). at( elim. ind( )) );
-            // Should be a clause without variables.
+         auto repl = prf. view_existsrepl( ); 
+         size_t ind = repl. ind( ); 
+
+         if( !seq. hasindex( ind ))
+            throw std::logic_error( "existsrepl: index out of range" );
+
+         if( !seq. at( ind ). is_dnf( ))
+            throw std::logic_error( "existsrepl: formula is not DNF" );
+
+         if( seq. at( ind ). get_dnf( ). size( ) != 1 )
+            throw std::logic_error( "existsrepl: formula not a singleton" ); 
+
+         enf< logic::term > mainform = seq. at( ind ). get_dnf( ). at(0); 
+
+         mainform = lift( std::move( mainform ), seq. liftdist( ind ));
          std::cout << "mainform = " << mainform << "\n\n\n";
 
-         seq. back( ). erase( elim. ind( ));
-
-         if( mainform. vars. size( ))
-         {
-            std::cout << "orexistselimintro\n";
-            throw std::runtime_error( "there are universal variables" );
-         }
-
-         dnf< logic::term > disj = std::move( mainform. body );
-            // It is a disjunction of existential formulas. 
-
-         size_t ss = seq. ctxt. size( ); 
-         size_t nrsegments = seq. size( );
-         if( elim. alt( ) >= disj. size( ))
-         {
-            std::cout << "disj = " << disj << "\n";
-            std::cout << elim. alt( ) << "\n"; 
-            throw std::runtime_error( "alternative too big" );
-         }
-
-         exists< logic::term > alt = 
-            std::move( disj. at( elim. alt( )) );
-            // Formula that we are going to assume.
-            // We can safely move it I think.
-
-         std::cout << "alt = " << alt << "\n";
-
-         if( elim. eigen( ). size( ) > alt. vars. size( ))
-            throw std::runtime_error( "existselim: too many variables" );
+         size_t ss = seq. ctxt. size( );
 
          // Assume the existentially quantified variables of alt:
 
-         for( size_t v = 0; v != alt. vars. size( ); ++ v )
+         for( size_t v = 0; v != mainform. vars. size( ); ++ v )
          {
-            if( v < elim. eigen( ). size( ))
-               seq. assume( elim. eigen( ). at(v), alt. vars[v]. tp );
+            if( v < repl. eigen( ). size( ))
+               seq. assume( repl. eigen( ). at(v), mainform. vars[v]. tp );
             else
-               seq. assume( alt. vars[v]. pref, alt. vars[v]. tp );
+               seq. assume( mainform. vars[v]. pref, mainform. vars[v]. tp );
          }
 
-         // Create a new segment in the sequent:
-
-         seq. push_back( elim. name( ));
+         seq. block( ind );
 
          // Assume the body of alt (without the variables):
  
-         seq. back( ). push( forall( disjunction{ exists( alt. body ) } ));
+         seq. append( disjunction( { exists( mainform. body ) } ));
 
-         for( size_t i = 0; i != elim. size( ); ++ i )
+         for( size_t i = 0; i != repl. size( ); ++ i )
          {
-            auto subproof = elim. extr_sub(i);
+            auto subproof = repl. extr_sub(i);
             checkproof( blfs, subproof, seq, err );
-            elim. update_sub( i, std::move( subproof ));
+            repl. update_sub( i, std::move( subproof ));
          }
 
+#if 0
 #if 0
             // Was part of testing. Should be completely removed later:
 
@@ -528,9 +535,10 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          seq. back( ). push( std::move( mainform ));
          return; 
+#endif
+         throw std::logic_error( "existsrepl is not finished" ); 
       }
 
-#endif
    case prf_cut:
       {
          auto cut = prf. view_cut( );
@@ -567,7 +575,7 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          return; 
       }
-#if 0
+
    case prf_expand:
       {
          auto exp = prf. view_expand( ); 
@@ -577,16 +585,18 @@ calc::checkproof( const logic::beliefstate& blfs,
             // The expander will look only at exact overloads. 
             // This guarantees type safety.
 
+#if 0
          if( !seq. back( ). inrange( exp. ind( )))
             throw std::logic_error( "expand: index out of range" );
 
          seq. back( ). at( exp. ind( )) =
             outermost( def, std::move( seq. back( ). at( exp. ind( ))), 0 );
 
+#endif
+         throw std::logic_error( "expand unfinished" );
          return;
       }
 
-#endif
 
    case prf_expandlocal:
       {
@@ -1046,7 +1056,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          return;   // Truly nothing was done. 
       }
 
-#if 0
 
    case prf_show:
       {
@@ -1059,7 +1068,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          seq. pretty( out );
          return;
       } 
-#endif
+
    }
 
    std::cout << prf. sel( ) << "\n";

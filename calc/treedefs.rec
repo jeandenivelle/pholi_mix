@@ -17,9 +17,8 @@
 %option orrepl { prf_orrepl } => 
    ind : ssize_t, alt : size_t, [ sub : proofterm ] 
 
-%option orexistselimintro { prf_orexistselimintro } => 
-   ind : ssize_t, alt : size_t, name : std::string, 
-   eigen : std::vector< std::string >, [ sub : proofterm ]
+%option existsrepl { prf_existsrepl } => 
+   ind : ssize_t, eigen : std::vector< std::string > , [ sub : proofterm ]
       // If you don't combine these two rules, you get too many segments.
       // Without explicit eigennames, you cannot refer to introduced 
       // variables in proofs.
@@ -106,16 +105,13 @@
             return;
          }
 
-      case prf_orexistselimintro: 
+      case prf_existsrepl: 
          {
-            auto elim = view_orexistselimintro( );
-            out << ind << "orexistselimintro " << elim. ind( ) << "/";
-            out << elim. alt( ) << "\n";
-            out << ind << "name " << elim. name( ) << "\n";
-            for( size_t i = 0; i != elim. size( ); ++ i )
-            {
-               elim. sub(i). print( ind + 3, out ); 
-            }
+            auto repl = view_existsrepl( );
+            out << ind << "exists " << repl. ind( ) << "\n";
+            for( size_t i = 0; i != repl. size( ); ++ i )
+               repl. sub(i). print( ind + 3, out ); 
+
             return;
          }
 

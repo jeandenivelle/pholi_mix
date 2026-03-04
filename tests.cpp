@@ -833,7 +833,14 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
         proofterm( prf_orrepl, -1, 1, 
         { prf_nop,
           proofterm( prf_expandlocal, -1, "goal", 0 ),
-          proofterm( prf_flatten, -1 ) 
+          proofterm( prf_flatten, -1 ),
+          proofterm( prf_existsrepl, -1, std::vector<std::string> { }, 
+          { 
+             proofterm( prf_flatten, -1 ),
+             proofterm( prf_show, "unfinished" ),
+             proofterm( prf_expand, -3, identifier( ) + "minhomrel", 0 ),
+             proofterm( prf_show, "expanded" )
+          } ) 
         } ) } );
 #if 0
         orexistselim( -1, "notprop", 

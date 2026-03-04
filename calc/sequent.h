@@ -32,6 +32,12 @@ namespace calc
          bool blocked;     // True if formula is blocked/subsumed.
          std::string comment;  
 
+         seqform( unf< logic::term > u, size_t ctxtsize )
+            : fm( std::move(u)),
+              ctxtsize( ctxtsize ),
+              blocked( false )
+         { }
+
          seqform( dnf< logic::term > d, size_t ctxtsize ) 
             : fm( std::move(d)), 
               ctxtsize( ctxtsize ),
@@ -48,7 +54,8 @@ namespace calc
          const dnf< logic::term > & get_dnf( ) const 
             { return get< dnf< logic::term >> ( fm ); }
 
-         void ugly( std::ostream& out ) const; 
+         void print( std::ostream& out ) const; 
+         void print( pretty_printer& out ) const; 
       };
  
       logic::context ctxt;
@@ -89,14 +96,6 @@ namespace calc
 
          void erase( ssize_t ind );
 
-         using iterator = 
-         std::vector< forall< disjunction< exists< logic::term >>>> 
-                 :: iterator;
-
-         using const_iterator =
-         std::vector< forall< disjunction< exists< logic::term >>>>
-                 :: const_iterator;
-
          void clear( ) { stack. clear( ); }    
             // Forget about everything. Used to think that it was so easy.
 
@@ -126,7 +125,9 @@ namespace calc
 
       void restore( size_t ss );
 
-      void append( unf< logic::term > u ); 
+      void append( cnf< logic::term > c ); 
+         // We append the components separately, and trivial ones
+         // are appended as dnf.
       void append( dnf< logic::term > d );
      
       bool hasindex( ssize_t ind ) const; 

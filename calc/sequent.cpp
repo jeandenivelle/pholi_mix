@@ -3,16 +3,27 @@
 #include "logic/pretty.h"
 
 
-void calc::sequent::seqform::ugly( std::ostream& out ) const
+void calc::sequent::seqform::print( std::ostream& out ) const
 {
    if( is_dnf( ))
       out << get_dnf( );
 
    out << " / " << ctxtsize;
    if( blocked ) out << "   (blocked)";
-   out << "\n";
 }
 
+void calc::sequent::seqform::print( pretty_printer& out ) const
+{
+   if( !blocked )
+   {
+      if( is_dnf( ))
+         out << get_dnf( ); 
+      if( is_unf( ))
+         out << get_unf( ); 
+   }
+   else
+      out << "   (blocked)";
+}
 
 #if 0
 
@@ -68,6 +79,17 @@ calc::sequent::define( const std::string& name,
    size_t nr = assume( name, tp );
    defs. insert( std::pair( nr, val ));
    return nr;
+}
+
+void calc::sequent::append( cnf< logic::term > c )
+{
+   for( auto& u : c )
+   {
+      if( u. vars. size( ) == 0 )
+         append( disjunction( { exists( std::move( u. body )) } ));
+      else
+         stack. push_back( seqform( std::move(u), ctxt. size( )));
+   }
 }
 
 void calc::sequent::append( dnf< logic::term > d )
@@ -174,11 +196,10 @@ void calc::sequent::ugly( std::ostream& out ) const
    out << "Stack:\n";
    for( size_t i = 0; i != stack. size( ); ++ i )
    {
-      out << "   " << i << " : "; stack[i]. ugly( out );
+      out << "   " << i << " : " << stack[i] << "\n";
    }
 }
 
-#if 0
 
 void 
 calc::sequent::pretty( pretty_printer& out ) const
@@ -187,13 +208,12 @@ calc::sequent::pretty( pretty_printer& out ) const
 
    size_t db = 0;
 
-   for( const auto& s : seg )
-   {
-      out << "   segment " << s. name << ":\n";
-      while( db < s. contextsize )
+   for( size_t ind = 0; ind != stack. size( ); ++ ind )
+   { 
+      while( db < stack[ ind ]. ctxtsize )
       {
          size_t ind = ctxt. size( ) - db - 1;
-         out << "      " << out. names. extend( ctxt. getname( ind ));
+         out << "   " << out. names. extend( ctxt. getname( ind ));
          out << " : " << ctxt. gettype( ind ); 
          if( auto p = defs. find( db ); p != defs. end( ))
          {
@@ -204,10 +224,11 @@ calc::sequent::pretty( pretty_printer& out ) const
          out << '\n';
          ++ db;
       }
-      for( size_t i = 0; i != s. stack. size( ); ++ i )
-         out << "      " << i << " : " << s. at(i) << '\n';
+
+      out << "      " << ind << " : ";
+      stack[ ind ]. print( out ); 
+      out << '\n';
    }
 }
 
-#endif
 

@@ -575,11 +575,3 @@ calc::extract_prop( std::vector< logic::vartype > & ctxt,
 }
 
 
-
-
-#if 0
-   throw std::logic_error( "rank: not in ANF" );
-}
-#endif
-
-

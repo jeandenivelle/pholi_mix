@@ -22,6 +22,18 @@ namespace calc
    betapi( const logic::beliefstate& blfs, 
            forall< disjunction< exists< logic::term >>> & tm );
 
+   template< typename T > 
+   bool istrivial( const cnf<T> & c )
+   {
+      return c. size( ) == 1 && c. at(0). vars. size( ) == 0; 
+   }
+
+   template< typename T >
+   bool istrivial( const dnf<T> & d )
+   {
+      return d. size( ) == 1 && d. at(0). vars. size( ) == 0; 
+   }
+
 
    std::optional< logic::type >
    checktype( const logic::beliefstate& blfs,
