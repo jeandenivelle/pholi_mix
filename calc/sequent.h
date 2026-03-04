@@ -28,8 +28,8 @@ namespace calc
             // In case we are UNF, there must be at least one
             // quantified variable.
 
-         size_t ctxtsize;  // context size at moment of creation. 
-         bool blocked;     // True if formula is blocked/subsumed.
+         size_t ctxtsize;      // sizs of context at moment of creation. 
+         bool blocked;         // True if formula is blocked/subsumed.
          std::string comment;  
 
          seqform( unf< logic::term > u, size_t ctxtsize )

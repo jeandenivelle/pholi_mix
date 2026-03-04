@@ -837,9 +837,18 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
           proofterm( prf_existsrepl, -1, std::vector<std::string> { }, 
           { 
              proofterm( prf_flatten, -1 ),
-             proofterm( prf_show, "unfinished" ),
              proofterm( prf_expand, -3, identifier( ) + "minhomrel", 0 ),
-             proofterm( prf_show, "expanded" )
+             proofterm( prf_expand, -1, identifier( ) + "minimal", 0 ),
+             proofterm( prf_normalize, -1 ), 
+             proofterm( prf_deflocal, "Q", indhyp, 
+             {
+                proofterm( prf_show, "before" ),
+                proofterm( prf_flatten, -1 ),
+                proofterm( prf_show, "expanded" ), 
+                proofterm( prf_forallelim, -1,
+                   { apply( "Q"_unchecked, { "s1"_unchecked, "s2"_unchecked } ) } ),
+             } 
+             ),
           } ) 
         } ) } );
 #if 0

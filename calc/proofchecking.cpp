@@ -39,28 +39,31 @@ namespace
       else
          return f;
    }
-}
 
-#if 0
-void
-calc::betapi( const logic::beliefstate& blfs,
-              forall< disjunction< exists< logic::term >>> & tm )
-{
-   logic::betareduction beta;
-   projection proj( blfs );
-
-   do
+   template< typename F > 
+   F normalize( const logic::beliefstate& blfs, F f, size_t dist )
    {
-      beta. counter = 0;
-      tm = outermost( beta, std::move( tm ), 0 );
+      logic::betareduction beta;
+      logic::decurrier dec;
+      calc::projection proj( blfs );
 
-      proj. counter = 0;
-      tm = outermost( proj, std::move( tm ), 0 );
+      do
+      {
+         beta. counter = 0;
+         f = outermost( beta, std::move(f), dist );
+
+         dec. counter = 0;
+         f = outermost( dec, std::move(f), dist ); 
+
+         proj. counter = 0;
+         f = outermost( proj, std::move(f), dist );
+      }
+      while( beta. counter || proj. counter || dec. counter);
+
+      return f;
    }
-   while( beta. counter || proj. counter );
-}
 
-#endif
+}
 
 std::optional< logic::type >
 calc::checktype( const logic::beliefstate& blfs,
@@ -579,16 +582,32 @@ calc::checkproof( const logic::beliefstate& blfs,
    case prf_expand:
       {
          auto exp = prf. view_expand( ); 
+         size_t ind = exp. ind( );
    
          expander def( exp. ident( ), exp. occ( ), blfs, err );
             // We are using unchecked identifier exp. ident( ).
             // The expander will look only at exact overloads. 
             // This guarantees type safety.
 
-#if 0
-         if( !seq. back( ). inrange( exp. ind( )))
+         if( !seq. hasindex( ind ))
             throw std::logic_error( "expand: index out of range" );
 
+         if( seq. at( ind ). is_unf( ))
+         {
+            std::cout << "it is a UNF\n";
+         }
+
+         if( seq. at( ind ). is_dnf( ))
+         {
+            auto res = seq. at( ind ). get_dnf( );
+            res = lift( std::move( res ), seq. liftdist( ind )); 
+            res = outermost( def, std::move( res ), 0 );
+            seq. block( ind );
+            seq. append( res );
+            return;
+         } 
+ 
+#if 0
          seq. back( ). at( exp. ind( )) =
             outermost( def, std::move( seq. back( ). at( exp. ind( ))), 0 );
 
@@ -596,7 +615,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          throw std::logic_error( "expand unfinished" );
          return;
       }
-
 
    case prf_expandlocal:
       {
@@ -655,17 +673,28 @@ calc::checkproof( const logic::beliefstate& blfs,
          throw std::logic_error( "not finished epxand local" );
          return;
       }
-#if 0
-   case prf_betapi:
-      { 
-         auto ind = prf. view_betapi( ). ind( );
-         if( !seq. back( ). inrange( ind ))
-            throw std::logic_error( "betapi: index out of range" );
 
-         betapi( blfs, seq. back( ). at( ind ));
+   case prf_normalize:
+      { 
+         auto ind = prf. view_normalize( ). ind( );
+
+         if( !seq. hasindex( ind ))
+            throw std::logic_error( "normalize: index out of range" );
+
+         if( seq. at( ind ). is_dnf( ))
+         {
+            auto d = seq. at( ind ). get_dnf( );
+            d = lift( std::move(d), seq. liftdist( ind ));
+            seq. block( ind );
+            seq. append( normalize( blfs, std::move(d), 0 ));
+            return;
+         }
+
+         throw std::logic_error( "normalize not finished" );
          return;
       }
 
+#if 0
    case prf_copy:
       {
          auto copy = prf. view_copy( );
@@ -750,7 +779,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          throw std::logic_error( "orrepl not finished" );
       }
 
-#if 0
    case prf_deflocal: 
       {
          auto def = prf. view_deflocal( );
@@ -765,15 +793,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          def. update_val( val );
 
          size_t ss = seq. ctxt. size( );
-         if( seq. size( ) == 0 )
-            throw std::logic_error( "this cannot happen" );
-
-         for( auto& fm : seq. back( ))
-            fm = lift( std::move( fm ), 1 );
-
-         ++ seq. back( ). contextsize;
-
-         seq. define( def. name( ), val, tp. value( ));
+         size_t ff = seq. stack. size( );
 
          for( size_t i = 0; i != def. size( ); ++ i )
          {
@@ -782,6 +802,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             def. update_sub( i, std::move( sub ));
          }
 
+#if 0
          // We need to apply the substitution:
 
          if( seq. ctxt. size( ) != ss + 1 )
@@ -801,8 +822,10 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          std::cout << "deflocal is not terribly well tested\n";
          return; 
+#endif
+         throw std::logic_error( "deflocal" );
       }
-
+#if 0
 #if 0
    case prf_forallintro:
       {
@@ -845,27 +868,28 @@ calc::checkproof( const logic::beliefstate& blfs,
          return res. value( ); 
       }
 #endif
+#endif
 
    case prf_forallelim:
       {
          auto elim = prf. view_forallelim( );
+         size_t ind = elim. ind( );
 
-         if( !seq. back( ). inrange( elim. ind( )))
+         if( !seq. hasindex( ind ))
             throw std::logic_error( "forallelim: index out of range" );
 
+         if( !seq. at( ind ). is_unf( ))
+            throw std::logic_error( "forallelim: formula not unf" );
+
+         if( seq. at( ind ). get_unf( ). vars. size( ) < elim. size( ))
+            throw std::runtime_error( "forallelim: Too many values" ); 
+
+#if 0
          auto mainform = std::move( seq. back( ). at( elim. ind( )));
             // We will later put the instance at this place.
             // If you want more than one instantiation of the formula,
             // you must copy the formula first.
 
-         if( mainform. vars. size( ) < elim. size( ))
-         {
-            throw std::runtime_error( "forallelim: Too many values" );
-
-            // We allow more variables than values, because it is not
-            // required to eliminate all at once.
-         }
- 
          size_t errstart = err. size( );
          logic::fullsubst subst;
 
@@ -937,9 +961,12 @@ calc::checkproof( const logic::beliefstate& blfs,
          mainform = outermost( subst, std::move( mainform ), 0 ); 
 
          seq. back( ). at( elim. ind( )) = std::move( mainform );
+#endif 
+         throw std::logic_error( "unfinished forall elim" );
          return;  
       }
 
+#if 0 
    case prf_import:
       {
          auto imp = prf. view_import( );

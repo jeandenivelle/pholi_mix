@@ -18,10 +18,6 @@ namespace calc
    errorstack::builder
    errorheader( const sequent& seq, std::string_view rule );
 
-   void 
-   betapi( const logic::beliefstate& blfs, 
-           forall< disjunction< exists< logic::term >>> & tm );
-
    template< typename T > 
    bool istrivial( const cnf<T> & c )
    {
