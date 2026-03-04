@@ -29,7 +29,7 @@
 %option expandlocal { prf_expandlocal } => 
    ind : ssize_t, name : std::string, occ : size_t
 
-%option betapi { prf_betapi } => ind : ssize_t
+%option normalize { prf_normalize } => ind : ssize_t
 
 %option forallintro { prf_forallintro } =>
    parent : proofterm, [ var : logic::vartype ]
@@ -133,9 +133,9 @@
             return;
          }
 
-      case prf_betapi:
+      case prf_normalize:
          {
-            out << ind << "pibeta " << view_betapi( ). ind( ) << "\n";
+            out << ind << "normalize " << view_normalize( ). ind( ) << "\n";
             return;
          }
 
