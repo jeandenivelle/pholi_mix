@@ -5,7 +5,7 @@
 #include "logic/cmp.h"
 #include "logic/replacements.h"
 
-
+#if 0
 std::pair< calc::prefix, const logic::term* > 
 calc::atp::decompose( const logic::term& tm )
 {
@@ -352,4 +352,5 @@ void calc::atp::simplify( conjunction< clause > & simp )
       simp. remove_last( );
 }
 
+#endif
 

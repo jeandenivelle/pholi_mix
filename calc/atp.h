@@ -16,13 +16,9 @@ namespace calc
 
    namespace atp
    {
-      using literal = exists< logic::term > ;
-      using clause = disjunction< literal > ;
-     
- 
-      std::pair< prefix, const logic::term* > 
-      decompose( const logic::term& tm );
-         // Assumes ANF.
+      bool trivially_true( const logic::term& tm );
+         // Catches a few trivial cases:
+         //    TRUE, ( t = t ), # t1 = t2, # # t, and # FALSE, # TRUE.
 
       bool inconflict( const logic::term& tm1, const logic::term& tm2 );
          // If yes, then it cannot occur that [tm1] = [tm2] = T.
@@ -31,13 +27,10 @@ namespace calc
 
       bool subsumes( const exists< logic::term > & ex1,
                      const exists< logic::term > & ex2 );
-         // Very incomplete! If yes, then [ex1] = T implies
+         // Very incomplete! If true, then [ex1] = T implies
          // [ex2] = T.  
-   
-      bool trivially_true( const logic::term& tm );
-         // Catches a few trivial cases:
-         //    TRUE, ( t = t ), # t1 = t2, # # t, and # FALSE, # TRUE.
 
+#if 0
       bool istruthconstant( const clause& cls );
          // True if cls equals { T }.
 
@@ -64,6 +57,7 @@ namespace calc
 
       void simplify( conjunction< clause > & simp );
          // This is the main function that should be called. 
+#endif
 
    }
 

@@ -29,19 +29,19 @@ namespace calc
             // quantified variable.
 
          size_t ctxtsize;      // sizs of context at moment of creation. 
-         bool blocked;         // True if formula is blocked/subsumed.
+         bool hidden;          // True if formula is hidden.
          std::string comment;  
 
          seqform( unf< logic::term > u, size_t ctxtsize )
             : fm( std::move(u)),
               ctxtsize( ctxtsize ),
-              blocked( false )
+              hidden( false )
          { }
 
          seqform( dnf< logic::term > d, size_t ctxtsize ) 
             : fm( std::move(d)), 
               ctxtsize( ctxtsize ),
-              blocked( false )
+              hidden( false )
          { }
  
          bool is_unf( ) const 
@@ -76,8 +76,8 @@ namespace calc
          size_t stacksize; 
             // Sizes of context and stack.
 
-         std::vector< size_t > blocking;
-            // Indices of formulas that are blocked at this level.
+         std::vector< size_t > hidden;
+            // Indices of formulas that are hidden by us.
  
          level( size_t ctxtsize, size_t stacksize )
             : ctxtsize( ctxtsize ),
@@ -138,22 +138,20 @@ namespace calc
       size_t nrlevels( ) const { return levels. size( ); }
       void appendlevel( ) 
          { levels. push_back( level( ctxt. size( ), stack. size( ))); }
+      void poplevel( ) 
+         { levels. pop_back( ); }
+      const level& lastlevel( ) const 
+         { return levels. back( ); }
 
-      void block( ssize_t ind );
-         // If we have a choice level, we register the blocking,
-         // so that it can be restored.
+      void hide( ssize_t ind );
+         // If we have a choice level, we register the hiding,
+         // so that it can be undone. 
 
       size_t liftdist( ssize_t ind ) const;
          // The distance over which the formula at ind must be lifted
-         // so that it can be put at the end of the context. 
+         // in order to put it at the end of the context. 
 
-#if 0
-      const segment& back( ) const;
-      segment& back( );
-
-      const segment& at( size_t ind ) const { return seg. at( ind ); }
-      segment& at( size_t ind ) { return seg. at( ind ); }
-#endif
+      size_t nrformulas( ) const { return stack. size( ); }
 
    };
 

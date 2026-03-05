@@ -9,12 +9,12 @@ void calc::sequent::seqform::print( std::ostream& out ) const
       out << get_dnf( );
 
    out << " / " << ctxtsize;
-   if( blocked ) out << "   (blocked)";
+   if( hidden ) out << "   (hidden)";
 }
 
 void calc::sequent::seqform::print( pretty_printer& out ) const
 {
-   if( !blocked )
+   if( !hidden )
    {
       if( is_dnf( ))
          out << get_dnf( ); 
@@ -22,7 +22,7 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
          out << get_unf( ); 
    }
    else
-      out << "   (blocked)";
+      out << "   (hidden)";
 }
 
 #if 0
@@ -122,16 +122,16 @@ calc::sequent::seqform& calc::sequent::at( ssize_t ind )
    return *it;
 }           
 
-void calc::sequent::block( ssize_t ind ) 
+void calc::sequent::hide( ssize_t ind ) 
 {
    size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
       // This is the real index in stack.
 
-   if( !stack[k]. blocked )
+   if( !stack[k]. hidden )
    {
-      stack[k]. blocked = true;
+      stack[k]. hidden = true;
       if( levels. size( ) > 0 )
-         levels. back( ). blocking. push_back(k); 
+         levels. back( ). hidden. push_back(k); 
    }
 }
 

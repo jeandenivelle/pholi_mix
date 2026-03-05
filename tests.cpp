@@ -236,6 +236,7 @@ void tests::simplify( )
    type O2O = type( type_func, O, { O } );
    type OT2O = type( type_func, O, { O, T } );
 
+#if 0
    calc::conjunction< calc::atp::clause > simp;
 
    auto cl1 = calc::disjunction( { 
@@ -264,6 +265,7 @@ void tests::simplify( )
    std::cout << "\n";
    std::cout << "after simplification\n";
    std::cout << simp << "\n";
+#endif
 
 }
 
@@ -497,7 +499,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
                                   {
                                      proofterm( prf_copy, "R", -2 ),
                                      proofterm( prf_expand, -1, identifier( ) + "homrel", 0 ),
-                                     proofterm( prf_betapi, -1 ),
+                                     proofterm( prf_normalize, -1 ),
                                      proofterm( prf_flatten, -1 ),
                                      proofterm( prf_forallelim, -1, { 2_db, 1_db } ), 
                                      proofterm( prf_copy, "exists", 2 ),  
@@ -564,15 +566,15 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
             proofterm( prf_expand, 3, identifier( ) + "minhomrel", 0 ),
             proofterm( prf_expand, 2, identifier( ) + "minimal", 0 ),
             proofterm( prf_expand, 3, identifier( ) + "minimal", 0 ),
-            proofterm( prf_betapi, 2 ), 
-            proofterm( prf_betapi, 3 ),
+            proofterm( prf_normalize, 2 ), 
+            proofterm( prf_normalize, 3 ),
             proofterm( prf_flatten, -1 ),
             proofterm( prf_orexistselimintro, -1, 0, "R", { "R" },
             {
                proofterm( prf_flatten, -1 ),
                proofterm( prf_copy, "R", -2 ),
                proofterm( prf_expand, -1, identifier( ) + "homrel", 0 ),
-               proofterm( prf_betapi, -1 ),
+               proofterm( prf_normalize, -1 ),
                proofterm( prf_flatten, -1 ),
 
                proofterm( prf_show, "NEG" )
@@ -715,7 +717,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                   proofterm( prf_flatten, -1 ),
                   proofterm( prf_expand, -3, identifier( ) + "minhomrel", 0 ),
                   proofterm( prf_expand, -3, identifier( ) + "minimal", 0 ),
-                  proofterm( prf_betapi, -3 ),
+                  proofterm( prf_normalize, -3 ),
                   proofterm( prf_flatten, -3 ),
                   proofterm( prf_deflocal, "Q", indhyp, 
                   { 
@@ -724,12 +726,12 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                         proofterm( prf_orexistselimintro, -1, 1, "inductive", { }, 
                               {
                                  proofterm( prf_expand, -1, identifier( ) + "homrel", 0 ),
-                                 proofterm( prf_betapi, -1 ),
+                                 proofterm( prf_normalize, -1 ),
                                  proofterm( prf_flatten, -1 ),
                                  proofterm( prf_orexistselimintro, -1, 0, "base", { },
                                  {
                                     proofterm( prf_expandlocal, -1, "Q", 0 ),
-                                    proofterm( prf_betapi, -1 ),
+                                    proofterm( prf_normalize, -1 ),
                                     proofterm( prf_flatten, -1 ),
                                     proofterm( prf_simplify ),
                                  }),
@@ -737,11 +739,11 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                                  {
                                     proofterm( prf_flatten, -1 ),
                                     proofterm( prf_expandlocal, -1, "Q", 0 ),
-                                    proofterm( prf_betapi, -1 ),
+                                    proofterm( prf_normalize, -1 ),
                                     proofterm( prf_flatten, -1 ),
                                     proofterm( prf_erase, 3 ),
                                     proofterm( prf_expandlocal, -2, "Q", 0 ),
-                                    proofterm( prf_betapi, -2 ),
+                                    proofterm( prf_normalize, -2 ),
                                     proofterm( prf_flatten, -2 ),
                                     proofterm( prf_orexistselimintro, -1, 1, "cases", { "b1", "b2" },
                                     {
@@ -770,7 +772,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                               proofterm( prf_orexistselimintro, -1, 1, "cases", { },
                               {
                                  proofterm( prf_expandlocal, -1, "Q", 0 ), 
-                                 proofterm( prf_betapi, -1 ),
+                                 proofterm( prf_normalize, -1 ),
                                  proofterm( prf_flatten, -1 ),
                                  proofterm( prf_orexistselimintro, -1, 1, "quant", { },
                                  {
@@ -785,7 +787,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                               }),
                               proofterm( prf_expand, -1, identifier( ) + "stricton", 0 ), 
                               proofterm( prf_expand, -1, identifier( ) + "prod", 0 ), 
-                              proofterm( prf_betapi, -1 ),
+                              proofterm( prf_normalize, -1 ),
                               proofterm( prf_erase, -2 ),
                               proofterm( prf_erase, -2 ),
                               proofterm( prf_erase, -2 ),
@@ -794,7 +796,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                               proofterm( prf_orexistselimintro, -1, 0, "stricton", { "y1", "y2" },
                               { 
                                  proofterm( prf_expandlocal, -1, "Q", 0 ),
-                                 proofterm( prf_betapi, -1 ),
+                                 proofterm( prf_normalize, -1 ),
                                  proofterm( prf_flatten, -1 ), 
                                  proofterm( prf_import, identifier( ) + "gen_prop", { Nat } ), 
                                  proofterm( prf_flatten, -1 ),
@@ -844,9 +846,30 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
              {
                 proofterm( prf_show, "before" ),
                 proofterm( prf_flatten, -1 ),
-                proofterm( prf_show, "expanded" ), 
                 proofterm( prf_forallelim, -1,
                    { apply( "Q"_unchecked, { "s1"_unchecked, "s2"_unchecked } ) } ),
+                proofterm( prf_flatten, -1 ),
+                proofterm( prf_orrepl, -1, 1, 
+                { 
+                   proofterm( prf_expand, -1, identifier( ) + "homrel", 0 ),
+                   proofterm( prf_normalize, -1 ),
+                   proofterm( prf_flatten, -1 ),
+
+                   proofterm( prf_show, "induction" ), 
+                   proofterm( prf_orrepl, -1, 0, 
+                   {
+                      proofterm( prf_expandlocal, -1, "Q", 0 ),
+                      proofterm( prf_normalize, -1 ),
+                      proofterm( prf_flatten, -1 ), 
+                      proofterm( prf_hide, -1 ), 
+                      proofterm( prf_flatten, -2 ), 
+                      proofterm( prf_show, "base-case" ),
+                  
+                      // proofterm( prf_simplify ),
+                   }) 
+                    
+                } ),
+                proofterm( prf_show, "after disjelim" )  
              } 
              ),
           } ) 

@@ -210,6 +210,29 @@ namespace logic
       void print( std::ostream& out ) const; 
    };
 
+
+   // A few very simple, logical simplifications: 
+   // t == t         ==> TRUE
+   // ## t           ==> TRUE
+   // ! TRUE         ==> FALSE
+   // ! ERROR        ==> ERROR
+   // ! FALSE        ==> TRUE
+   // EXISTS x FALSE ==> FALSE
+   // FORALL x TRUE  ==> TRUE
+ 
+   struct simplifier
+   {
+      uint64_t counter;
+
+      simplifier( ) noexcept
+         : counter(0)
+      { } 
+
+      term operator( ) ( term t, size_t vardepth, bool& change );
+
+      void print( std::ostream& out ) const;
+   };
+
  
    struct rewriterule
    {
@@ -230,7 +253,7 @@ namespace logic
       void swap( ) 
          { std::swap( from, to ); } 
 
-      term operator( ) ( const term& t, size_t vardepth, bool& change );
+      term operator( ) ( term t, size_t vardepth, bool& change );
          // Not const because of the counter.
 
       void print( std::ostream& out ) const;

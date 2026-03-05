@@ -91,7 +91,7 @@ calc::checktype( const logic::beliefstate& blfs,
    if( !tp. has_value( ))
    {
       seq. ugly( std::cout );
-      std::cout << tm << "\n";
+      std::cout << "the term is " << tm << "\n";
       throw std::logic_error( "term has no type" ); 
    }
 
@@ -158,7 +158,7 @@ calc::checkproof( const logic::beliefstate& blfs,
                cnf = flatten( std::move( cnf )); 
                if( !istrivial( cnf ))
                {
-                  seq. block( flat. ind( )); 
+                  seq. hide( flat. ind( )); 
                   seq. append( std::move( cnf ));
                   return;
                } 
@@ -168,7 +168,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             std::cout << "after flattening " << f << "\n";
             if( !istrivial(f))
             {
-               seq. block( flat. ind( ));
+               seq. hide( flat. ind( ));
                seq. append( std::move(f)); 
                return;
             }
@@ -403,7 +403,7 @@ calc::checkproof( const logic::beliefstate& blfs,
                seq. assume( mainform. vars[v]. pref, mainform. vars[v]. tp );
          }
 
-         seq. block( ind );
+         seq. hide( ind );
 
          // Assume the body of alt (without the variables):
  
@@ -602,7 +602,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             auto res = seq. at( ind ). get_dnf( );
             res = lift( std::move( res ), seq. liftdist( ind )); 
             res = outermost( def, std::move( res ), 0 );
-            seq. block( ind );
+            seq. hide( ind );
             seq. append( res );
             return;
          } 
@@ -655,7 +655,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             auto d = seq. at( ind ). get_dnf( );
             d = lift( std::move(d), seq. liftdist( ind ));
             std::cout << "after the lift " << d << "\n";
-            seq. block( ind );
+            seq. hide( ind );
             seq. append( outermost( def, std::move(d), 0 ));
             return;
          }
@@ -685,7 +685,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          {
             auto d = seq. at( ind ). get_dnf( );
             d = lift( std::move(d), seq. liftdist( ind ));
-            seq. block( ind );
+            seq. hide( ind );
             seq. append( normalize( blfs, std::move(d), 0 ));
             return;
          }
@@ -723,16 +723,16 @@ calc::checkproof( const logic::beliefstate& blfs,
          throw std::logic_error( " not found " );
       }
 
-   case prf_erase: 
+#endif
+   case prf_hide: 
       {
-         auto er = prf. view_erase( );
-         if( !seq. back( ). inrange( er. ind( )))
-            throw std::logic_error( "erase: wrong index" );
+         auto hd = prf. view_hide( );
+         if( !seq. hasindex( hd. ind( )))
+            throw std::logic_error( "hide: wrong index" );
 
-         seq. back( ). erase( er. ind( ));
+         seq. hide( hd. ind( ));
          return;
       }
-#endif
 
    case prf_orrepl:
       {
@@ -759,14 +759,13 @@ calc::checkproof( const logic::beliefstate& blfs,
          // Now we are certain that the rule will be applied.
 
          auto chosen = seq. at( ind ). get_dnf( ). at( alt );
-         std::cout << chosen << "\n";
          chosen = lift( std::move( chosen ), seq. liftdist( ind ));
          std::cout << "chosen after lift: " << chosen << "\n"; 
 
          size_t lev = seq. nrlevels( ); 
          seq. appendlevel( );
 
-         seq. block( repl. ind( ));
+         seq. hide( repl. ind( ));
          seq. append( disjunction( { std::move( chosen ) } ));
 
          for( size_t i = 0; i != repl. size( ); ++ i )
@@ -776,6 +775,20 @@ calc::checkproof( const logic::beliefstate& blfs,
             repl. update_sub( i, std::move( prf )); 
          }
 
+         seq. ugly( std::cout );
+
+         if( lev + 1 != seq. nrlevels( ))
+            throw std::logic_error( "levels are not right" );
+
+         if( seq. lastlevel( ). stacksize >= seq. nrformulas( ))
+            throw std::logic_error( "there is no formula" );
+
+         if( !seq. at( -1 ). is_dnf( ))
+            throw std::logic_error( "last formula not DNF" );
+
+         std::cout << "chosen " << chosen << "\n";
+         // chosen = seq. at( -1 ). get_dnf( ); 
+         std::cout << "becomes " << chosen << "\n"; 
          throw std::logic_error( "orrepl not finished" );
       }
 
@@ -794,6 +807,8 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          size_t ss = seq. ctxt. size( );
          size_t ff = seq. stack. size( );
+
+         seq. define( def. name( ), val, tp. value( ));
 
          for( size_t i = 0; i != def. size( ); ++ i )
          {
@@ -879,17 +894,14 @@ calc::checkproof( const logic::beliefstate& blfs,
             throw std::logic_error( "forallelim: index out of range" );
 
          if( !seq. at( ind ). is_unf( ))
-            throw std::logic_error( "forallelim: formula not unf" );
+            throw std::logic_error( "forallelim: formula not UNF" );
 
          if( seq. at( ind ). get_unf( ). vars. size( ) < elim. size( ))
             throw std::runtime_error( "forallelim: Too many values" ); 
 
-#if 0
-         auto mainform = std::move( seq. back( ). at( elim. ind( )));
-            // We will later put the instance at this place.
-            // If you want more than one instantiation of the formula,
-            // you must copy the formula first.
-
+         auto mainform = seq. at( ind ). get_unf( );
+         mainform = lift( std::move( mainform ), seq. liftdist( ind ));
+         
          size_t errstart = err. size( );
          logic::fullsubst subst;
 
@@ -899,6 +911,7 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          for( size_t i = 0; i != elim. size( ); ++ i )
          {
+            std::cout << "i = " << i << "\n";
             auto inst = elim. extr_value(i);
             auto tp = checktype( blfs, inst, seq, err );
 
@@ -919,9 +932,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             subst. append( std::move( inst ));
 
 #if 0
-            logic::context ctxt;
-            auto tm = elim. value(i);
-            auto tp = checkandresolve( seq. blfs, err, ctxt, tm );
+            // I am keeping this because of the nice error message.
 
             if( tp. has_value( )) 
             {
@@ -960,9 +971,10 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          mainform = outermost( subst, std::move( mainform ), 0 ); 
 
-         seq. back( ). at( elim. ind( )) = std::move( mainform );
-#endif 
-         throw std::logic_error( "unfinished forall elim" );
+         // We append mainform as CNF. The append function will 
+         // convert formula into a DNF is the quantification is empty.
+        
+         seq. append( conjunction( { mainform } ));
          return;  
       }
 
@@ -1068,15 +1080,29 @@ calc::checkproof( const logic::beliefstate& blfs,
          return;
       }
 
+#endif
    case prf_fake:
       {
-         auto res = prf. view_fake( ). goal( );
-         auto cls = disjunction( { exists( std::move(res) ) } ); 
-         seq. back( ). push( forall( std::move( cls ))); 
+         auto trmp = prf. view_fake( ). extr_goal( );
+         auto tp = checktype( blfs, trmp, seq, err );
+
+         if( tp. has_value( ))
+            std::cout << "found type: " << tp. value( ) << "\n";
+         else
+         {
+            throw std::logic_error( "fake: Not a formula" ); 
+         }
+
+         prf. view_fake( ). update_goal( trmp );
+
+         // auto cls = disjunction( { exists( std::move(res) ) } ); 
+         // seq. back( ). push( forall( std::move( cls ))); 
+         seq. append( disjunction( { exists( std::move( trmp )) } ));
+
+         std::cout << "faking: " << trmp << "\n";
          return;
       }
 
-#endif
 
    case prf_nop:
       {

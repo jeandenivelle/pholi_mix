@@ -323,10 +323,48 @@ void logic::decurrier::print( std::ostream& out ) const
    out << "decurrier("<< counter << ")";
 }
 
+logic::term
+logic::simplifier::operator( ) ( term t, size_t vardepth, bool& change )
+{
+   if( t. sel( ) == op_not )
+   {
+      const auto& sub = t. view_unary( ). sub( ); 
+      if( sub. sel( ) == op_false )
+      {
+         change = true;
+         return term( op_true );
+      }
+
+      if( sub. sel( ) == op_error )
+      {
+         change = true;
+         return term( op_error );
+      }
+
+      if( sub. sel( ) == op_true )
+      {
+         change = true; 
+         return term( op_false ); 
+      }
+   }
+
+   if( t. sel( ) == op_prop )
+   {
+      const auto& sub = t. view_unary( ). sub( );
+      if( sub. sel( ) == op_prop )
+         return term( op_true );
+   }
+
+   return t;
+}
+
+void logic::simplifier::print( std::ostream& out ) const
+{
+   out << "simplifier(" << counter << ")";
+}
 
 logic::term
-logic::rewriterule::operator( ) ( const term& t, size_t vardepth,
-                                  bool& change ) 
+logic::rewriterule::operator( ) ( term t, size_t vardepth, bool& change ) 
 {
    if( equal( from, vardepth, t, 0, 0 ))
    {

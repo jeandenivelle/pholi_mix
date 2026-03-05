@@ -12,7 +12,7 @@
 %option flatten { prf_flatten } => ind : ssize_t 
 
 %option copy { prf_copy } => segname : std::string, ind : ssize_t
-%option erase { prf_erase } => ind : ssize_t
+%option hide { prf_hide } => ind : ssize_t
 
 %option orrepl { prf_orrepl } => 
    ind : ssize_t, alt : size_t, [ sub : proofterm ] 
@@ -147,9 +147,9 @@
             return;
          }
 
-      case prf_erase:
+      case prf_hide:
          {
-            out << ind << "erase " << view_erase( ). ind( ) << "\n";
+            out << ind << "hide " << view_hide( ). ind( ) << "\n";
             return;
          }
 
