@@ -9,7 +9,6 @@
 #include "logic/term.h"
 #include "propositional.h"
 #include "quantifiers.h"
-#include "prefix.h"
 
 namespace calc
 {

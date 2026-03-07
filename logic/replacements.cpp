@@ -348,15 +348,29 @@ logic::simplifier::operator( ) ( term t, size_t vardepth, bool& change )
       }
    }
 
-   if( t. sel( ) == op_prop )
+   if( t. sel( ) == op_exists )
    {
-      const auto& sub = t. view_unary( ). sub( );
-      if( sub. sel( ) == op_prop )
-         return term( op_true );
+      const auto& sub = t. view_quant( ). body( );
+      if( sub. sel( ) == op_false )
+      {
+         change = true;
+         return term( op_false );
+      }
    }
 
+   if( t. sel( ) == op_forall )
+   {
+      const auto& sub = t. view_quant( ). body( );
+      if( sub. sel( ) == op_true )
+      {
+         change = true;
+         return term( op_true );
+      }
+   }
+ 
    return t;
 }
+
 
 void logic::simplifier::print( std::ostream& out ) const
 {

@@ -1,6 +1,7 @@
 
-#include "prefix.h"
+#include "disjunction_view.h"
 
+#if 0
 void 
 calc::prefix::print( std::ostream& out ) const
 {
@@ -18,4 +19,5 @@ calc::prefix::print( std::ostream& out ) const
       out << 'T';
 }
 
+#endif
 

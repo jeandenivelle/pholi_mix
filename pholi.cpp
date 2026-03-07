@@ -79,17 +79,7 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
-
-   using namespace logic;
-
-   simplifier simp;
-   auto tm = prop( 0_db ); 
-   std::cout << tm << "\n";
-   bool change = false; 
-   tm = simp( std::move(tm), 0, change );
-   std::cout << tm << "\n";
-   std::cout << "change = " << change << "\n";
-
+   
    return 0;
  
    errorstack err;

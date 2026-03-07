@@ -16,10 +16,6 @@ namespace calc
 
    polarity operator - ( polarity );  
 
-   logic::selector demorgan( polarity pol, logic::selector sel );
-      // Apply the De Morgan rule on a Kleene operator.
-      // It doesn't work for other operators.
-
 }
 
 #endif
