@@ -48,8 +48,7 @@
    proofterm.cpp
    printing.cpp
    proofchecking.cpp
-   disjunction_view.cpp
-   atp.cpp
+   truthset.cpp
 
 %dir Source/natded
 %sources

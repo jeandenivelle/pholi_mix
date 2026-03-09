@@ -74,12 +74,18 @@ includefile( logic::beliefstate& blfs,
 #include "calc/proofchecking.h"
 #include "calc/quantifiers.h"
 #include "calc/propositional.h"
+#include "calc/disjunction_map.h"
 
 #include "calc/pretty.h"
 
 int main( int argc, char* argv[] )
 {
-   
+   calc::truthset t = calc::tttt;
+   std::cout << t << "\n";
+
+   calc::disjunction_map< int > test;
+   test. append( 44 );
+   std::cout << test << "\n"; 
    return 0;
  
    errorstack err;
