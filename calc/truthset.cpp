@@ -1,36 +1,24 @@
 
 #include "truthset.h"
 
-const char* calc::getcstring( truthset set )
+void calc::truthset::print( std::ostream& out ) const
 {
-
-   switch( set )
+   switch( val )
    {
-   case empty: return "{}";
-   case ffff: return "{F}";
-   case eeee: return "{E}";
-   case tttt: return "{T}";
-   case ffee: return "{F,E}";
-   case fftt: return "{F,T}";
-   case all:  return "{F,E,T}";
+   case empty: out << "{}"; return;
+
+   case ffff:  out << "{F}"; return;
+   case eeee:  out << "{E}"; return;
+   case tttt:  out << "{T}"; return;
+
+   case ffee:  out << "{F,E}"; return;
+   case fftt:  out << "{F,T}"; return;
+   case eett:  out << "{E,T}"; return;
+
+   case all:   out << "{F,E,T}"; return;
    }
 
-   return "???"; 
+   out << "???"; 
 }
-
-
-#if 0
-   inline prefix operator & ( prefix p1, prefix p2 ) 
-      { return p1 &= p2; }
-
-   inline prefix operator | ( prefix p1, prefix p2 ) 
-      { return p1 |= p2; }
- 
-   inline std::ostream& operator << ( std::ostream& out, prefix p )
-   {
-      p. print( out );
-      return out;
-   }
-#endif
 
 

@@ -80,12 +80,14 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
-   calc::truthset t = calc::tttt;
-   std::cout << t << "\n";
-
    calc::disjunction_map< int > test;
-   test. append( 44 );
+   test. append( 33, calc::truthset::ffff );
+   test. append( 33, calc::truthset::eeee );
+   test. append( 33, calc::truthset::tttt );
+ 
    std::cout << test << "\n"; 
+   test. merge( );
+   std::cout << test << "\n";
    return 0;
  
    errorstack err;

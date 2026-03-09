@@ -29,30 +29,58 @@ namespace calc
       bool isempty( ) const { return map. empty( ); }
       size_t size( ) const { return map. size( ); }
 
-      void append( F f, truthset s = tttt ) 
+      using iterator = std::vector< std::pair< F, truthset >> :: iterator;
+      iterator begin( ) { return map. begin( ); }
+      iterator end( ) { return map. end( ); }
+
+      void append( F f, truthset s = truthset::tttt ) 
          { map. push_back( std::pair( std::move(f), s )); }
+
+      // Remove F-s with empty truthset:
+
+      void remove_empty( )
+      {
+         auto p1 = begin( );
+         auto p2 = p1; 
+         while( p2 != end( ))
+         {
+            if( p2 -> second. implies( truthset::empty ))
+               ++ p2;
+            else
+               *p1 ++ = std::move( *p2 ++ );
+         }
+ 
+         map. erase( p1, end( )); 
+      }
+
+      // Merge equal F-s, where equality is determined by our
+      // E object. This is a quadratic procedure: 
+      // After merge( ), one can do remove_empty( ).
+ 
+      void merge( )
+      {
+         for( auto p2 = begin( ); p2 != end( ); ++ p2 )    
+         {
+            for( auto p1 = begin( ); p1 != p2; ++ p1 )
+            {
+               if( eq( p1 -> first, p2 -> first ))
+               {
+                  ( p1 -> second ) |= p2 -> second;
+                  ( p2 -> second ) = truthset::empty;
+               }
+             } 
+         }
+      }
 
       void print( std::ostream& out ) const
       {
          out << "Disjunction Map:\n";
          for( auto& p : map )
-            out << p. first << " -> " << p. second << "\n";
+            out << "   " << p. first << " -> " << p. second << "\n";
       }
 
    };
-#if 0
-   inline prefix operator & ( prefix p1, prefix p2 ) 
-      { return p1 &= p2; }
 
-   inline prefix operator | ( prefix p1, prefix p2 ) 
-      { return p1 |= p2; }
- 
-   inline std::ostream& operator << ( std::ostream& out, prefix p )
-   {
-      p. print( out );
-      return out;
-   }
-#endif
 
 }
 

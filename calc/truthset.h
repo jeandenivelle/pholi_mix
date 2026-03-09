@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstdint>
 
 // We finally understood that a clause is not a set of literals.
 // It is a mapping from atoms to sets of truth values.
@@ -12,39 +13,50 @@
 
 namespace calc
 {
+   struct truthset
+   {
+      uint8_t val;
 
-   enum truthset { empty = 0,
-                   ffff = 1, eeee = 2, tttt = 4, 
-                   ffee = 3, fftt = 5, eett = 6,
-                   all = 7 };
+      truthset( ) = delete;
 
-   const char* getcstring( truthset );
+      truthset( uint8_t val )
+         : val( val )
+      { }
 
-#if 0
-      bool subset( prefix p ) const
-         { return ! ( val & ~p. val ); }
+      static constexpr uint8_t empty = 0;
+      static constexpr uint8_t ffff = 1;
+      static constexpr uint8_t eeee = 2;
+      static constexpr uint8_t tttt = 4;
 
-      prefix& operator |= ( const prefix& p ) 
-         { val |= p. val; return *this; }
+      static constexpr uint8_t ffee = ffff | eeee;
+      static constexpr uint8_t eett = eeee | tttt;
+      static constexpr uint8_t fftt = ffff | tttt;
 
-      prefix& operator &= ( const prefix& p ) 
-         { val &= p. val; return *this; }
+      static constexpr uint8_t all = ffff | eeee | tttt;
 
-      prefix operator ~ ( ) const
-         { return prefix( 7 ^ val ); }
-        
-#endif 
+      bool implies( truthset s ) const
+         { return ! ( val & ~s. val ); }
 
-#if 0
-   inline prefix operator & ( prefix p1, prefix p2 ) 
-      { return p1 &= p2; }
+      truthset& operator &= ( truthset s ) 
+         { val &= s. val; return *this; }
 
-   inline prefix operator | ( prefix p1, prefix p2 ) 
-      { return p1 |= p2; }
-#endif
+      truthset& operator |= ( truthset s ) 
+         { val |= s. val; return *this; }
+
+      void print( std::ostream& out ) const; 
+   };
+
+   inline truthset operator ~ ( truthset s )
+      { return truthset( truthset::all ^ s. val ); }
+
+   inline truthset operator & ( truthset s1, truthset s2 )
+      { return s1. val & s2. val; }
+
+   inline truthset operator | ( truthset s1, truthset s2 ) 
+      { return s1. val | s2. val; }
 
    inline std::ostream& operator << ( std::ostream& out, truthset s )
-      { out << getcstring(s); return out; }
+      { s. print( out ); return out; }
 
 }
 
