@@ -10,6 +10,7 @@
 #include "logic/pretty.h"
 #include "logic/termoperators.h"
 #include "logic/replacements.h"
+#include "logic/cmp.h"
 
 #include "parsing/parser.h"
 
@@ -78,27 +79,32 @@ includefile( logic::beliefstate& blfs,
 
 #include "calc/pretty.h"
 
+struct equality
+{
+   bool operator( ) ( logic::term& t1, logic::term& t2 )
+   {
+      return equal( t1, t2 );
+   }
+};
+
 int main( int argc, char* argv[] )
 {
-   calc::disjunction_map< int > cl1;
-   cl1. append( 1, calc::truthset::ffff );
-   cl1. append( 2, calc::truthset::tttt );
-   cl1. append( 3, calc::truthset::eett );
- 
-   calc::disjunction_map< int > cl2;
-   cl2. append( 10, calc::truthset::ffff );
-   cl2. append( 2, calc::truthset::ffee );
-   cl2. append( 3, calc::truthset::ffff );
+   calc::disjunction_map< logic::term, equality > cl1;
+   cl1. append( logic::op_true, calc::truthset::ffff );
+   cl1. append( logic::op_false, calc::truthset::tttt );
+   cl1. append( ! ( "aa"_unchecked == "aa"_unchecked ), calc::truthset::eeee );
+
+   logic::simplifier simp;
  
    std::cout << cl1 << "\n";
-   std::cout << cl2 << "\n";
-   for( auto& lit1 : cl1 )
-      for( auto& lit2: cl2 ) 
-      {
-         std::cout << lit1. first << " " << lit1. second << "   ";
-         std::cout << lit2. first << " " << lit2. second << "   ";
-         std::cout << contradict( lit1, lit2 ) << "\n";
-      }
+   auto p = findreplaceable( simp, cl1 );
+   if( p != cl1. end( ))
+      std::cout << ( p -> first ) << " / " << ( p -> second ) << "\n";
+   else
+      std::cout << "(none)\n";
+
+   // std::cout << "resolvent " << icl1 << "\n";
+
    return 0;
  
    errorstack err;

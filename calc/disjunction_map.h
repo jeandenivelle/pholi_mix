@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "truthset.h"
+#include "logic/replacements.h"
+#include "logic/outermost.h"
 
 // We finally understood that a clause is not a set of literals.
 // It is a mapping from atoms to sets of truth values.
@@ -19,8 +21,6 @@ namespace calc
    class disjunction_map
    {
       std::vector< std::pair< F, truthset >> map;
-
-      F f;
       E eq;
 
    public:
@@ -95,17 +95,61 @@ namespace calc
              eq( lit1. first, lit2. first ); 
    }
 
+   // True if lit1, and lit2 are contradicting:
+
    template< typename F, typename E = std::equal_to<F>>
-   bool contradict( const std::pair<F,truthset> & lit1, 
-                    const std::pair<F,truthset> & lit2 )
+   bool contradicting( const std::pair<F,truthset> & lit1, 
+                       const std::pair<F,truthset> & lit2 )
    {
       E eq;
       return lit1. second. contradicts( lit2. second ) &&
              eq( lit1. first, lit2. first ); 
    }
 
+
+   // If disj contains a literal that contradicts lit, then return
+   // an iterator to the first, otherwise disj. end( ).
+
+   template< typename F, typename E >
+   disjunction_map<F,E> :: const_iterator
+   findcontradicting( const std::pair<F,truthset> & lit,
+                      const disjunction_map<F,E> & disj )
+   {
+      auto p = disj. begin( );
+      while( p != disj. end( ) && !contradicting( lit, *p ))
+         ++ p;
+      return p;
+   }
+
    template< typename F, typename E >
    disjunction_map<F,E> 
+   unitresolve( const std::pair<F,truthset> & lit, 
+                const disjunction_map<F,E> & disj )
+   {
+      disjunction_map<F,E> res;
+      for( const auto& lit2 : disj )
+      {
+         if( !contradicting( lit, lit2 ))
+            res. append( lit2. first, lit2. second );
+      }
+      return res; 
+   }
+
+   template< typename F, typename E, logic::replacement R >
+   disjunction_map<F,E> :: const_iterator
+   findreplaceable( R& repl, disjunction_map<F,E> & disj )
+   {
+      E eq; 
+      for( auto p = disj. begin( ); p != disj. end( ); ++ p )
+      {
+         auto f = outermost( repl, p -> first, 0 );
+         if( !eq( p -> first, f ))
+            return p; 
+      }
+      return disj. end( ); 
+   }
+
+#if 0
    resolvent( disjunction_map<F,E> & disj1, 
               typename disjunction_map<F,E> :: const_iterator it1,
               disjunction_map<F,E> & disj2, 
@@ -135,6 +179,7 @@ namespace calc
       }
          return res;
    }
+#endif
 
 }
 

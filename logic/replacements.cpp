@@ -367,7 +367,17 @@ logic::simplifier::operator( ) ( term t, size_t vardepth, bool& change )
          return term( op_true );
       }
    }
- 
+
+   if( t. sel( ) == op_equals )
+   {
+      auto bin = t. view_binary( );
+      if( equal( bin. sub1( ), bin. sub2( )))
+      {  
+         change = true; 
+         return term( op_true );
+      }
+   }
+  
    return t;
 }
 
