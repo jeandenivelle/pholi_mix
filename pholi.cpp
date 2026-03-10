@@ -80,14 +80,25 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
-   calc::disjunction_map< int > test;
-   test. append( 33, calc::truthset::ffff );
-   test. append( 33, calc::truthset::eeee );
-   test. append( 33, calc::truthset::tttt );
+   calc::disjunction_map< int > cl1;
+   cl1. append( 1, calc::truthset::ffff );
+   cl1. append( 2, calc::truthset::tttt );
+   cl1. append( 3, calc::truthset::eett );
  
-   std::cout << test << "\n"; 
-   test. merge( );
-   std::cout << test << "\n";
+   calc::disjunction_map< int > cl2;
+   cl2. append( 10, calc::truthset::ffff );
+   cl2. append( 2, calc::truthset::ffee );
+   cl2. append( 3, calc::truthset::ffff );
+ 
+   std::cout << cl1 << "\n";
+   std::cout << cl2 << "\n";
+   for( auto& lit1 : cl1 )
+      for( auto& lit2: cl2 ) 
+      {
+         std::cout << lit1. first << " " << lit1. second << "   ";
+         std::cout << lit2. first << " " << lit2. second << "   ";
+         std::cout << contradict( lit1, lit2 ) << "\n";
+      }
    return 0;
  
    errorstack err;

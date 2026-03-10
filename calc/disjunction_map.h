@@ -33,6 +33,11 @@ namespace calc
       iterator begin( ) { return map. begin( ); }
       iterator end( ) { return map. end( ); }
 
+      using const_iterator = 
+         std::vector< std::pair< F, truthset >> :: const_iterator;
+      const_iterator begin( ) const { return map. cbegin( ); }
+      const_iterator end( ) const { return map. cend( ); }
+
       void append( F f, truthset s = truthset::tttt ) 
          { map. push_back( std::pair( std::move(f), s )); }
 
@@ -81,6 +86,55 @@ namespace calc
 
    };
 
+   template< typename F, typename E = std::equal_to<F>>
+   bool implies( const std::pair<F,truthset> & lit1, 
+                 const std::pair<F,truthset> & lit2 )
+   {
+      E eq; 
+      return lit1. second. implies( lit2. second ) &&
+             eq( lit1. first, lit2. first ); 
+   }
+
+   template< typename F, typename E = std::equal_to<F>>
+   bool contradict( const std::pair<F,truthset> & lit1, 
+                    const std::pair<F,truthset> & lit2 )
+   {
+      E eq;
+      return lit1. second. contradicts( lit2. second ) &&
+             eq( lit1. first, lit2. first ); 
+   }
+
+   template< typename F, typename E >
+   disjunction_map<F,E> 
+   resolvent( disjunction_map<F,E> & disj1, 
+              typename disjunction_map<F,E> :: const_iterator it1,
+              disjunction_map<F,E> & disj2, 
+              typename disjunction_map<F,E> :: const_iterator it2 )
+   {
+
+      if( eq( it1 -> first, it2 -> first ) && 
+          it1 -> second. contradictions( it2 -> second ))
+      { 
+         for( auto p1 = disj1. begin( ); p1 != disj1. end( ); ++ p1 )
+         {
+         
+            if( p == it )
+            {
+               for( const auto& at : other )
+               {
+                  if( !eq( p -> first, at. first ) ||
+                      ! p -> second. contradicts( at. second ))  
+                  {
+                     res. append( at. first, at. second );
+                  }
+               }
+            }
+            else
+               res. append( p -> first, p -> second );
+         }
+      }
+         return res;
+   }
 
 }
 

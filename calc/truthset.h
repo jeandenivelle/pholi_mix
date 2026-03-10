@@ -37,6 +37,9 @@ namespace calc
       bool implies( truthset s ) const
          { return ! ( val & ~s. val ); }
 
+      bool contradicts( truthset s ) const
+         { return ! ( val & s. val ); } 
+
       truthset& operator &= ( truthset s ) 
          { val &= s. val; return *this; }
 
