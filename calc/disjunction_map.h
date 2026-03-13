@@ -4,18 +4,33 @@
 
 #include <iostream>
 #include <vector>
+#include <concepts>
 
 #include "truthset.h"
 #include "logic/replacements.h"
 #include "logic/outermost.h"
 
-// We finally understood that a clause is not a set of literals.
+// We finally understood after trying to implement resolution since
+// 1998 that a clause is not a set of literals.
 // It is a mapping from atoms to sets of truth values.
 // We represent the truth values by bits, and sets of truth values
 // by their bitwise ors.
 
 namespace calc
 {
+
+   // Deduction rules are not symmetric, because we assume
+   // that we are simplifying the into argument.
+
+   template< typename R, typename F >
+   concept deduction_rule =
+      requires( R r, std::pair< F, truthset > from,
+                     std::pair< F, truthset > into ) 
+      {{ r. applicable( from, into ) } -> std::convertible_to< bool > ;
+       { r. result( from, into ) } -> 
+                std::convertible_to< std::pair< F, truthset >> ;
+      };
+
 
    template< typename F, typename E = std::equal_to<F>> 
    class disjunction_map
