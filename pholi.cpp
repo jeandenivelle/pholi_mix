@@ -87,8 +87,15 @@ struct equality
    }
 };
 
+template< typename X >
+X next( X&& x ) { return x + 1; }
+
 int main( int argc, char* argv[] )
 {
+   int y = 4;
+   std::cout << y << "\n";
+   return 0;
+
    calc::disjunction_map< logic::term, equality > cl1;
    cl1. append( logic::op_true, calc::truthset::ffff );
    cl1. append( logic::op_false, calc::truthset::tttt );
