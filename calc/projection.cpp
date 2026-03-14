@@ -4,8 +4,7 @@
 #include "projection.h"
 
 
-logic::term
-calc::projection::operator( ) ( logic::term tm, size_t vardepth, bool& change )
+logic::term calc::projection::operator( ) ( logic::term tm, size_t vardepth )
 {  
    const auto* fld = getfuncbelief( tm, logic::bel_fld );
    if( !fld )
@@ -37,14 +36,13 @@ calc::projection::operator( ) ( logic::term tm, size_t vardepth, bool& change )
          res. view_apply( ). push_back( tm. view_apply( ). arg(i));
    }
 
-   change = true;
-   ++ counter;
+   ++ used;
    return res;
 }
 
 void calc::projection::print( std::ostream& out ) const
 {
-   out << "projection(" << counter << ")";
+   out << "projection(" << used << ")";
 }
 
 

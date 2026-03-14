@@ -2,7 +2,7 @@
 #include "expander.h"
 
 logic::term
-calc::expander::operator( ) ( logic::term tm, size_t vardepth, bool& change )
+calc::expander::operator( ) ( logic::term tm, size_t vardepth )
 {
    if( tm. sel( ) == logic::op_exact )
    {
@@ -19,7 +19,7 @@ calc::expander::operator( ) ( logic::term tm, size_t vardepth, bool& change )
          {
             if( bl. sel( ) == logic::bel_def )
             {
-               change = true; 
+               ++ used; 
                return bl. view_def( ). val( ); 
             }
             else

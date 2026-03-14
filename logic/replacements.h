@@ -12,11 +12,20 @@
 namespace logic
 {
 
+   struct has_used
+   {
+      uint64_t used;
+
+      has_used( ) noexcept 
+         : used(0)
+      { }
+   };
+
    // The boolean should be assignend true when a 
    // replacement happened, and not changed when there was 
    // no replacement. 
 
-   struct lifter
+   struct lifter : public has_used
    {
       size_t dist;
 
@@ -26,7 +35,7 @@ namespace logic
          : dist( dist )
       { }
 
-      term operator( ) ( term t, size_t vardepth, bool& change ) const;
+      term operator( ) ( term t, size_t vardepth );
 
       void print( std::ostream& out ) const; 
    };
@@ -35,7 +44,7 @@ namespace logic
    // Sinker is the opposite of lifter. If term contains a 
    // DeBruijn index less than dist, we crash. 
 
-   struct sinker
+   struct sinker : public has_used
    {
       size_t dist;
 
@@ -45,7 +54,7 @@ namespace logic
          : dist( dist )
       { }
 
-      term operator( ) ( term t, size_t vardepth, bool& change ) const;
+      term operator( ) ( term t, size_t vardepth );
 
       void print( std::ostream& out ) const;
    };
@@ -53,13 +62,14 @@ namespace logic
    term lift( logic::term tm, size_t dist );
    term sink( logic::term tm, size_t dist );
 
+
    // A sparse subst replace some, but not
    // necessarily all, De Bruijn indices. 
    // Variables that are not in the domain of the substitution,
    // are not changed.
    // It is currently not used.
 
-   class sparse_subst
+   class sparse_subst : public has_used
    {
       std::unordered_map< size_t, term > repl;
 
@@ -73,7 +83,7 @@ namespace logic
       void assign( size_t var, term&& val )
          { repl. insert( std::pair( var, std::move( val ))); }
 
-      term operator( ) ( term t, size_t vardepth, bool& change ) const;
+      term operator( ) ( term t, size_t vardepth );
  
       void print( std::ostream& out ) const;      
    };
@@ -82,7 +92,7 @@ namespace logic
    // A single subst replaces #0 by value. 
    // Remaining variables are decreased by one.
 
-   struct singlesubst
+   struct singlesubst : public has_used
    {
       term value; 
 
@@ -90,7 +100,8 @@ namespace logic
          : value( value ) 
       { }
 
-      term operator( ) ( term t, size_t vardepth, bool& change ) const;
+      term operator( ) ( term t, size_t vardepth );
+
       void print( std::ostream& out ) const;
    };
 
@@ -99,7 +110,7 @@ namespace logic
    // #0,#1,#2, ... 
    // DeBruijn that are not in the domain of fullsubst are shifted down. 
 
-   class fullsubst
+   class fullsubst : public has_used
    {
       std::vector< term > values;
 
@@ -111,7 +122,7 @@ namespace logic
          : values( std::move( values ))
       { }
 
-      term operator( ) ( term t, size_t vardepth, bool& change ) const;
+      term operator( ) ( term t, size_t vardepth );
 
       void print( std::ostream& out ) const;
 
@@ -126,7 +137,7 @@ namespace logic
    // there is no need to construct fullsubst( u1, ..., um ).
    // Instead one can use the application term to get the ui.
 
-   struct argsubst
+   struct argsubst : public has_used
    {
       term argterm;    // Term from which we take the arguments.
       size_t arity;    // In case of incomplete application, 
@@ -137,7 +148,7 @@ namespace logic
            arity( arity )
       { }
 
-      term operator( ) ( term t, size_t vardepth, bool& change ) const;
+      term operator( ) ( term t, size_t vardepth );
 
       void print( std::ostream& out ) const;
    };
@@ -157,9 +168,9 @@ namespace logic
    // Below we would have values = { 0, 1 } and
    // domain = 3.
 
-   class normalizer
+   class normalizer : public has_used
    {
-      std::vector< size_t > used;
+      std::vector< size_t > freevars;
       size_t border;   // Supremum of affected indices.
                        // Variables >= border will be decreased.
 
@@ -169,8 +180,8 @@ namespace logic
          : border( border )
       { }      
 
-      void append( size_t var ) { used. push_back( var ); }
-      term operator( ) ( term t, size_t vardepth, bool& change ) const;
+      void append( size_t var ) { freevars. push_back( var ); }
+      term operator( ) ( term t, size_t vardepth );
 
       void print( std::ostream& out ) const;        
    };
@@ -178,34 +189,27 @@ namespace logic
 
    // This is both complete and incomplete beta-reduction:
 
-   struct betareduction 
+   struct betareduction : public has_used
    {
-      uint64_t counter; 
-
       betareduction( ) noexcept
-         : counter(0) 
       { }
 
-      term operator( ) ( term t, size_t vardepth, bool& change );
+      term operator( ) ( term t, size_t vardepth );
          // Not const method, because we count the reductions.
 
       void print( std::ostream& out ) const; 
    };
 
-
    // A decurrier replaces f( t_1, ..., t_m )( u_1, ..., u_n ) by
    // f( t_1, ..., t_m, u_1, ..., u_n ).
    // It is the opposite of Currying.
 
-   struct decurrier 
+   struct decurrier : public has_used
    {
-      uint64_t counter;
-
       decurrier( ) noexcept 
-         : counter(0)
       { } 
 
-      term operator( ) ( term t, size_t vardepth, bool& change ); 
+      term operator( ) ( term t, size_t vardepth ); 
 
       void print( std::ostream& out ) const; 
    };
@@ -220,27 +224,22 @@ namespace logic
    // EXISTS x FALSE ==> FALSE
    // FORALL x TRUE  ==> TRUE
  
-   struct simplifier
+   struct simplifier : public has_used
    {
-      uint64_t counter;
-
       simplifier( ) noexcept
-         : counter(0)
       { } 
 
-      term operator( ) ( term t, size_t vardepth, bool& change );
+      term operator( ) ( term t, size_t vardepth );
 
       void print( std::ostream& out ) const;
    };
 
  
-   struct rewriterule
+   struct rewriterule : public has_used
    {
       term from;
       term to; 
      
-      uint64_t counter = 0; 
-
       rewriterule( const term& from, const term& to )
          : from( from ), to( to ) 
       { }
@@ -253,8 +252,7 @@ namespace logic
       void swap( ) 
          { std::swap( from, to ); } 
 
-      term operator( ) ( term t, size_t vardepth, bool& change );
-         // Not const because of the counter.
+      term operator( ) ( term t, size_t vardepth );
 
       void print( std::ostream& out ) const;
    };

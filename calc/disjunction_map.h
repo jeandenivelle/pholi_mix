@@ -20,7 +20,8 @@ namespace calc
 {
 
    // Deduction rules are not symmetric, because we assume
-   // that we are simplifying the into argument.
+   // that we are simplifying the into argument, using
+   // the form argument.
 
    template< typename R, typename F >
    concept deduction_rule =

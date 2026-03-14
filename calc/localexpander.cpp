@@ -4,8 +4,7 @@
 
 
 logic::term
-calc::localexpander::operator( ) ( logic::term tm, 
-                                   size_t vardepth, bool& change )
+calc::localexpander::operator( ) ( logic::term tm, size_t vardepth )
 {
    if( tm. sel( ) == logic::op_debruijn )
    {
@@ -14,7 +13,7 @@ calc::localexpander::operator( ) ( logic::term tm,
       {
          if( i ++ == repl )
          {
-            change = true;
+            ++ used;
             return lift( value, vardepth + 1 );
          }
       }

@@ -7,14 +7,14 @@
 
 
 logic::term 
-logic::lifter::operator( ) ( term t, size_t vardepth, bool& change ) const
+logic::lifter::operator( ) ( term t, size_t vardepth ) 
 {
    if( t. sel( ) == op_debruijn )
    {
       auto db = t. view_debruijn( );
       if( size_t ind = db. index( ); ind >= vardepth )
       {
-         change = true;
+         ++ used; 
          return term( op_debruijn, ind + dist );
       }
    }
@@ -30,7 +30,7 @@ logic::lifter::print( std::ostream& out ) const
 
 
 logic::term
-logic::sinker::operator( ) ( term t, size_t vardepth, bool& change ) const
+logic::sinker::operator( ) ( term t, size_t vardepth ) 
 {
    if( t. sel( ) == op_debruijn )
    {
@@ -40,9 +40,9 @@ logic::sinker::operator( ) ( term t, size_t vardepth, bool& change ) const
       {
          ind -= vardepth; 
          if( ind < dist )
-            throw std::logic_error( "sinker. DeBruijn index too small" );
+            throw std::logic_error( "sinker: DeBruijn index too small" );
 
-         change = true;
+         ++ used;
          return term( op_debruijn, ind - dist );
       }  
    }     
@@ -61,7 +61,10 @@ logic::term logic::lift( term tm, size_t dist )
    if( dist == 0 )
       return tm;
    else
-      return outermost( lifter( dist ), std::move( tm ), 0 );
+   {
+      auto lift = lifter( dist );
+      return outermost( lift, std::move( tm ), 0 );
+   }
 }
 
 logic::term logic::sink( term tm, size_t dist )
@@ -69,13 +72,15 @@ logic::term logic::sink( term tm, size_t dist )
    if( dist == 0 )
       return tm;
    else
-      return outermost( sinker( dist ), std::move( tm ), 0 );
+   {
+      auto sink = sinker( dist );
+      return outermost( sink, std::move( tm ), 0 );
+   }
 }
 
  
 logic::term
-logic::sparse_subst::operator( ) ( term t, size_t vardepth, 
-                                   bool& change ) const
+logic::sparse_subst::operator( ) ( term t, size_t vardepth )
 {
    // std::cout << "sparse-subst " << t << " [" << vardepth << "]\n";
 
@@ -88,7 +93,7 @@ logic::sparse_subst::operator( ) ( term t, size_t vardepth,
          auto p = repl. find( ind );
          if( p != repl. end( ))
          {
-            change = true;
+            ++ used;
             return lift( p -> second, vardepth );
          }
       }
@@ -106,15 +111,14 @@ void logic::sparse_subst::print( std::ostream& out ) const
 }
 
 logic::term
-logic::singlesubst::operator( ) ( term t, size_t vardepth, 
-                                  bool& change ) const
+logic::singlesubst::operator( ) ( term t, size_t vardepth ) 
 {
    if( t. sel( ) == op_debruijn )
    {
       size_t ind = t. view_debruijn( ). index( );
       if( ind >= vardepth )
       {
-         change = true;
+         ++ used;
 
          if( ind == vardepth )
             return lift( value, vardepth );
@@ -131,14 +135,14 @@ void logic::singlesubst::print( std::ostream& out ) const
 }
 
 logic::term
-logic::fullsubst::operator( ) ( term t, size_t vardepth, bool& change ) const
+logic::fullsubst::operator( ) ( term t, size_t vardepth ) 
 {
    if( t. sel( ) == op_debruijn ) 
    {
       size_t ind = t. view_debruijn( ). index( ); 
       if( ind >= vardepth )
       {
-         change = true; 
+         ++ used; 
 
          if( ind < vardepth + values. size( ))
          {
@@ -168,14 +172,14 @@ void logic::fullsubst::print( std::ostream& out ) const
 }
 
 logic::term
-logic::argsubst::operator( ) ( term t, size_t vardepth, bool& change ) const
+logic::argsubst::operator( ) ( term t, size_t vardepth ) 
 {
    if( t. sel( ) == op_debruijn )
    {
       size_t ind = t. view_debruijn( ). index( );
       if( ind >= vardepth )
       {
-         change = true;
+         ++ used;
 
          if( ind < vardepth + arity )
          {
@@ -206,7 +210,7 @@ void logic::argsubst::print( std::ostream& out ) const
 
 
 logic::term
-logic::normalizer::operator( ) ( term t, size_t vardepth, bool& change ) const
+logic::normalizer::operator( ) ( term t, size_t vardepth ) 
 {
    // std::cout << t << " / " << vardepth << "\n";
 
@@ -215,22 +219,23 @@ logic::normalizer::operator( ) ( term t, size_t vardepth, bool& change ) const
       size_t ind = t. view_debruijn( ). index( );
       if( ind >= vardepth )
       {
-         change = true; 
+         ++ used; 
          ind -= vardepth;
 
          if( ind < border )
          {
             // Promises O( log( used. size( )) ) complexity:
 
-            auto p = std::lower_bound( used. begin( ), used. end( ), ind );
-            if( p == used. end( ) || *p != ind )
+            auto p = std::lower_bound( freevars. begin( ), 
+                                       freevars. end( ), ind );
+            if( p == freevars. end( ) || *p != ind )
                throw std::logic_error( "normalizer: variable not found" );
 
-            ind = p - used. begin( ); 
+            ind = p - freevars. begin( ); 
          }
          else
          {
-            ind += ( used. size( ) - border );
+            ind += ( freevars. size( ) - border );
          }
 
          return term( op_debruijn, ind + vardepth ); 
@@ -243,14 +248,14 @@ logic::normalizer::operator( ) ( term t, size_t vardepth, bool& change ) const
 void logic::normalizer::print( std::ostream& out ) const
 {
    out << "Normalizer(" << border << "):\n";
-   for( size_t i = 0; i < used. size( ); ++ i )
+   for( size_t i = 0; i < freevars. size( ); ++ i )
    {
-      out << "   #" << used[i] << " := #" << i << "\n"; 
+      out << "   #" << freevars[i] << " := #" << i << "\n"; 
    }
 }
 
 logic::term 
-logic::betareduction::operator( ) ( term t, size_t vardepth, bool& change ) 
+logic::betareduction::operator( ) ( term t, size_t vardepth ) 
 {
    if( t. sel( ) == op_apply )
    {
@@ -271,8 +276,7 @@ logic::betareduction::operator( ) ( term t, size_t vardepth, bool& change )
          argsubst subst( t, lamb. size( ));
          auto res = outermost( subst, lamb. extr_body( ), 0 );
 
-         change = true;
-         ++ counter;
+         ++ used;
 
          // If too many arguments were given, we construct
          // an application term with the remaining arguments:
@@ -293,12 +297,12 @@ logic::betareduction::operator( ) ( term t, size_t vardepth, bool& change )
 
 void logic::betareduction::print( std::ostream& out ) const
 {
-  out << "betareduction(" << counter << ")";
+  out << "betareduction(" << used << ")";
 }
 
 
 logic::term
-logic::decurrier::operator( ) ( term t, size_t vardepth, bool& change )
+logic::decurrier::operator( ) ( term t, size_t vardepth )
 {
    if( t. sel( ) == op_apply )
    {
@@ -311,7 +315,7 @@ logic::decurrier::operator( ) ( term t, size_t vardepth, bool& change )
          for( size_t i = 0; i != ap1. size( ); ++ i )
             ap2. push_back( ap1. extr_arg(i));
 
-         change = true; 
+         ++ used; 
          return res;
       }
    }   
@@ -320,30 +324,30 @@ logic::decurrier::operator( ) ( term t, size_t vardepth, bool& change )
 
 void logic::decurrier::print( std::ostream& out ) const
 {
-   out << "decurrier("<< counter << ")";
+   out << "decurrier("<< used << ")";
 }
 
 logic::term
-logic::simplifier::operator( ) ( term t, size_t vardepth, bool& change )
+logic::simplifier::operator( ) ( term t, size_t vardepth )
 {
    if( t. sel( ) == op_not )
    {
       const auto& sub = t. view_unary( ). sub( ); 
       if( sub. sel( ) == op_false )
       {
-         change = true;
+         ++ used; 
          return term( op_true );
       }
 
       if( sub. sel( ) == op_error )
       {
-         change = true;
+         ++ used; 
          return term( op_error );
       }
 
       if( sub. sel( ) == op_true )
       {
-         change = true; 
+         ++ used; 
          return term( op_false ); 
       }
    }
@@ -353,7 +357,7 @@ logic::simplifier::operator( ) ( term t, size_t vardepth, bool& change )
       const auto& sub = t. view_quant( ). body( );
       if( sub. sel( ) == op_false )
       {
-         change = true;
+         ++ used; 
          return term( op_false );
       }
    }
@@ -363,7 +367,7 @@ logic::simplifier::operator( ) ( term t, size_t vardepth, bool& change )
       const auto& sub = t. view_quant( ). body( );
       if( sub. sel( ) == op_true )
       {
-         change = true;
+         ++ used; 
          return term( op_true );
       }
    }
@@ -373,7 +377,7 @@ logic::simplifier::operator( ) ( term t, size_t vardepth, bool& change )
       auto bin = t. view_binary( );
       if( equal( bin. sub1( ), bin. sub2( )))
       {  
-         change = true; 
+         ++ used;   
          return term( op_true );
       }
    }
@@ -384,16 +388,15 @@ logic::simplifier::operator( ) ( term t, size_t vardepth, bool& change )
 
 void logic::simplifier::print( std::ostream& out ) const
 {
-   out << "simplifier(" << counter << ")";
+   out << "simplifier(" << used << ")";
 }
 
 logic::term
-logic::rewriterule::operator( ) ( term t, size_t vardepth, bool& change ) 
+logic::rewriterule::operator( ) ( term t, size_t vardepth ) 
 {
    if( equal( from, vardepth, t, 0, 0 ))
    {
-      change = true;
-      ++ counter;
+      ++ used;
       return lift( to, vardepth );
    }
 

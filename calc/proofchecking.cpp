@@ -49,16 +49,16 @@ namespace
 
       do
       {
-         beta. counter = 0;
+         beta. used = 0;
          f = outermost( beta, std::move(f), dist );
 
-         dec. counter = 0;
+         dec. used = 0;
          f = outermost( dec, std::move(f), dist ); 
 
-         proj. counter = 0;
+         proj. used = 0;
          f = outermost( proj, std::move(f), dist );
       }
-      while( beta. counter || proj. counter || dec. counter);
+      while( beta. used || proj. used || dec. used );
 
       return f;
    }

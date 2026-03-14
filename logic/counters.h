@@ -10,7 +10,7 @@
 namespace logic
 {
 
-   // A counter does not need to count. It can also
+   // A counter does not only count. It can also
    // check presence. 
 
    template< typename F >

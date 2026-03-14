@@ -15,17 +15,16 @@ namespace calc
 
    struct projection
    {
-      size_t counter;     // Nr. replacements made. 
+      size_t used;     // Nr. of replacements made. 
       const logic::beliefstate& blfs;
  
       projection( const logic::beliefstate& blfs ) noexcept
-         : counter(0),
+         : used(0),
            blfs( blfs )
       { }
 
-      logic::term 
-      operator( ) ( logic::term t, size_t vardepth, bool& change );
-         // Not const, because we count the reductions.
+      logic::term operator( ) ( logic::term t, size_t vardepth );
+         // Not const, because we count the uses.
 
       void print( std::ostream& out ) const;
 

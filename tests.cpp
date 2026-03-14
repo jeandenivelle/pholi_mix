@@ -348,11 +348,11 @@ void tests::betareduction( logic::beliefstate& blfs, errorstack& err )
 
    std::cout << "appl = " << appl << "\n";
 
-   bool change = false;
+   beta. used = 0;
 
-   auto res = beta( appl, 0, change );
+   auto res = beta( appl, 0 );
    std::cout << "res = " << res << "\n";
-   std::cout << "change = " << change << "\n";
+   std::cout << "used = " << beta. used << "\n";
    std::cout << beta << "\n";
 }
 
