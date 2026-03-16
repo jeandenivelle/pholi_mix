@@ -19,25 +19,29 @@
 namespace calc
 {
 
+#if 0
+   // It was a nice idea, but we are not using it any more.
+
    // Deduction rules are not symmetric, because we assume
    // that we are simplifying the into argument, using
    // the form argument.
 
    template< typename R, typename F >
    concept deduction_rule =
-      requires( R r, std::pair< F, truthset > from,
+      requires( const R r, std::pair< F, truthset > from,
                      std::pair< F, truthset > into ) 
-      {{ r. applicable( from, into ) } -> std::convertible_to< bool > ;
-       { r. result( from, into ) } -> 
+      {{ R( from ) } ;
+       { r. used } -> std::same_as< uint64_t& > ; 
+       { r. simplify( into ) } -> std::convertible_to< bool > ;
+       { r. apply( into ) } -> 
                 std::convertible_to< std::pair< F, truthset >> ;
       };
-
+#endif 
 
    template< typename F, typename E = std::equal_to<F>> 
    class disjunction_map
    {
       std::vector< std::pair< F, truthset >> map;
-      E eq;
 
    public:
       disjunction_map( ) noexcept = default;
@@ -100,6 +104,9 @@ namespace calc
             out << "   " << p. first << " -> " << p. second << "\n";
       }
 
+      bool subsumes( const disjunction_map& other ) const;
+      // bool subsumes( const disjunction_map& other ) const;
+
    };
 
    template< typename F, typename E = std::equal_to<F>>
@@ -122,21 +129,7 @@ namespace calc
              eq( lit1. first, lit2. first ); 
    }
 
-
-   // If disj contains a literal that contradicts lit, then return
-   // an iterator to the first, otherwise disj. end( ).
-
-   template< typename F, typename E >
-   disjunction_map<F,E> :: const_iterator
-   findcontradicting( const std::pair<F,truthset> & lit,
-                      const disjunction_map<F,E> & disj )
-   {
-      auto p = disj. begin( );
-      while( p != disj. end( ) && !contradicting( lit, *p ))
-         ++ p;
-      return p;
-   }
-
+#if 0
    template< typename F, typename E >
    disjunction_map<F,E> 
    unitresolve( const std::pair<F,truthset> & lit, 
@@ -165,7 +158,7 @@ namespace calc
       return disj. end( ); 
    }
 
-#if 0
+
    resolvent( disjunction_map<F,E> & disj1, 
               typename disjunction_map<F,E> :: const_iterator it1,
               disjunction_map<F,E> & disj2, 

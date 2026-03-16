@@ -14,7 +14,7 @@
 #include "outermost.h"
 #include "traverse.h"
 #include "flatten.h"
-#include "atp.h"
+#include "saturation.h"
 
 #include "printing.h"
 

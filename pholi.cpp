@@ -79,32 +79,23 @@ includefile( logic::beliefstate& blfs,
 
 #include "calc/pretty.h"
 
-struct equality
-{
-   bool operator( ) ( logic::term& t1, logic::term& t2 )
-   {
-      return equal( t1, t2 );
-   }
-};
-
-template< typename X >
-X next( X&& x ) { return x + 1; }
 
 int main( int argc, char* argv[] )
 {
-   calc::disjunction_map< logic::term, equality > cl1;
+   calc::disjunction_map< logic::term > cl1;
    cl1. append( logic::op_true, calc::truthset::ffff );
    cl1. append( logic::op_false, calc::truthset::tttt );
    cl1. append( ! ( "aa"_unchecked == "aa"_unchecked ), calc::truthset::eeee );
 
    logic::simplifier simp;
- 
+
    std::cout << cl1 << "\n";
-   auto p = findreplaceable( simp, cl1 );
+#if 0 
    if( p != cl1. end( ))
       std::cout << ( p -> first ) << " / " << ( p -> second ) << "\n";
    else
       std::cout << "(none)\n";
+#endif
 
    // std::cout << "resolvent " << icl1 << "\n";
 

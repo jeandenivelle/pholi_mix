@@ -22,6 +22,7 @@ namespace logic
            { r( t, vardepth ) } -> std::same_as< term > ; 
          };
 
+
    template< replacement R >
    term outermost( R& repl, term t, size_t vardepth )
    {

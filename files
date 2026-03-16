@@ -48,8 +48,9 @@
    proofterm.cpp
    printing.cpp
    proofchecking.cpp
+   saturation.cpp
    truthset.cpp
-
+   
 %dir Source/natded
 %sources
    truthval.cpp

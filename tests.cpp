@@ -14,7 +14,7 @@
 #include "calc/expander.h"
 #include "calc/projection.h"
 #include "calc/proofoperators.h"
-#include "calc/atp.h"
+#include "calc/saturation.h"
 
 #include "natded/eval.h"
 
