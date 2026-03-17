@@ -82,6 +82,8 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
+
+#if 0
    calc::disjunction_map< logic::term > cl1;
    cl1. append( logic::op_true, calc::truthset::ffff );
    cl1. append( logic::op_false, calc::truthset::tttt );
@@ -90,7 +92,7 @@ int main( int argc, char* argv[] )
    logic::simplifier simp;
 
    std::cout << cl1 << "\n";
-#if 0 
+
    if( p != cl1. end( ))
       std::cout << ( p -> first ) << " / " << ( p -> second ) << "\n";
    else
@@ -99,8 +101,6 @@ int main( int argc, char* argv[] )
 
    // std::cout << "resolvent " << icl1 << "\n";
 
-   return 0;
- 
    errorstack err;
    logic::beliefstate blfs;  
    filehasher seen;

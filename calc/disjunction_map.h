@@ -20,7 +20,7 @@ namespace calc
 {
 
 #if 0
-   // It was a nice idea, but we are not using it any more.
+   // It was a nice idea, but we are not using it any more:
 
    // Deduction rules are not symmetric, because we assume
    // that we are simplifying the into argument, using
@@ -42,6 +42,7 @@ namespace calc
    class disjunction_map
    {
       std::vector< std::pair< F, truthset >> map;
+      E eq;
 
    public:
       disjunction_map( ) noexcept = default;
@@ -104,30 +105,29 @@ namespace calc
             out << "   " << p. first << " -> " << p. second << "\n";
       }
 
-      bool subsumes( const disjunction_map& other ) const;
-      // bool subsumes( const disjunction_map& other ) const;
+      bool contradicting( const std::pair<F,truthset> & lit1,
+                          const std::pair<F,truthset> & lit2 ) const
+      {
+         return lit1. second. contradicts( lit2. second ) &&
+                eq( lit1. first, lit2. first );
+      }
+
+
+      bool implies( const std::pair<F,truthset> & lit1,
+                    const std::pair<F,truthset> & lit2 ) const
+      {
+         return lit1. second. implies( lit2. second ) &&
+                eq( lit1. first, lit2. first );
+      }
+
+      bool implies( const disjunction_map& other ) const;
+         // A weak approximation of course. 
+
+      bool implies( const disjunction_map& other,
+                    const_iterator without ) const;
 
    };
 
-   template< typename F, typename E = std::equal_to<F>>
-   bool implies( const std::pair<F,truthset> & lit1, 
-                 const std::pair<F,truthset> & lit2 )
-   {
-      E eq; 
-      return lit1. second. implies( lit2. second ) &&
-             eq( lit1. first, lit2. first ); 
-   }
-
-   // True if lit1, and lit2 are contradicting:
-
-   template< typename F, typename E = std::equal_to<F>>
-   bool contradicting( const std::pair<F,truthset> & lit1, 
-                       const std::pair<F,truthset> & lit2 )
-   {
-      E eq;
-      return lit1. second. contradicts( lit2. second ) &&
-             eq( lit1. first, lit2. first ); 
-   }
 
 #if 0
    template< typename F, typename E >

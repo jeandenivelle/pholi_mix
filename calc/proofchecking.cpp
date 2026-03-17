@@ -1043,9 +1043,11 @@ calc::checkproof( const logic::beliefstate& blfs,
          seq. back( ). push( forall( disjunction{ exists( fm ) } )); 
          return;  
       }
- 
+
+#endif  
    case prf_simplify:
       {
+#if 0
          std::vector< forall< disjunction< exists< logic::term >>>> ignored;
          conjunction< atp::clause > simp; 
 
@@ -1078,9 +1080,11 @@ calc::checkproof( const logic::beliefstate& blfs,
             seq. back( ). push( forall( std::move(s)) );
 
          return;
-      }
 
 #endif
+         throw std::logic_error( "simplify not finished" );
+      }
+
    case prf_fake:
       {
          auto trmp = prf. view_fake( ). extr_goal( );

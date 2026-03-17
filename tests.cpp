@@ -865,7 +865,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                       proofterm( prf_flatten, -2 ), 
                       proofterm( prf_show, "base-case" ),
                   
-                      // proofterm( prf_simplify ),
+                      proofterm( prf_simplify ) 
                    }) 
                     
                 } ),
