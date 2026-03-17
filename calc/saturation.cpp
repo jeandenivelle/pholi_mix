@@ -5,28 +5,63 @@
 #include "logic/cmp.h"
 #include "logic/replacements.h"
 
-#if 0
-std::pair< calc::prefix, const logic::term* > 
-calc::atp::decompose( const logic::term& tm )
+namespace calc
 {
-   if( tm. sel( ) == logic::op_prop )
+   namespace
    {
-      return std::pair( prefix::F( ) | prefix::T( ), 
-                        & tm. view_unary( ). sub( ) );   
-   }
+      void insert( saturation::clause& cl, const enf< logic::term > & lit )
+      {
+   
+         // If there are variables, we just insert lit:
+   
+         if( lit. vars. size( ) != 0 )
+         {
+            cl. append( lit, truthset::tttt );
+            return;
+         }
 
-   if( tm. sel( ) == logic::op_not )
-   {
-      const auto& sub = tm. view_unary( ). sub( );
-      if( sub. sel( ) == logic::op_prop )
-         return std::pair( prefix::E( ), & sub. view_unary( ). sub( ));
-      else
-         return std::pair( prefix::F( ), & sub );
-   }
+         // There are no variables.
 
-   return std::pair( prefix::T( ), & tm );
+         if( lit. body. sel( ) == logic::op_prop )
+         {
+            auto un = lit. body. view_unary( );
+            cl. append( exists( un. sub( )), truthset::fftt );
+            return; 
+         }
+
+         if( lit. body. sel( ) == logic::op_not )
+         {
+            auto un = lit. body. view_unary( );
+            if( un. sub( ). sel( ) == logic::op_prop )
+            {
+               auto un2 = un. sub( ). view_unary( );
+               cl. append( exists( un2. sub( )), truthset::eeee ); 
+            }
+            else
+            {
+               cl. append( exists( un. sub( )), truthset::ffff );
+               return;
+            } 
+
+         }
+
+         cl. append( lit, truthset::tttt ); 
+         return;
+      }
+   }
 }
 
+
+void calc::saturation::insert( dnf< logic::term > disj, size_t ind )
+{
+   clause cl;
+   for( const auto& d : disj )
+      calc::insert( cl, d );
+
+   nothing. push_back( std::pair( std::move(cl), ind ));
+}
+
+#if 0
 
 bool
 calc::atp::inconflict( const logic::term& tm1, const logic::term& tm2 )

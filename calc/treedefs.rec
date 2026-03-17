@@ -45,7 +45,6 @@
    ident : identifier, [ tp : logic::type ]
 
 %option simplify { prf_simplify } => 
-   // Always the complete toplevel.
 
 %option fake { prf_fake } => goal : logic::term
 

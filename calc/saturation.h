@@ -1,10 +1,11 @@
 
 // Written by Hans de Nivelle, March 2026.
 
-#ifndef CALC_ATP_
-#define CALC_ATP_
+#ifndef CALC_SATURATION_
+#define CALC_SATURATION_
 
 #include <iostream>
+#include <limits>
 
 #include "logic/term.h"
 #include "normalforms.h"
@@ -21,10 +22,13 @@ namespace calc
    };
 
 
-   struct proofstate 
+   struct saturation
    {
       using clause = 
          disjunction_map< exists< logic::term >, exists_equal_to > ;
+  
+      constexpr static size_t 
+         notinsequent = std::numeric_limits< size_t > :: max( );
 
       // The clause sets are called after what has been done with them.
      
@@ -35,7 +39,9 @@ namespace calc
          // Indices of subsumed initial clauses. They can be
          // made hidden in the sequent later.
 
-      void initial( dnf< logic::term > d, size_t ind );
+      saturation( ) noexcept = default;
+
+      void insert( dnf< logic::term > d, size_t ind );
          // Add an initial clause to nothing if it has the right form,
          // and is not subsumed. 
  
@@ -62,6 +68,7 @@ namespace calc
          // This is the main function that should be called. 
 #endif
 
+      void print( std::ostream& out ) const; 
    };
 
 }

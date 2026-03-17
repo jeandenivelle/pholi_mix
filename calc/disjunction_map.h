@@ -20,7 +20,7 @@ namespace calc
 {
 
 #if 0
-   // It was a nice idea, but we are not using it any more:
+   // This was a nice idea, but we are not using it any more:
 
    // Deduction rules are not symmetric, because we assume
    // that we are simplifying the into argument, using
@@ -59,7 +59,7 @@ namespace calc
       const_iterator begin( ) const { return map. cbegin( ); }
       const_iterator end( ) const { return map. cend( ); }
 
-      void append( F f, truthset s = truthset::tttt ) 
+      void append( F f, truthset s ) 
          { map. push_back( std::pair( std::move(f), s )); }
 
       // Remove F-s with empty truthset:

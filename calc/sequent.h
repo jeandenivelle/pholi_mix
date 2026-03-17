@@ -105,8 +105,6 @@ namespace calc
          bool inrange( ssize_t ind ) const;
             // True if ind can be used as an index.
 
-         // iterator find( ssize_t ind );
-         // const_iterator find( ssize_t ind ) const; 
       };
 
       std::vector< level > levels;

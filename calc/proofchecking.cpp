@@ -146,7 +146,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          // If it is UNF, we know that it is non-trivial. 
          // Hence, we can only flatten into UNF.
 
-
          if( seq. at( flat. ind( )). is_dnf( ))
          {
             auto f = lift( seq. at( flat. ind( )). get_dnf( ), 
@@ -1047,6 +1046,16 @@ calc::checkproof( const logic::beliefstate& blfs,
 #endif  
    case prf_simplify:
       {
+         saturation sat; 
+         for( size_t i = 0; i != seq. nrformulas( ); ++ i )
+         {
+            const auto& fm = seq. at(i);
+            if( !fm. hidden && fm. is_dnf( )) 
+            {
+               sat. insert( fm. get_dnf( ), i );
+            }
+         }
+      
 #if 0
          std::vector< forall< disjunction< exists< logic::term >>>> ignored;
          conjunction< atp::clause > simp; 
