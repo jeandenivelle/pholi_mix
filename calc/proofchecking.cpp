@@ -1055,7 +1055,8 @@ calc::checkproof( const logic::beliefstate& blfs,
                sat. insert( fm. get_dnf( ), i );
             }
          }
-      
+     
+         std::cout << sat << "\n"; 
 #if 0
          std::vector< forall< disjunction< exists< logic::term >>>> ignored;
          conjunction< atp::clause > simp; 

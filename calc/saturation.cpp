@@ -58,7 +58,7 @@ void calc::saturation::insert( dnf< logic::term > disj, size_t ind )
    for( const auto& d : disj )
       calc::insert( cl, d );
 
-   nothing. push_back( std::pair( std::move(cl), ind ));
+   raw. push_back( std::pair( std::move(cl), ind ));
 }
 
 #if 0
@@ -388,4 +388,15 @@ void calc::atp::simplify( conjunction< clause > & simp )
 }
 
 #endif
+
+void calc::saturation::print( std::ostream& out ) const
+{
+   out << "Saturation:\n";
+   if( raw. size( ))
+   {
+      for( const auto& r : raw )
+         out << r. second  << " : " << r. first << "\n";
+   }
+
+}
 

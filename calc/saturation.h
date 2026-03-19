@@ -30,11 +30,11 @@ namespace calc
       constexpr static size_t 
          notinsequent = std::numeric_limits< size_t > :: max( );
 
-      // The clause sets are called after what has been done with them.
+      // The clause sets are called after what has been done with them:
      
       std::vector< std::pair< clause, size_t >> saturated;
       std::vector< std::pair< clause, size_t >> simplified;
-      std::vector< std::pair< clause, size_t >> nothing;
+      std::vector< std::pair< clause, size_t >> raw;
       std::unordered_set< size_t > removed;
          // Indices of subsumed initial clauses. They can be
          // made hidden in the sequent later.
@@ -45,11 +45,11 @@ namespace calc
          // Add an initial clause to nothing if it has the right form,
          // and is not subsumed. 
  
-#if 0
       void simplify( clause& cls );
-         // Remove redundant literals, and direct equalities using
-         // KBO.
+         // Direct equalities, remove negative equalities of form ( t = t ) -> F.
+         // Replace ( A -> S1 ), ( A -> S2 ) by ( A -> S1|S2 ).
  
+#if 0
       bool subsumes( const literal& lit, const clause& cls,
                      clause::const_iterator skip );
 
