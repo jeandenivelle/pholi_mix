@@ -58,26 +58,34 @@ void calc::saturation::insert( dnf< logic::term > disj, size_t ind )
    for( const auto& d : disj )
       calc::insert( cl, d );
 
+   std::cout << "YOU FORGOT THE LIFTING\n";
    raw. push_back( std::pair( std::move(cl), ind ));
 }
 
-#if 0
-
-bool
-calc::atp::inconflict( const logic::term& tm1, const logic::term& tm2 )
+void 
+calc::saturation::simplify( 
+         std::pair< exists< logic::term >, truthset > & lit )
 {
-   auto dec1 = decompose( tm1 );
-   auto dec2 = decompose( tm2 );
-
-   if( ( dec1. first & dec2. first ). isempty( ))
+   if( lit. first. body. sel( ) == logic::op_equals )
    {
-      if( logic::equal( *dec1. second, *dec2. second ))
-         return true; 
-   }
+      // We first compare.
 
-   return false;
+      auto eq = lit. first. body. view_binary( );
+      auto c = kbo( eq. sub1( ), eq. sub2( ));
+
+      // Check if the equality needs to be swapped:
+
+      if( is_lt(c))
+      {
+         auto s1 = eq. extr_sub1( );
+         auto s2 = eq. extr_sub2( ); 
+
+          
+      }
+   }
 }
 
+#if 0
 
 bool
 calc::atp::subsumes( const logic::term& tm1, const logic::term& tm2 )

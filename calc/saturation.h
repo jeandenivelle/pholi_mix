@@ -44,7 +44,9 @@ namespace calc
       void insert( dnf< logic::term > d, size_t ind );
          // Add an initial clause to nothing if it has the right form,
          // and is not subsumed. 
- 
+
+      static 
+      void simplify( std::pair< exists< logic::term >, truthset > & lit ); 
       void simplify( clause& cls );
          // Direct equalities, remove negative equalities of form ( t = t ) -> F.
          // Replace ( A -> S1 ), ( A -> S2 ) by ( A -> S1|S2 ).
