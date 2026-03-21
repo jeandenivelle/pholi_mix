@@ -75,31 +75,21 @@ includefile( logic::beliefstate& blfs,
 #include "calc/proofchecking.h"
 #include "calc/quantifiers.h"
 #include "calc/propositional.h"
-#include "calc/disjunction_map.h"
+#include "calc/saturation.h"
 
 #include "calc/pretty.h"
 
 
 int main( int argc, char* argv[] )
 {
+   auto lit =
+   std::pair< calc::exists< logic::term >, calc::truthset >  (
+      calc::exists( {{ "x", logic::type( logic::type_obj ) }}, ( 2_db && ! 3_db ) == ( 2_db && ! 3_db ) ), calc::truthset::eett ); 
 
-#if 0
-   calc::disjunction_map< logic::term > cl1;
-   cl1. append( logic::op_true, calc::truthset::ffff );
-   cl1. append( logic::op_false, calc::truthset::tttt );
-   cl1. append( ! ( "aa"_unchecked == "aa"_unchecked ), calc::truthset::eeee );
-
-   logic::simplifier simp;
-
-   std::cout << cl1 << "\n";
-
-   if( p != cl1. end( ))
-      std::cout << ( p -> first ) << " / " << ( p -> second ) << "\n";
-   else
-      std::cout << "(none)\n";
-#endif
-
-   // std::cout << "resolvent " << icl1 << "\n";
+   std::cout << lit. first << " / " << lit. second << "\n";
+   calc::saturation::direct( lit );
+   std::cout << lit. first << " / " << lit. second << "\n";
+   return 0;
 
    errorstack err;
    logic::beliefstate blfs;  

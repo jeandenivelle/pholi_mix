@@ -98,6 +98,16 @@ namespace calc
          }
       }
 
+      bool is_trivial( ) const
+      {
+         for( const auto& lit : map )
+         {
+            if( lit. second == truthset::all )
+               return true;
+         }
+         return false; 
+      }
+
       void print( std::ostream& out ) const
       {
          out << "Disjunction Map:\n";
@@ -105,59 +115,57 @@ namespace calc
             out << "   " << p. first << " -> " << p. second << "\n";
       }
 
-      bool contradicting( const std::pair<F,truthset> & lit1,
-                          const std::pair<F,truthset> & lit2 ) const
+      bool inconflict( const std::pair<F,truthset> & lit1,
+                       const std::pair<F,truthset> & lit2 ) const
       {
-         return lit1. second. contradicts( lit2. second ) &&
+         return lit1. second. conflicts( lit2. second ) &&
                 eq( lit1. first, lit2. first );
       }
-
-
-      bool implies( const std::pair<F,truthset> & lit1,
-                    const std::pair<F,truthset> & lit2 ) const
-      {
-         return lit1. second. implies( lit2. second ) &&
-                eq( lit1. first, lit2. first );
-      }
-
-      bool implies( const disjunction_map& other ) const;
-         // A weak approximation of course. 
-
-      bool implies( const disjunction_map& other,
-                    const_iterator without ) const;
 
    };
 
 
+   template< typename F, typename E = std::equal_to<F>>
+   bool subsumes( const std::pair<F,truthset> & lit1,
+                  const std::pair<F,truthset> & lit2 )
+   {
+      return lit1. second. implies( lit2. second ) &&
+             eq( lit1. first, lit2. first );
+   }
+
+
+   template< typename F, typename E = std::equal_to<F>>
+   bool 
+   subsumes( const std::pair<F, truthset > & lit,
+             const disjunction_map<F,E> & disj, 
+             typename disjunction_map<F,E> :: const_iterator skip )
+   {
+      for( auto q = disj. begin( ); q != disj. end( ); ++ q )
+      {
+         if( q != skip && subsumes( lit, *q ))
+            return true;
+      }
+
+      return false;
+   }
+
+
+   template< typename F, typename E = std::equal_to<F>>
+   bool 
+   subsumes( const disjunction_map<F,E> & disj1, 
+             typename disjunction_map<F,E> :: const_iterator skip1,
+             const disjunction_map<F,E> & disj2,
+             typename disjunction_map<F,E> :: const_iterator skip2 )
+   {
+      for( auto p1 = disj1. begin( ); p1 != disj1. end( ); ++ p1 )
+      {
+         if( p1 != skip1 && !subsumes( *p1, disj2, skip2 ))
+            return false;
+      }
+      return true;
+   }
+
 #if 0
-   template< typename F, typename E >
-   disjunction_map<F,E> 
-   unitresolve( const std::pair<F,truthset> & lit, 
-                const disjunction_map<F,E> & disj )
-   {
-      disjunction_map<F,E> res;
-      for( const auto& lit2 : disj )
-      {
-         if( !contradicting( lit, lit2 ))
-            res. append( lit2. first, lit2. second );
-      }
-      return res; 
-   }
-
-   template< typename F, typename E, logic::replacement R >
-   disjunction_map<F,E> :: const_iterator
-   findreplaceable( R& repl, disjunction_map<F,E> & disj )
-   {
-      E eq; 
-      for( auto p = disj. begin( ); p != disj. end( ); ++ p )
-      {
-         auto f = outermost( repl, p -> first, 0 );
-         if( !eq( p -> first, f ))
-            return p; 
-      }
-      return disj. end( ); 
-   }
-
 
    resolvent( disjunction_map<F,E> & disj1, 
               typename disjunction_map<F,E> :: const_iterator it1,

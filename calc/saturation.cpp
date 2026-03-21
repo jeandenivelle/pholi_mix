@@ -63,118 +63,56 @@ void calc::saturation::insert( dnf< logic::term > disj, size_t ind )
 }
 
 void 
-calc::saturation::simplify( 
+calc::saturation::direct( 
          std::pair< exists< logic::term >, truthset > & lit )
 {
    if( lit. first. body. sel( ) == logic::op_equals )
    {
-      // We first compare.
+      // An equality cannot be error:
+
+      lit. second &= truthset::fftt;
+ 
+      // We compare the terms:
 
       auto eq = lit. first. body. view_binary( );
       auto c = kbo( eq. sub1( ), eq. sub2( ));
 
-      // Check if the equality needs to be swapped:
+      // Check if equality must be swapped.
+      // It's an equivalence, so that the truth set does not 
+      // matter:
 
       if( is_lt(c))
       {
-         auto s1 = eq. extr_sub1( );
-         auto s2 = eq. extr_sub2( ); 
+         logic::term s1 = eq. extr_sub1( );
+         logic::term s2 = eq. extr_sub2( ); 
+            
+         eq. update_sub1( std::move( s2 ));
+         eq. update_sub2( std::move( s1 )); 
+         return;
+      }
 
-          
+      if( is_eq(c))
+      {
+         if( truthset( truthset::tttt ). implies( lit. second ))
+         {
+            lit. first. body = logic::term( logic::op_true );
+
+            // A non-empty existential quantifier is not a tautology.
+
+            if( lit. first. vars. size( ) == 0 )
+               lit. second = truthset::all;
+            return; 
+         }       
+         else
+         {
+            lit. second = truthset::empty;
+               // This will result in removal.
+         }
       }
    }
 }
 
 #if 0
-
-bool
-calc::atp::subsumes( const logic::term& tm1, const logic::term& tm2 )
-{
-   auto dec1 = decompose( tm1 );
-   auto dec2 = decompose( tm2 );
-
-   if( dec1. first. subset( dec2. first ))
-   {
-      if( logic::equal( *dec1. second, *dec2. second ))
-         return true;
-   }
-
-   return false;
-}
-
-
-bool
-calc::atp::subsumes( const literal& lit1, const literal& lit2 )
-{
-   if( lit1. vars. size( ) != lit2. vars. size( ))
-      return false;
-
-   for( size_t i = 0; i != lit1. vars. size( ); ++ i )
-   {
-      if( !equal( lit1. vars[i]. tp, lit2. vars[i]. tp ))
-         return false;
-   }
-
-   return subsumes( lit1. body, lit2. body );
-}
-
-
-bool calc::atp::trivially_true( const logic::term& tm )
-{
-   // Truth constant:
-
-   if( tm. sel( ) == logic::op_true )
-      return true;
-
-   // equality t == t:
-
-   if( tm. sel( ) == logic::op_equals )
-   {
-      auto bin = tm. view_binary( );
-      if( equal( bin. sub1( ), bin. sub2( )))
-         return true;
-   }
-
-   // # ( t1 == t2 ), # # t, # FALSE, # TRUE:
-
-   if( tm. sel( ) == logic::op_prop )
-   {
-      const auto& sub = tm. view_unary( ). sub( ); 
-      
-      if( sub. sel( ) == logic::op_equals ||
-          sub. sel( ) == logic::op_prop ||
-          sub. sel( ) == logic::op_false ||
-          sub. sel( ) == logic::op_true )
-      {
-         return true;
-      }
-   }
-
-   return false;
-}
-
-bool calc::atp::istruthconstant( const clause& cls )
-{
-   if( cls. size( ) != 1 )
-      return false;
-
-   auto p = cls. begin( );
-   return p -> vars. size( ) == 0 && p -> body. sel( ) == logic::op_true;
-}
-
-void calc::atp::maketruthconstant( clause& cls )
-{
-   if( cls. size( ) == 0 )
-      cls. append( exists( logic::term( logic::op_true )));
-   else
-   {
-      while( cls. size( ) > 1 )
-         cls. remove_last( );
-
-      cls. begin( ) -> body = logic::term( logic::op_true );
-      cls. begin( ) -> vars. clear( );
-   }
-}
 
 void calc::atp::simplify( clause& cls )
 {
@@ -258,18 +196,6 @@ calc::atp::subsumes( const literal& lit, const clause& cls,
    } 
    
    return false;
-}
-
-bool 
-calc::atp::subsumes( const clause& cls1, clause::const_iterator skip1,
-                     const clause& cls2, clause::const_iterator skip2 )
-{
-   for( auto p1 = cls1. begin( ); p1 != cls1. end( ); ++ p1 )
-   {
-      if( p1 != skip1 && !subsumes( *p1, cls2, skip2 ))
-         return false;
-   }
-   return true; 
 }
 
 bool 
