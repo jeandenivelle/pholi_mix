@@ -82,13 +82,23 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
-   auto lit =
-   std::pair< calc::exists< logic::term >, calc::truthset >  (
-      calc::exists( {{ "x", logic::type( logic::type_obj ) }}, ( 2_db && ! 3_db ) == ( 2_db && ! 3_db ) ), calc::truthset::eett ); 
+   tests::saturate( );
+ 
+   calc::disjunction_map< std::string > cl1;
+   calc::disjunction_map< std::string > cl2;
 
-   std::cout << lit. first << " / " << lit. second << "\n";
-   calc::saturation::direct( lit );
-   std::cout << lit. first << " / " << lit. second << "\n";
+   cl1. append( "de", calc::truthset::ffff );
+   cl1. append( "hans", calc::truthset::ffff );
+   cl1. append( "nivelle", calc::truthset::tttt );
+
+   cl2. append( "hans", calc::truthset::ffff );
+   cl2. append( "deX", calc::truthset::ffee );
+   cl2. append( "nivelle", calc::truthset::tttt );
+
+   std::cout << cl1 << "\n";
+   std::cout << cl2 << "\n";
+
+   std::cout << subsumes( cl1, cl1. begin( ) + 1, cl2, cl2. begin( ) + 0 ) << "\n"; 
    return 0;
 
    errorstack err;

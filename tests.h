@@ -12,7 +12,7 @@ namespace tests
 
    void flatten( );
 
-   void simplify( );
+   void saturate( );
 
    void cmp( );
 
@@ -33,3 +33,4 @@ namespace tests
 }
 
 #endif
+

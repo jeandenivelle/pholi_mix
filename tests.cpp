@@ -224,9 +224,9 @@ void tests::pretty( const logic::beliefstate& blfs )
 }
 
 
-void tests::simplify( )
+void tests::saturate( )
 {
-   std::cout << "testing simplify\n";
+   std::cout << "testing saturate\n";
 
    using namespace logic;
 
@@ -236,37 +236,41 @@ void tests::simplify( )
    type O2O = type( type_func, O, { O } );
    type OT2O = type( type_func, O, { O, T } );
 
-#if 0
-   calc::conjunction< calc::atp::clause > simp;
+   calc::saturation sat;
 
    auto cl1 = calc::disjunction( { 
       calc::exists( 10_db == 11_db ), 
       calc::exists( "A"_unchecked ),
       calc::exists( "B"_unchecked ) } );
 
-   simp. append( cl1 );
+   sat. insert( cl1, 10 );
 
    auto cl2 = calc::disjunction( { 
       calc::exists( 11_db == 12_db ),
       calc::exists( "B"_unchecked ),
       calc::exists( "A"_unchecked ) } );
 
-   simp. append( cl2 );
+   sat. insert( cl2, 20 );
 
+   
    auto cl3 = calc::disjunction( { 
       calc::exists( {{ "x", O }}, ! ( 11_db == 13_db )),
       calc::exists( "B"_unchecked ),
       calc::exists( "A"_unchecked ) } );
 
-   simp. append( cl3 );
+   sat. insert( cl3, 30 );
 
+   bool res = calc::simplify< calc::exists< term >, 
+                              calc::saturation::demodulator,
+                              calc::exists_equal_to > ( sat. raw. front( ). first, sat. raw. back( ). first );
+#if 0
    std::cout << simp << "\n";
    calc::atp::simplify( simp );
    std::cout << "\n";
    std::cout << "after simplification\n";
-   std::cout << simp << "\n";
 #endif
 
+   std::cout << sat << "\n";
 }
 
 

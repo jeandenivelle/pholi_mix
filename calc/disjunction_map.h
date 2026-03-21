@@ -19,24 +19,16 @@
 namespace calc
 {
 
-#if 0
-   // This was a nice idea, but we are not using it any more:
-
-   // Deduction rules are not symmetric, because we assume
-   // that we are simplifying the into argument, using
-   // the form argument.
-
-   template< typename R, typename F >
-   concept deduction_rule =
-      requires( const R r, std::pair< F, truthset > from,
-                     std::pair< F, truthset > into ) 
-      {{ R( from ) } ;
-       { r. used } -> std::same_as< uint64_t& > ; 
-       { r. simplify( into ) } -> std::convertible_to< bool > ;
-       { r. apply( into ) } -> 
+   template< typename S, typename F >
+   concept simplifier =
+      requires( S simpl, std::pair< F, truthset > lit )
+      {{ S( lit ) } ;
+       { simpl. usable( ) } -> std::convertible_to< bool > ;
+       { simpl. used } -> std::same_as< uint64_t& > ; 
+       { simpl. operator( ) ( lit ) } -> 
                 std::convertible_to< std::pair< F, truthset >> ;
       };
-#endif 
+
 
    template< typename F, typename E = std::equal_to<F>> 
    class disjunction_map
@@ -50,6 +42,8 @@ namespace calc
       bool isempty( ) const { return map. empty( ); }
       size_t size( ) const { return map. size( ); }
 
+      // In general, we have no iterator stability!
+
       using iterator = std::vector< std::pair< F, truthset >> :: iterator;
       iterator begin( ) { return map. begin( ); }
       iterator end( ) { return map. end( ); }
@@ -61,6 +55,9 @@ namespace calc
 
       void append( F f, truthset s ) 
          { map. push_back( std::pair( std::move(f), s )); }
+
+      iterator erase( iterator it ) 
+         { return map. erase( it ); }
 
       // Remove F-s with empty truthset:
 
@@ -98,7 +95,9 @@ namespace calc
          }
       }
 
-      bool is_trivial( ) const
+      // True if the clause is very obviously trivial:
+
+      bool istrivial( ) const
       {
          for( const auto& lit : map )
          {
@@ -115,13 +114,6 @@ namespace calc
             out << "   " << p. first << " -> " << p. second << "\n";
       }
 
-      bool inconflict( const std::pair<F,truthset> & lit1,
-                       const std::pair<F,truthset> & lit2 ) const
-      {
-         return lit1. second. conflicts( lit2. second ) &&
-                eq( lit1. first, lit2. first );
-      }
-
    };
 
 
@@ -129,6 +121,7 @@ namespace calc
    bool subsumes( const std::pair<F,truthset> & lit1,
                   const std::pair<F,truthset> & lit2 )
    {
+      E eq;
       return lit1. second. implies( lit2. second ) &&
              eq( lit1. first, lit2. first );
    }
@@ -142,10 +135,9 @@ namespace calc
    {
       for( auto q = disj. begin( ); q != disj. end( ); ++ q )
       {
-         if( q != skip && subsumes( lit, *q ))
+         if( q != skip && subsumes<F,E> ( lit, *q ))
             return true;
       }
-
       return false;
    }
 
@@ -165,38 +157,38 @@ namespace calc
       return true;
    }
 
-#if 0
 
-   resolvent( disjunction_map<F,E> & disj1, 
-              typename disjunction_map<F,E> :: const_iterator it1,
-              disjunction_map<F,E> & disj2, 
-              typename disjunction_map<F,E> :: const_iterator it2 )
+   template< typename F, typename E = std::equal_to<F>>
+   bool 
+   conflicts( const std::pair<F,truthset> & lit1,
+              const std::pair<F,truthset> & lit2 ) 
    {
+      E eq;
+      return lit1. second. conflicts( lit2. second ) &&
+             eq( lit1. first, lit2. first );
+   }
 
-      if( eq( it1 -> first, it2 -> first ) && 
-          it1 -> second. contradictions( it2 -> second ))
-      { 
-         for( auto p1 = disj1. begin( ); p1 != disj1. end( ); ++ p1 )
+
+   template< typename F, simplifier<F> S, typename E = std::equal_to<F>>
+   bool simplify( const disjunction_map<F,E> & from,
+                  disjunction_map<F,E> & into )
+   {
+      for( auto p = from. begin( ); p != from. end( ); ++ p )
+      {
+         auto simpl = S( *p );
+         if( simpl. usable( ))
          {
-         
-            if( p == it )
+            for( auto q = into. begin( ); q != into. end( ); ++ q )
             {
-               for( const auto& at : other )
-               {
-                  if( !eq( p -> first, at. first ) ||
-                      ! p -> second. contradicts( at. second ))  
-                  {
-                     res. append( at. first, at. second );
-                  }
-               }
+               *q = simpl( std::move(*q));
+               if( simpl. used && subsumes( from, p, into, q ))
+                  return true;
             }
-            else
-               res. append( p -> first, p -> second );
          }
       }
-         return res;
+      return false; 
    }
-#endif
+
 
 }
 

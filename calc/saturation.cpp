@@ -7,6 +7,21 @@
 
 namespace calc
 {
+   bool exists_equal_to::operator( ) (
+          const exists< logic::term > & lit1,
+          const exists< logic::term > & lit2  ) const
+   {
+      if( lit1. vars. size( ) != lit2. vars. size( )) 
+         return false;
+
+      for( size_t i = 0; i != lit1. vars. size( ); ++ i )
+         if( !equal( lit1. vars[i]. tp, lit2.vars[i]. tp ))
+            return false;
+
+       return equal( lit1. body, lit2. body );
+   }
+
+
    namespace
    {
       void insert( saturation::clause& cl, const enf< logic::term > & lit )
@@ -49,6 +64,19 @@ namespace calc
          return;
       }
    }
+}
+
+calc::saturation::demodulator::demodulator( const std::pair< exists< logic::term >, truthset > & lit )
+   : used(0)
+{
+   std::cout << "constructing demodulator from " << lit. first << " / " << lit. second << "\n";
+}
+
+std::pair< calc::exists< logic::term >, calc::truthset >
+calc::saturation::demodulator::operator( ) ( std::pair< exists< logic::term >, truthset > lit ) 
+{
+
+
 }
 
 
@@ -112,114 +140,55 @@ calc::saturation::direct(
    }
 }
 
-#if 0
 
-void calc::atp::simplify( clause& cls )
+bool 
+calc::ressimp( const saturation::clause& from, saturation::clause& into )
 {
-   auto p1 = cls. begin( );
-   auto p2 = cls. begin( );
-      // We copy from p1 to p2:
-
-   while( p1 != cls. end( ))
-   {
-      // If *p1 is trivially true, we replace the clause by 
-      // { TRUE }:
-
-      if( p1 -> vars. size( ) == 0 && trivially_true( p1 -> body ))
+   for( auto p = from. begin( ); p != from. end( ); ++ p )
+   { 
+      for( auto q = into. begin( ); q != into. end( ); ++ q )
       {
-         maketruthconstant( cls );
-         return;
-      }
-
-      if( p1 -> body. sel( ) == logic::op_not )
-      {
-         // We allow variables, because exists( x1, ... xn; FALSE )
-         // is still FALSE.
-
-         const auto& sub = p1 -> body. view_unary( ). sub( );
-         if( trivially_true( sub ))
-            goto skip;
-      }
-
-      // Check if a later literal subsumes:
-
-      for( auto s = p1 + 1; s != cls. end( ); ++ s )
-      {
-         if( subsumes( *p1, *s ))
-            goto skip;
-      }
-
-      // Check if an earlier literal subsumes:
-      // (This approach has problem that in case of equivalent literals,
-      //  the latter is taken.)
-
-      for( auto s = cls. begin( ); s != p2; ++ s )
-      {
-         if( subsumes( *p1, *s ))
-            goto skip;
-      }
-
-      // Check if *p1 is an equality that needs to be flipped.
-      // We also flip inside an exists, even when it is useless:
-
-      if( p1 -> body. sel( ) == logic::op_equals )
-      {
-         auto bin = p1 -> body. view_binary( );
-         if( is_lt( logic::kbo( bin. sub1( ), bin. sub2( ))) )
+         if( conflicts< exists< logic::term >, exists_equal_to > ( *p, *q ) && 
+             subsumes( from, p, into, q ))
          {
-            p1 -> body = logic::term( logic::op_equals,
-                                      bin. sub2( ), bin. sub1( ));
+            into. erase( q );  
+            return true;
          } 
       }
-
-      if( p1 != p2 )
-         *p2 = std::move( *p1 ); 
-      ++ p2;
-
-   skip:
-      ++ p1; 
    }
 
-   while( p2 != cls. end( ))
-      cls. remove_last( );
-}
-
-
-bool 
-calc::atp::subsumes( const literal& lit, const clause& cls,
-                     clause::const_iterator skip )
-{
-   for( auto q = cls. begin( ); q != cls. end( ); ++ q )
-   {
-      if( q != skip && subsumes( lit, *q ))
-         return true;
-   } 
-   
    return false;
 }
 
-bool 
-calc::atp::resolve( const clause& from, clause& into )
+#if 0
 {
-   for( auto p = from. begin( ); p != from. end( ); ++ p ) 
+   for( auto p = from. begin( ); p != from. end( ); ++ p )
    {
-      for( auto q = into. begin( ); q != into. end( ); ++ q )
-      { 
-         if( p -> vars. size( ) == 0 && 
-             q -> vars. size( ) == 0 &&
-             inconflict( p -> body, q -> body ))
+      if( p -> first. vars. size( ) == 0 &&
+          p -> second == truthset::tttt &&
+          p -> first. body. sel( ) == logic::op_equals )
+      {
+         auto eq = p -> first. body. view_binary( );
+         logic::rewriterule rewr( eq. sub1( ), eq. sub2( ))
          {
-            if( subsumes( from, p, into, q )) 
+            for( auto q = into. begin( ); q != into. end( ); ++ q )
             {
-               into. erase( q ); 
-               return true; 
+               auto lit = rewr( *q, 0 );
+               if( rewr. used && subsumes( from, p, into, q ))
+               { 
+                  *q = std::move(lit);
+                  return true;
+               }
             }
-         }
+         }  
       }
    }
 
    return false;
 }
+
+
+
 
 
 bool 

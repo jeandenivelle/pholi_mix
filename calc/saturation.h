@@ -7,6 +7,7 @@
 #include <iostream>
 #include <limits>
 #include <list>
+#include <optional>
 
 #include "logic/term.h"
 #include "normalforms.h"
@@ -19,7 +20,8 @@ namespace calc
    {
       exists_equal_to( ) noexcept = default;
 
-      bool operator( ) ( logic::term& t1, logic::term& t2 ) const;
+      bool operator( ) ( const exists< logic::term > & lit1, 
+                         const exists< logic::term > & lit2  ) const;
    };
 
 
@@ -43,9 +45,9 @@ namespace calc
 
       saturation( ) noexcept = default;
 
-      void insert( dnf< logic::term > d, size_t ind );
-         // Add an initial clause to nothing if it has the right form,
-         // and is not subsumed. 
+      void insert( dnf< logic::term > disj, size_t ind );
+         // Add dnf to raw if it has the right form
+         // if it is not subsumed.
 
       static 
       void direct( std::pair< exists< logic::term >, truthset > & lit ); 
@@ -57,20 +59,35 @@ namespace calc
          // Direct equalities, and
          // remove negative equalities of form ( t = t ) -> F.
          // Replace ( A -> S1 ), ( A -> S2 ) by ( A -> S1|S2 ).
+
+      struct demodulator
+      {
+         uint64_t used;
+         std::optional< logic::rewriterule > rewr; 
+
+         demodulator( const std::pair< exists< logic::term >, truthset > & lit );
+
+         bool usable( ) const { return rewr. has_value( ); }
+         std::pair< exists< logic::term >, truthset >
+         operator( ) 
+             ( std::pair< exists< logic::term >, truthset > lit );
+      };
  
 #if 0
       // True if it happened:
  
-      bool rewrite( const clause& from, clause& into );
       bool resolve( const clause& from, clause& into );
 
-      void simplify( conjunction< clause > & simp );
+      void y( conjunction< clause > & simp );
          // This is the main function that should be called. 
 #endif
 
       void print( std::ostream& out ) const; 
    };
 
+   bool 
+   ressimp( const saturation::clause& from, saturation::clause& into );
+      // From should not be identical to into. 
 }
 
 #endif
