@@ -27,6 +27,8 @@ namespace calc
 
    struct saturation
    {
+      using littype = truthform< exists< logic::term >, exists_equal_to > ;
+
       using clause = 
          disjunction_map< exists< logic::term >, exists_equal_to > ;
   
@@ -62,24 +64,20 @@ namespace calc
 
       struct demodulator
       {
-         uint64_t used;
          std::optional< logic::rewriterule > rewr; 
 
-         demodulator( const std::pair< exists< logic::term >, truthset > & lit );
+         demodulator( const littype & lit );
 
          bool usable( ) const { return rewr. has_value( ); }
-         std::pair< exists< logic::term >, truthset >
-         operator( ) 
-             ( std::pair< exists< logic::term >, truthset > lit );
+         littype operator( ) ( littype lit );
+         uint64_t used( ) const { return rewr. value( ). used; }
       };
- 
+
+       
 #if 0
       // True if it happened:
  
       bool resolve( const clause& from, clause& into );
-
-      void y( conjunction< clause > & simp );
-         // This is the main function that should be called. 
 #endif
 
       void print( std::ostream& out ) const; 
@@ -87,7 +85,7 @@ namespace calc
 
    bool 
    ressimp( const saturation::clause& from, saturation::clause& into );
-      // From should not be identical to into. 
+      // From should not be identical to into. That's asking for trouble.
 }
 
 #endif

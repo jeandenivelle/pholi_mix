@@ -4,9 +4,11 @@
 
 #include "logic/cmp.h"
 #include "logic/replacements.h"
+#include "outermost.h"
 
 namespace calc
 {
+
    bool exists_equal_to::operator( ) (
           const exists< logic::term > & lit1,
           const exists< logic::term > & lit2  ) const
@@ -66,19 +68,27 @@ namespace calc
    }
 }
 
-calc::saturation::demodulator::demodulator( const std::pair< exists< logic::term >, truthset > & lit )
-   : used(0)
+calc::saturation::demodulator::demodulator( 
+   const littype & lit )
 {
-   std::cout << "constructing demodulator from " << lit. first << " / " << lit. second << "\n";
+   std::cout << "constructing demodulator from " << lit << "\n";
+   if( lit. lab. implies( truthset::tttt ) &&
+       lit. fm. vars. size( ) == 0 &&
+       lit. fm. body. sel( ) == logic::op_equals )
+   {
+      std::cout << "going on\n";
+      auto eq = lit. fm. body. view_binary( );
+      rewr. emplace( eq. sub1( ), eq. sub2( )); 
+   }
 }
 
-std::pair< calc::exists< logic::term >, calc::truthset >
-calc::saturation::demodulator::operator( ) ( std::pair< exists< logic::term >, truthset > lit ) 
-{
-
-
+auto
+calc::saturation::demodulator::operator( ) ( littype lit )
+-> littype 
+{ 
+   lit = outermost( rewr. value( ), std::move( lit. fm ), 0 ); 
+   return lit; 
 }
-
 
 void calc::saturation::insert( dnf< logic::term > disj, size_t ind )
 {
@@ -148,8 +158,7 @@ calc::ressimp( const saturation::clause& from, saturation::clause& into )
    { 
       for( auto q = into. begin( ); q != into. end( ); ++ q )
       {
-         if( conflicts< exists< logic::term >, exists_equal_to > ( *p, *q ) && 
-             subsumes( from, p, into, q ))
+         if( p -> conflicts( *q ) && subsumes( from, p, into, q ))
          {
             into. erase( q );  
             return true;

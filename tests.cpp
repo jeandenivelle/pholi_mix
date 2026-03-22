@@ -261,8 +261,12 @@ void tests::saturate( )
    sat. insert( cl3, 30 );
 
    bool res = calc::simplify< calc::exists< term >, 
-                              calc::saturation::demodulator,
-                              calc::exists_equal_to > ( sat. raw. front( ). first, sat. raw. back( ). first );
+                              calc::exists_equal_to,
+                              calc::saturation::demodulator > ( sat. raw. front( ). first, sat. raw. back( ). first );
+
+   std::cout << res << "\n";
+   std::cout << cl3 << "\n";
+
 #if 0
    std::cout << simp << "\n";
    calc::atp::simplify( simp );

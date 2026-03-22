@@ -83,18 +83,6 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
-   auto lit1 = calc::truthform< std::string > ( "nr1", calc::truthset::ffee );
-   auto lit2 = calc::truthform< std::string > ( "nr1", calc::truthset::tttt );
-
-   std::cout << lit1 << "\n";
-   std::cout << lit2 << "\n";
-
-   std::cout << lit1. try_join( lit2 ) << "\n";
-   std::cout << lit1 << "\n";
-   std::cout << lit2 << "\n";
-
-   return 0;
- 
    tests::saturate( );
  
    calc::disjunction_map< std::string > cl1;

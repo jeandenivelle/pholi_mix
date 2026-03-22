@@ -2,6 +2,7 @@
 #ifndef CALC_TRUTHFORM_
 #define CALC_TRUTHFORM_
 
+#include <concepts>
 #include <iostream>
 #include "truthset.h"
 
@@ -13,7 +14,7 @@
 namespace calc
 {
 
-   template< typename F, typename E = std::equal_to<F>>
+   template< typename F, std::equivalence_relation<F,F> E = std::equal_to<F>>
    struct truthform
    {
       F fm;

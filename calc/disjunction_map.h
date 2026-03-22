@@ -6,9 +6,9 @@
 #include <vector>
 #include <concepts>
 
-#include "truthset.h"
 #include "logic/replacements.h"
 #include "logic/outermost.h"
+#include "truthform.h"
 
 // We finally understood after trying to implement resolution since
 // 1998 that a clause is not a set of literals.
@@ -19,21 +19,21 @@
 namespace calc
 {
 
-   template< typename S, typename F >
+   template< typename S, typename F, typename E >
    concept simplifier =
-      requires( S simpl, std::pair< F, truthset > lit )
+      requires( S simpl, truthform<F,E> lit )
       {{ S( lit ) } ;
        { simpl. usable( ) } -> std::convertible_to< bool > ;
-       { simpl. used } -> std::same_as< uint64_t& > ; 
+       { simpl. used( ) } -> std::same_as< uint64_t > ; 
        { simpl. operator( ) ( lit ) } -> 
-                std::convertible_to< std::pair< F, truthset >> ;
+                std::convertible_to< truthform<F,E> > ;
       };
 
 
-   template< typename F, typename E = std::equal_to<F>> 
+   template< typename F, std::equivalence_relation<F,F> E = std::equal_to<F>> 
    class disjunction_map
    {
-      std::vector< std::pair< F, truthset >> map;
+      std::vector< truthform<F,E>> map;
       E eq;
 
    public:
@@ -44,17 +44,16 @@ namespace calc
 
       // In general, we have no iterator stability!
 
-      using iterator = std::vector< std::pair< F, truthset >> :: iterator;
+      using iterator = std::vector< truthform<F,E>> :: iterator;
       iterator begin( ) { return map. begin( ); }
       iterator end( ) { return map. end( ); }
 
-      using const_iterator = 
-         std::vector< std::pair< F, truthset >> :: const_iterator;
+      using const_iterator = std::vector< truthform<F,E>> :: const_iterator;
       const_iterator begin( ) const { return map. cbegin( ); }
       const_iterator end( ) const { return map. cend( ); }
 
       void append( F f, truthset s ) 
-         { map. push_back( std::pair( std::move(f), s )); }
+         { map. push_back( truthform<F,E> ( std::move(f), s )); }
 
       iterator erase( iterator it ) 
          { return map. erase( it ); }
@@ -111,31 +110,21 @@ namespace calc
       {
          out << "Disjunction Map:\n";
          for( auto& p : map )
-            out << "   " << p. first << " -> " << p. second << "\n";
+            out << "   " << p << "\n";
       }
 
    };
 
 
    template< typename F, typename E = std::equal_to<F>>
-   bool subsumes( const std::pair<F,truthset> & lit1,
-                  const std::pair<F,truthset> & lit2 )
-   {
-      E eq;
-      return lit1. second. implies( lit2. second ) &&
-             eq( lit1. first, lit2. first );
-   }
-
-
-   template< typename F, typename E = std::equal_to<F>>
    bool 
-   subsumes( const std::pair<F, truthset > & lit,
+   subsumes( const truthform<F,E> & lit,
              const disjunction_map<F,E> & disj, 
              typename disjunction_map<F,E> :: const_iterator skip )
    {
       for( auto q = disj. begin( ); q != disj. end( ); ++ q )
       {
-         if( q != skip && subsumes<F,E> ( lit, *q ))
+         if( q != skip && lit. subsumes( *q ))
             return true;
       }
       return false;
@@ -153,7 +142,7 @@ namespace calc
       {
          if( p1 != skip1 && !subsumes( *p1, disj2, skip2 ))
             return false;
-      }
+      } 
       return true;
    }
 
@@ -169,7 +158,7 @@ namespace calc
    }
 
 
-   template< typename F, simplifier<F> S, typename E = std::equal_to<F>>
+   template< typename F, typename E, simplifier<F,E> S >
    bool simplify( const disjunction_map<F,E> & from,
                   disjunction_map<F,E> & into )
    {
@@ -181,7 +170,7 @@ namespace calc
             for( auto q = into. begin( ); q != into. end( ); ++ q )
             {
                *q = simpl( std::move(*q));
-               if( simpl. used && subsumes( from, p, into, q ))
+               if( simpl. used( ) && subsumes( from, p, into, q ))
                   return true;
             }
          }
