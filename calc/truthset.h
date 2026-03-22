@@ -34,7 +34,7 @@ namespace calc
 
       static constexpr uint8_t all = ffff | eeee | tttt;
 
-      bool implies( truthset s ) const
+      bool implies( truthset s ) const 
          { return ! ( val & ~s. val ); }
 
       bool conflicts( truthset s ) const
@@ -49,14 +49,15 @@ namespace calc
       void print( std::ostream& out ) const; 
    };
 
-   inline truthset operator ~ ( truthset s )
-      { return truthset( truthset::all ^ s. val ); }
 
    inline truthset operator & ( truthset s1, truthset s2 )
       { return s1. val & s2. val; }
 
    inline truthset operator | ( truthset s1, truthset s2 ) 
       { return s1. val | s2. val; }
+
+   inline bool operator == ( truthset s1, truthset s2 )
+      { return s1. val == s2. val; }
 
    inline std::ostream& operator << ( std::ostream& out, truthset s )
       { s. print( out ); return out; }
