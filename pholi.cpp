@@ -71,7 +71,6 @@ includefile( logic::beliefstate& blfs,
 }
 
 
-
 #include "calc/proofchecking.h"
 #include "calc/quantifiers.h"
 #include "calc/propositional.h"
@@ -84,17 +83,20 @@ includefile( logic::beliefstate& blfs,
 int main( int argc, char* argv[] )
 {
    tests::saturate( );
+
+   using tf = calc::truthform< std::string > ;
  
    calc::disjunction_map< std::string > cl1;
    calc::disjunction_map< std::string > cl2;
 
-   cl1. append( "de", calc::truthset::ffff );
-   cl1. append( "hans", calc::truthset::ffff );
-   cl1. append( "nivelle", calc::truthset::tttt );
+   cl1. insert( tf( "de", calc::truthset::ffff ));
+   cl1. insert( { "hans", calc::truthset::ffff } );
+   cl1. insert( { "nivelle", calc::truthset::tttt } );
 
-   cl2. append( "hans", calc::truthset::ffff );
-   cl2. append( "deX", calc::truthset::ffee );
-   cl2. append( "nivelle", calc::truthset::tttt );
+
+   cl2. insert( { "hans", calc::truthset::ffff } );
+   cl2. insert( { "deX", calc::truthset::ffee } );
+   cl2. insert( { "nivelle", calc::truthset::tttt } );
 
    std::cout << cl1 << "\n";
    std::cout << cl2 << "\n";

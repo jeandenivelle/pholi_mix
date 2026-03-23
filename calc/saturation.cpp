@@ -6,67 +6,103 @@
 #include "logic/replacements.h"
 #include "outermost.h"
 
-namespace calc
-{
-
-   bool exists_equal_to::operator( ) (
-          const exists< logic::term > & lit1,
+bool calc::exists_equal_to::operator( ) (
+       const exists< logic::term > & lit1,
           const exists< logic::term > & lit2  ) const
-   {
-      if( lit1. vars. size( ) != lit2. vars. size( )) 
+{
+   if( lit1. vars. size( ) != lit2. vars. size( )) 
+      return false;
+
+   for( size_t i = 0; i != lit1. vars. size( ); ++ i )
+      if( !equal( lit1. vars[i]. tp, lit2.vars[i]. tp ))
          return false;
 
-      for( size_t i = 0; i != lit1. vars. size( ); ++ i )
-         if( !equal( lit1. vars[i]. tp, lit2.vars[i]. tp ))
-            return false;
+    return equal( lit1. body, lit2. body );
+}
 
-       return equal( lit1. body, lit2. body );
+void calc::saturation::clause::print( std::ostream& out ) const
+{
+   out << nr;
+   if( seqind. has_value( ))
+      out << ", initial(" << seqind. value( ) << ")";
+   out << " :\n";
+   out << cl; 
+}
+
+calc::saturation::littype
+calc::saturation::makeliteral( const exists< logic::term > & lit )
+{
+   if( lit. vars. size( ) == 0 )
+   {
+      if( lit. body. sel( ) == logic::op_prop )
+      {
+         auto un = lit. body. view_unary( );
+         return littype( exists( un. sub( )), truthset::fftt );
+      }
+
+      if( lit. body. sel( ) == logic::op_not )
+      {
+         auto un = lit. body. view_unary( );
+         if( un. sub( ). sel( ) == logic::op_prop )
+         {
+            auto un2 = un. sub( ). view_unary( );
+            return littype( exists( un2. sub( )), truthset::eeee ); 
+         }
+         else
+            return littype( exists( un. sub( )), truthset::ffff );
+      }
    }
 
+   return littype( lit, truthset::tttt ); 
+}
 
-   namespace
+
+void 
+calc::saturation::direct( littype & lit )
+{
+   if( lit. fm. body. sel( ) == logic::op_equals )
    {
-      void insert( saturation::clause& cl, const enf< logic::term > & lit )
+      // An equality cannot be error:
+
+      lit. lab &= truthset::fftt;
+ 
+      // We compare the terms:
+
+      auto eq = lit. fm. body. view_binary( );
+      auto c = kbo( eq. sub1( ), eq. sub2( ));
+
+      // Check if equality must be swapped.
+      // It's an equivalence, so that the truth set does not 
+      // matter:
+
+      if( is_lt(c))
       {
-   
-         // If there are variables, we just insert lit:
-   
-         if( lit. vars. size( ) != 0 )
-         {
-            cl. append( lit, truthset::tttt );
-            return;
-         }
-
-         // There are no variables.
-
-         if( lit. body. sel( ) == logic::op_prop )
-         {
-            auto un = lit. body. view_unary( );
-            cl. append( exists( un. sub( )), truthset::fftt );
-            return; 
-         }
-
-         if( lit. body. sel( ) == logic::op_not )
-         {
-            auto un = lit. body. view_unary( );
-            if( un. sub( ). sel( ) == logic::op_prop )
-            {
-               auto un2 = un. sub( ). view_unary( );
-               cl. append( exists( un2. sub( )), truthset::eeee ); 
-            }
-            else
-            {
-               cl. append( exists( un. sub( )), truthset::ffff );
-               return;
-            } 
-
-         }
-
-         cl. append( lit, truthset::tttt ); 
+         logic::term s1 = eq. extr_sub1( );
+         logic::term s2 = eq. extr_sub2( ); 
+            
+         eq. update_sub1( std::move( s2 ));
+         eq. update_sub2( std::move( s1 )); 
          return;
+      }
+
+      if( is_eq(c))
+      {
+         if( truthset( truthset::tttt ). implies( lit. lab ))
+         {
+            lit. fm. body = logic::term( logic::op_true );
+
+            // A non-empty existential quantifier cannot be a tautology.
+
+            if( lit. fm. vars. size( ) == 0 )
+               lit. lab = truthset::all; 
+            return; 
+         }       
+         else
+            lit. lab = truthset::empty;
       }
    }
 }
+
 
 calc::saturation::demodulator::demodulator( 
    const littype & lit )
@@ -90,84 +126,18 @@ calc::saturation::demodulator::operator( ) ( littype lit )
    return lit; 
 }
 
-void calc::saturation::insert( dnf< logic::term > disj, size_t ind )
+void 
+calc::saturation::initial( dnf< logic::term > disj, 
+                           size_t index, size_t liftdist )
 {
-   clause cl;
+   clauses. push_back( clause( notcreated ++ , index ));
    for( const auto& d : disj )
-      calc::insert( cl, d );
+      clauses. back( ). cl. insert( makeliteral(d) );
 
    std::cout << "YOU FORGOT THE LIFTING\n";
-   raw. push_back( std::pair( std::move(cl), ind ));
-}
-
-void 
-calc::saturation::direct( 
-         std::pair< exists< logic::term >, truthset > & lit )
-{
-   if( lit. first. body. sel( ) == logic::op_equals )
-   {
-      // An equality cannot be error:
-
-      lit. second &= truthset::fftt;
- 
-      // We compare the terms:
-
-      auto eq = lit. first. body. view_binary( );
-      auto c = kbo( eq. sub1( ), eq. sub2( ));
-
-      // Check if equality must be swapped.
-      // It's an equivalence, so that the truth set does not 
-      // matter:
-
-      if( is_lt(c))
-      {
-         logic::term s1 = eq. extr_sub1( );
-         logic::term s2 = eq. extr_sub2( ); 
-            
-         eq. update_sub1( std::move( s2 ));
-         eq. update_sub2( std::move( s1 )); 
-         return;
-      }
-
-      if( is_eq(c))
-      {
-         if( truthset( truthset::tttt ). implies( lit. second ))
-         {
-            lit. first. body = logic::term( logic::op_true );
-
-            // A non-empty existential quantifier is not a tautology.
-
-            if( lit. first. vars. size( ) == 0 )
-               lit. second = truthset::all;
-            return; 
-         }       
-         else
-         {
-            lit. second = truthset::empty;
-               // This will result in removal.
-         }
-      }
-   }
 }
 
 
-bool 
-calc::ressimp( const saturation::clause& from, saturation::clause& into )
-{
-   for( auto p = from. begin( ); p != from. end( ); ++ p )
-   { 
-      for( auto q = into. begin( ); q != into. end( ); ++ q )
-      {
-         if( p -> conflicts( *q ) && subsumes( from, p, into, q ))
-         {
-            into. erase( q );  
-            return true;
-         } 
-      }
-   }
-
-   return false;
-}
 
 #if 0
 {
@@ -229,12 +199,23 @@ calc::atp::rewrite( const clause& from, clause& into )
 }
 
 
-void calc::atp::simplify( conjunction< clause > & simp )
+void calc::saturation::saturate( )
 {
    std::cout << "starting simplification on conjunction of clauses\n";
+restart: 
+   if( notsimplified < notcreated )
+   {
+      for( auto& cl : clauses )
+      {
+         if( cl. nr >= notsimplified )
+            normalize( cl. cl );
+      }
 
-   for( auto s = simp. begin( ); s != simp. end( ); ++ s )
-      simplify( *s );
+      notsimplified = notcreated; 
+   }
+
+   if( notsubsumed < notcreated )
+   {
 
    std::cout << "after clausewise simplification:\n";
    for( const auto& cl : simp )
@@ -304,11 +285,12 @@ void calc::atp::simplify( conjunction< clause > & simp )
 void calc::saturation::print( std::ostream& out ) const
 {
    out << "Saturation:\n";
-   if( raw. size( ))
-   {
-      for( const auto& r : raw )
-         out << r. second  << " : " << r. first << "\n";
-   }
+   out << "   notsaturated =  " << notsaturated << "\n";
+   out << "   notsubsumed =   " << notsubsumed << "\n";
+   out << "   notnormalized = " << notnormalized << "\n";
+   out << "   notcreated =    " << notcreated << "\n";
 
+   for( const auto& cl : clauses )
+      out << cl << "\n";
 }
 

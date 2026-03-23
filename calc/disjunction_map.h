@@ -52,8 +52,11 @@ namespace calc
       const_iterator begin( ) const { return map. cbegin( ); }
       const_iterator end( ) const { return map. cend( ); }
 
-      void append( F f, truthset s ) 
-         { map. push_back( truthform<F,E> ( std::move(f), s )); }
+      void insert( truthform<F,E> && fm ) 
+         { map. push_back( std::move(fm) ); }
+
+      void insert( const truthform<F,E> & fm )
+         { map. push_back( fm ); } 
 
       iterator erase( iterator it ) 
          { return map. erase( it ); }

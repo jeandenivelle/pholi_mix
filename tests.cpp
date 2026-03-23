@@ -243,14 +243,14 @@ void tests::saturate( )
       calc::exists( "A"_unchecked ),
       calc::exists( "B"_unchecked ) } );
 
-   sat. insert( cl1, 10 );
+   sat. initial( cl1, 10, 0 );
 
    auto cl2 = calc::disjunction( { 
       calc::exists( 11_db == 12_db ),
       calc::exists( "B"_unchecked ),
       calc::exists( "A"_unchecked ) } );
 
-   sat. insert( cl2, 20 );
+   sat. initial( cl2, 20, 0 );
 
    
    auto cl3 = calc::disjunction( { 
@@ -258,16 +258,17 @@ void tests::saturate( )
       calc::exists( "B"_unchecked ),
       calc::exists( "A"_unchecked ) } );
 
-   sat. insert( cl3, 30 );
+   sat. initial( cl3, 30, 0 );
 
-   bool res = calc::simplify< calc::exists< term >, 
-                              calc::exists_equal_to,
-                              calc::saturation::demodulator > ( sat. raw. front( ). first, sat. raw. back( ). first );
+#if 0
+   bool 
+   res = calc::simplify< calc::exists< term >, 
+                         calc::exists_equal_to,
+                         calc::saturation::demodulator > ( sat. raw. front( ). first, sat. raw. back( ). first );
 
    std::cout << res << "\n";
    std::cout << cl3 << "\n";
 
-#if 0
    std::cout << simp << "\n";
    calc::atp::simplify( simp );
    std::cout << "\n";

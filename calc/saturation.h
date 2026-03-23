@@ -5,7 +5,7 @@
 #define CALC_SATURATION_
 
 #include <iostream>
-#include <limits>
+#include <cstdint>
 #include <list>
 #include <optional>
 
@@ -29,30 +29,44 @@ namespace calc
    {
       using littype = truthform< exists< logic::term >, exists_equal_to > ;
 
-      using clause = 
-         disjunction_map< exists< logic::term >, exists_equal_to > ;
-  
-      constexpr static size_t 
-         notinsequent = std::numeric_limits< size_t > :: max( );
+      struct clause
+      {
+         disjunction_map< exists< logic::term >, exists_equal_to > cl;
+         uint64_t nr;
+         std::optional< size_t > seqind;  // Index in sequent, if initial.
 
-      // The clause sets are called after what has been done with them.
-      // list makes deletion easier.
- 
-      std::list< std::pair< clause, size_t >> saturated;
-      std::list< std::pair< clause, size_t >> simplified;
-      std::list< std::pair< clause, size_t >> raw;
+         clause( uint64_t nr )
+            : nr( nr )
+         { }
+
+         clause( uint64_t nr, size_t seqind )
+            : nr( nr ),
+              seqind( seqind )
+         { }
+
+         void print( std::ostream& out ) const; 
+      };
+      
+      uint64_t notsaturated = 0;
+      uint64_t notsubsumed = 0;
+      uint64_t notnormalized = 0;
+      uint64_t notcreated = 0;
+
+      std::list< clause > clauses;
+
       std::unordered_set< size_t > removed;
          // Indices of subsumed initial clauses. They can be
          // made hidden in the sequent later.
 
       saturation( ) noexcept = default;
 
-      void insert( dnf< logic::term > disj, size_t ind );
-         // Add dnf to raw if it has the right form
-         // if it is not subsumed.
+      void initial( dnf< logic::term > disj, size_t index, size_t liftdist );
+         // Add an initial clause. It will be lifted over liftdist,
+         // and its index will be index.
 
-      static 
-      void direct( std::pair< exists< logic::term >, truthset > & lit ); 
+      littype makeliteral( const exists< logic::term > & lit );
+
+      static void direct( littype& lit ); 
          // Direct equalities from bigger to smaller using KBO.
          // If the equality has form t == t, modify the truth set,
          // to make triviality obvious.
@@ -73,19 +87,19 @@ namespace calc
          uint64_t used( ) const { return rewr. value( ). used; }
       };
 
-       
-#if 0
-      // True if it happened:
- 
-      bool resolve( const clause& from, clause& into );
-#endif
+      void saturate( );
 
       void print( std::ostream& out ) const; 
    };
 
-   bool 
-   ressimp( const saturation::clause& from, saturation::clause& into );
-      // From should not be identical to into. That's asking for trouble.
+   // Will be deleted.
+
+   bool subsumes( const std::list< saturation::clause > & list, 
+                  const saturation::clause& cls );
+
+   void removesubsumed( const saturation::clause& cls,
+                        std::list< saturation::clause > & list );
+
 }
 
 #endif

@@ -1051,9 +1051,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          {
             const auto& fm = seq. at(i);
             if( !fm. hidden && fm. is_dnf( )) 
-            {
-               sat. insert( fm. get_dnf( ), i );
-            }
+               sat. initial( fm. get_dnf( ), i, seq. liftdist(i) );
          }
      
          std::cout << sat << "\n"; 
