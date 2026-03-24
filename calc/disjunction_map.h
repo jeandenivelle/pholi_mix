@@ -19,22 +19,21 @@
 namespace calc
 {
 
-   template< typename S, typename F, typename E >
+   template< typename S, typename F >
    concept simplifier =
-      requires( S simpl, truthform<F,E> lit )
-      {{ simpl. from( lit ) } ;
+      requires( S simpl, truthform<F> lit )
+      {{ S( lit ) } ;
        { simpl. usable( ) } -> std::convertible_to< bool > ;
        { simpl. used( ) } -> std::same_as< uint64_t > ; 
        { simpl. operator( ) ( lit ) } -> 
-                std::convertible_to< truthform<F,E> > ;
+                std::convertible_to< truthform<F> > ;
       };
 
 
-   template< typename F, std::equivalence_relation<F,F> E = std::equal_to<F>> 
+   template< typename F > 
    class disjunction_map
    {
-      std::vector< truthform<F,E>> map;
-      E eq;
+      std::vector<truthform<F>> map;
 
    public:
       disjunction_map( ) noexcept = default;
@@ -44,18 +43,18 @@ namespace calc
 
       // In general, we have no iterator stability!
 
-      using iterator = std::vector< truthform<F,E>> :: iterator;
+      using iterator = std::vector<truthform<F>> :: iterator;
       iterator begin( ) { return map. begin( ); }
       iterator end( ) { return map. end( ); }
 
-      using const_iterator = std::vector< truthform<F,E>> :: const_iterator;
+      using const_iterator = std::vector<truthform<F>> :: const_iterator;
       const_iterator begin( ) const { return map. cbegin( ); }
       const_iterator end( ) const { return map. cend( ); }
 
-      void insert( truthform<F,E> && fm ) 
+      void insert( truthform<F> && fm ) 
          { map. push_back( std::move(fm) ); }
 
-      void insert( const truthform<F,E> & fm )
+      void insert( const truthform<F> & fm )
          { map. push_back( fm ); } 
 
       iterator erase( iterator it ) 
@@ -103,7 +102,7 @@ namespace calc
       {
          for( const auto& lit : map )
          {
-            if( lit. second == truthset::all )
+            if( lit. second. istrivial( ))
                return true;
          }
          return false; 
@@ -118,64 +117,61 @@ namespace calc
 
    };
 
-
-   template< typename F, typename E = std::equal_to<F>>
+   template< typename F, bool equiv( const F&, const F& ) >
    bool 
-   subsumes( const truthform<F,E> & lit,
-             const disjunction_map<F,E> & disj, 
-             typename disjunction_map<F,E> :: const_iterator skip )
+   subsumes( const truthform<F> & lit,
+             const disjunction_map<F> & disj, 
+             typename disjunction_map<F> :: const_iterator skip )
    {
+      std::cout << "subsumes " << lit << "\n";
       for( auto q = disj. begin( ); q != disj. end( ); ++ q )
       {
-         if( q != skip && lit. subsumes( *q ))
+         if( q != skip && lit. lab. implies( q -> lab ) && 
+             equiv( lit. fm, q -> fm ))
+         {
             return true;
+         }
       }
       return false;
    }
 
 
-   template< typename F, typename E = std::equal_to<F>>
+   template< typename F, bool equiv( const F&, const F& ) >
    bool 
-   subsumes( const disjunction_map<F,E> & disj1, 
-             typename disjunction_map<F,E> :: const_iterator skip1,
-             const disjunction_map<F,E> & disj2,
-             typename disjunction_map<F,E> :: const_iterator skip2 )
+   subsumes( const disjunction_map<F> & disj1, 
+             typename disjunction_map<F> :: const_iterator skip1,
+             const disjunction_map<F> & disj2,
+             typename disjunction_map<F> :: const_iterator skip2 )
    {
       for( auto p1 = disj1. begin( ); p1 != disj1. end( ); ++ p1 )
       {
-         if( p1 != skip1 && !subsumes( *p1, disj2, skip2 ))
+         if( p1 != skip1 && !subsumes<F,equiv>( *p1, disj2, skip2 ))
             return false;
       } 
       return true;
    }
 
 
-   template< typename F, typename E = std::equal_to<F>>
-   bool 
-   conflicts( const std::pair<F,truthset> & lit1,
-              const std::pair<F,truthset> & lit2 ) 
-   {
-      E eq;
-      return lit1. second. conflicts( lit2. second ) &&
-             eq( lit1. first, lit2. first );
-   }
-
-
-   template< typename F, typename E, simplifier<F,E> S >
-   bool simplify( const disjunction_map<F,E> & from,
-                  disjunction_map<F,E> & into,
-                  S&& simpl )
+   template< typename F, bool equiv( const F&, const F& ), simplifier<F> S >
+   bool simplify( const disjunction_map<F> & from,
+                  disjunction_map<F> & into )
    {
       for( auto p = from. begin( ); p != from. end( ); ++ p )
       {
-         simpl. from( *p ); 
+         auto simpl = S( *p ); 
          if( simpl. usable( ))
          {
             for( auto q = into. begin( ); q != into. end( ); ++ q )
             {
-               *q = simpl( std::move(*q));
-               if( simpl. used( ) && subsumes( from, p, into, q ))
+               uint64_t uu = simpl. used( );
+               auto ss = simpl( *q );
+
+               if( uu != simpl. used( ) && 
+                   subsumes<F,equiv>( from, p, into, q ))
+               {
+                  *q = std::move(ss); 
                   return true;
+               }
             }
          }
       }

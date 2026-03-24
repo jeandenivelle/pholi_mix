@@ -240,25 +240,26 @@ void tests::saturate( )
 
    auto cl1 = calc::disjunction( { 
       calc::exists( 10_db == 11_db ), 
-      calc::exists( "A"_unchecked ),
+      calc::exists( ! "A"_unchecked ),
       calc::exists( "B"_unchecked ) } );
 
-   sat. initial( cl1, 10, 0 );
+   sat. initial( cl1, 10 );
 
    auto cl2 = calc::disjunction( { 
       calc::exists( 11_db == 12_db ),
       calc::exists( "B"_unchecked ),
       calc::exists( "A"_unchecked ) } );
 
-   sat. initial( cl2, 20, 0 );
+   sat. initial( cl2, 20 );
 
    
    auto cl3 = calc::disjunction( { 
       calc::exists( {{ "x", O }}, ! ( 11_db == 13_db )),
       calc::exists( "B"_unchecked ),
-      calc::exists( "A"_unchecked ) } );
+      calc::exists( prop( "A"_unchecked )) } );
 
-   sat. initial( cl3, 30, 0 );
+   sat. initial( cl3, 30 );
+   sat. saturate( );
 
 #if 0
    bool 

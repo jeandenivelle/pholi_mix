@@ -16,22 +16,13 @@
 namespace calc
 {
 
-   struct exists_equal_to
-   {
-      exists_equal_to( ) noexcept = default;
-
-      bool operator( ) ( const exists< logic::term > & lit1, 
-                         const exists< logic::term > & lit2  ) const;
-   };
-
-
    struct saturation
    {
-      using littype = truthform< exists< logic::term >, exists_equal_to > ;
+      using littype = truthform< exists< logic::term >> ;
 
       struct clause
       {
-         disjunction_map< exists< logic::term >, exists_equal_to > disj;
+         disjunction_map< exists< logic::term >> disj;
          uint64_t nr;
          std::optional< size_t > seqind;  // Index in sequent, if initial.
 
@@ -60,7 +51,7 @@ namespace calc
 
       saturation( ) noexcept = default;
 
-      void initial( dnf< logic::term > disj, size_t index, size_t liftdist );
+      void initial( dnf< logic::term > disj, size_t index );
          // Add an initial clause. It will be lifted over liftdist,
          // and its index will be index.
 
@@ -71,19 +62,15 @@ namespace calc
          // If the equality has form t == t, modify the truth set,
          // in order to make triviality obvious.
 
-      static void equalities( clause& cls );
-         // Direct equalities, and
-         // remove negative equalities of form ( t = t ) -> F.
-         // Replace ( A -> S1 ), ( A -> S2 ) by ( A -> S1|S2 ).
+      static void normalize( clause& cls );
 
       struct resolver
       {
-         std::optional< littype > lit; 
+         std::optional< littype > from; 
          uint64_t fld_used;
 
-         resolver( ) = default;
-         void from( const littype& lit );
-         bool usable( ) const { return lit. has_value( ); }
+         resolver( const littype& from );  
+         bool usable( ) const { return from. has_value( ); }
          littype operator( ) ( littype lit );
          uint64_t used( ) const { return fld_used; }
       };
@@ -92,8 +79,7 @@ namespace calc
       {
          std::optional< logic::rewriterule > rewr; 
 
-         demodulator( ) = default;
-         void from( const littype & lit );
+         demodulator( const littype& lit );
          bool usable( ) const { return rewr. has_value( ); }
          littype operator( ) ( littype lit );
          uint64_t used( ) const { return rewr. value( ). used; }

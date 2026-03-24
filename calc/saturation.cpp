@@ -6,20 +6,6 @@
 #include "logic/replacements.h"
 #include "outermost.h"
 
-bool calc::exists_equal_to::operator( ) (
-       const exists< logic::term > & lit1,
-          const exists< logic::term > & lit2  ) const
-{
-   if( lit1. vars. size( ) != lit2. vars. size( )) 
-      return false;
-
-   for( size_t i = 0; i != lit1. vars. size( ); ++ i )
-      if( !equal( lit1. vars[i]. tp, lit2.vars[i]. tp ))
-         return false;
-
-    return equal( lit1. body, lit2. body );
-}
-
 void calc::saturation::clause::print( std::ostream& out ) const
 {
    out << nr;
@@ -103,28 +89,67 @@ calc::saturation::direct( littype & lit )
    }
 }
 
-void calc::saturation::resolver::from( const littype& lit )
+namespace
 {
-   std::cout << "setting resolver from " << lit << "\n";
+   // A cheap equivalence relation.
 
+   bool 
+   cheapequiv( const calc::exists< logic::term > & lit1,
+               const calc::exists< logic::term > & lit2  ) 
+   {
+      if( lit1. vars. size( ) != lit2. vars. size( )) 
+         return false;
+
+      for( size_t i = 0; i != lit1. vars. size( ); ++ i )
+      {
+         if( !equal( lit1. vars[i]. tp, lit2.vars[i]. tp ))
+            return false;
+      }
+      return equal( lit1. body, lit2. body );
+   }
+}
+
+calc::saturation::resolver::resolver( const littype& from )
+   : fld_used(0) 
+{
+   std::cout << "setting resolver from " << from << "\n";
+   if( from. fm. vars. size( ) == 0 &&
+       from. fm. body. sel( ) != logic::op_equals &&
+       !from. lab. istrivial( ))
+   {
+      ( this -> from ) = from;
+   }
 }
 
 auto
 calc::saturation::resolver::operator( ) ( littype lit )
 -> littype
 {
-   // lit = outermost( rewr. value( ), std::move( lit. fm ), 0 );
+   if( !from. has_value( )) 
+      throw std::logic_error( "resolver: there is no from" );
+ 
+   if( lit. fm. vars. size( ) == 0 )
+   {
+      auto lab = ( from. value( ). lab ) & lit. lab;
+
+      if( !lit. lab. implies( lab )) 
+      {
+         if( cheapequiv( from. value( ). fm, lit. fm ))
+         { 
+            ++ fld_used; 
+            return truthform( lit. fm, lab );
+         }
+      }
+   }
    return lit;
 }
 
-void calc::saturation::demodulator::from( const littype& lit )
+calc::saturation::demodulator::demodulator( const littype& lit )
 {
-   std::cout << "setting demodulator from " << lit << "\n";
    if( lit. lab. implies( truthset::tttt ) &&
        lit. fm. vars. size( ) == 0 &&
        lit. fm. body. sel( ) == logic::op_equals )
    {
-      std::cout << "going on\n";
       auto eq = lit. fm. body. view_binary( );
       rewr. emplace( eq. sub1( ), eq. sub2( )); 
    }
@@ -133,23 +158,44 @@ void calc::saturation::demodulator::from( const littype& lit )
 auto
 calc::saturation::demodulator::operator( ) ( littype lit )
 -> littype 
-{ 
-   lit = outermost( rewr. value( ), std::move( lit. fm ), 0 ); 
-   return lit; 
+{
+   if( !rewr. has_value( ))
+      throw std::logic_error( "demodulator: there is no from" );
+
+   return outermost( rewr. value( ), std::move( lit. fm ), 0 ); 
 }
 
 void 
-calc::saturation::initial( dnf< logic::term > disj, 
-                           size_t index, size_t liftdist )
+calc::saturation::initial( dnf< logic::term > disj, size_t index )
 {
    clauses. push_back( clause( notcreated ++ , index ));
    for( const auto& d : disj )
-      clauses. back( ). disj. insert( makeliteral(d) );
-
-   std::cout << "YOU FORGOT THE LIFTING\n";
+      clauses. back( ). disj. insert( makeliteral(d));
 }
 
+void calc::saturation::normalize( clause& cls )
+{
+   // First direct equalities.
 
+   for( auto& lit : cls. disj )
+      direct( lit );
+
+   for( auto from = cls. disj. begin( ); from != cls. disj. end( ); ++ from )
+   {
+      auto into = cls. disj. begin( ); 
+      while( into != from )
+      {
+         if( cheapequiv( from -> fm, into -> fm ))
+         {
+            from -> lab |= into -> lab;
+            into= cls. disj. erase( into );
+         }
+         else
+            ++ into;
+      }
+   } 
+
+}
 
 #if 0
 {
@@ -178,24 +224,40 @@ calc::saturation::initial( dnf< logic::term > disj,
    return false;
 }
 
-
-
+#endif
 
 void calc::saturation::saturate( )
 {
-   std::cout << "starting simplification on conjunction of clauses\n";
+   std::cout << "starting saturation\n";
+
 restart: 
-   if( notsimplified < notcreated )
+   if( notnormalized < notcreated )
    {
       for( auto& cl : clauses )
       {
-         if( cl. nr >= notsimplified )
-            normalize( cl. cl );
+         if( cl. nr >= notnormalized )
+            normalize( cl );
       }
 
-      notsimplified = notcreated; 
+      notnormalized = notcreated; 
    }
 
+   if( notsubsumed < notnormalized )
+   {
+      for( auto from = clauses. begin( ); from != clauses. end( ); ++ p )
+      {
+         if( from -> nr >= notsubsumed && from -> nr < notnormalized )
+         {
+
+         }
+
+      }
+
+   }
+
+   notsubsumed = notnormalized;
+
+#if 0
    if( notsubsumed < notcreated )
    {
 
@@ -260,17 +322,18 @@ restart:
 
    while( p1 != simp. end( ))
       simp. remove_last( );
-}
 
 #endif
+}
+
 
 bool calc::saturation::simplify( const clause& from, clause& into )
 {
-   if( calc::simplify( from. disj, into. disj, resolver( )) ||
-       calc::simplify( from. disj, into. disj, demodulator( ) ))
+   if( calc::simplify<exists<logic::term>, cheapequiv,resolver> ( from. disj, into. disj ) ||
+       calc::simplify<exists<logic::term>, cheapequiv,demodulator> ( from. disj, into. disj ))
    {
-      
-
+      into. nr = notcreated ++ ;
+      return true;
    }
    else
       return false;   

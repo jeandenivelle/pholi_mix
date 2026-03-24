@@ -83,6 +83,7 @@ includefile( logic::beliefstate& blfs,
 int main( int argc, char* argv[] )
 {
    tests::saturate( );
+   return 0;
 
    using tf = calc::truthform< std::string > ;
  
@@ -93,7 +94,6 @@ int main( int argc, char* argv[] )
    cl1. insert( { "hans", calc::truthset::ffff } );
    cl1. insert( { "nivelle", calc::truthset::tttt } );
 
-
    cl2. insert( { "hans", calc::truthset::ffff } );
    cl2. insert( { "deX", calc::truthset::ffee } );
    cl2. insert( { "nivelle", calc::truthset::tttt } );
@@ -101,7 +101,6 @@ int main( int argc, char* argv[] )
    std::cout << cl1 << "\n";
    std::cout << cl2 << "\n";
 
-   std::cout << subsumes( cl1, cl1. begin( ) + 1, cl2, cl2. begin( ) + 0 ) << "\n"; 
    return 0;
 
    errorstack err;
