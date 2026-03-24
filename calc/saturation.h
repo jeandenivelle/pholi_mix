@@ -31,7 +31,7 @@ namespace calc
 
       struct clause
       {
-         disjunction_map< exists< logic::term >, exists_equal_to > cl;
+         disjunction_map< exists< logic::term >, exists_equal_to > disj;
          uint64_t nr;
          std::optional< size_t > seqind;  // Index in sequent, if initial.
 
@@ -69,19 +69,31 @@ namespace calc
       static void direct( littype& lit ); 
          // Direct equalities from bigger to smaller using KBO.
          // If the equality has form t == t, modify the truth set,
-         // to make triviality obvious.
+         // in order to make triviality obvious.
 
       static void equalities( clause& cls );
          // Direct equalities, and
          // remove negative equalities of form ( t = t ) -> F.
          // Replace ( A -> S1 ), ( A -> S2 ) by ( A -> S1|S2 ).
 
+      struct resolver
+      {
+         std::optional< littype > lit; 
+         uint64_t fld_used;
+
+         resolver( ) = default;
+         void from( const littype& lit );
+         bool usable( ) const { return lit. has_value( ); }
+         littype operator( ) ( littype lit );
+         uint64_t used( ) const { return fld_used; }
+      };
+
       struct demodulator
       {
          std::optional< logic::rewriterule > rewr; 
 
-         demodulator( const littype & lit );
-
+         demodulator( ) = default;
+         void from( const littype & lit );
          bool usable( ) const { return rewr. has_value( ); }
          littype operator( ) ( littype lit );
          uint64_t used( ) const { return rewr. value( ). used; }
@@ -89,16 +101,10 @@ namespace calc
 
       void saturate( );
 
+      bool simplify( const clause& from, clause& into ); 
+
       void print( std::ostream& out ) const; 
    };
-
-   // Will be deleted.
-
-   bool subsumes( const std::list< saturation::clause > & list, 
-                  const saturation::clause& cls );
-
-   void removesubsumed( const saturation::clause& cls,
-                        std::list< saturation::clause > & list );
 
 }
 

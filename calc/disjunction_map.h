@@ -22,7 +22,7 @@ namespace calc
    template< typename S, typename F, typename E >
    concept simplifier =
       requires( S simpl, truthform<F,E> lit )
-      {{ S( lit ) } ;
+      {{ simpl. from( lit ) } ;
        { simpl. usable( ) } -> std::convertible_to< bool > ;
        { simpl. used( ) } -> std::same_as< uint64_t > ; 
        { simpl. operator( ) ( lit ) } -> 
@@ -163,11 +163,12 @@ namespace calc
 
    template< typename F, typename E, simplifier<F,E> S >
    bool simplify( const disjunction_map<F,E> & from,
-                  disjunction_map<F,E> & into )
+                  disjunction_map<F,E> & into,
+                  S&& simpl )
    {
       for( auto p = from. begin( ); p != from. end( ); ++ p )
       {
-         auto simpl = S( *p );
+         simpl. from( *p ); 
          if( simpl. usable( ))
          {
             for( auto q = into. begin( ); q != into. end( ); ++ q )

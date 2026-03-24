@@ -26,7 +26,7 @@ void calc::saturation::clause::print( std::ostream& out ) const
    if( seqind. has_value( ))
       out << ", initial(" << seqind. value( ) << ")";
    out << " :\n";
-   out << cl; 
+   out << disj; 
 }
 
 calc::saturation::littype
@@ -103,11 +103,23 @@ calc::saturation::direct( littype & lit )
    }
 }
 
-
-calc::saturation::demodulator::demodulator( 
-   const littype & lit )
+void calc::saturation::resolver::from( const littype& lit )
 {
-   std::cout << "constructing demodulator from " << lit << "\n";
+   std::cout << "setting resolver from " << lit << "\n";
+
+}
+
+auto
+calc::saturation::resolver::operator( ) ( littype lit )
+-> littype
+{
+   // lit = outermost( rewr. value( ), std::move( lit. fm ), 0 );
+   return lit;
+}
+
+void calc::saturation::demodulator::from( const littype& lit )
+{
+   std::cout << "setting demodulator from " << lit << "\n";
    if( lit. lab. implies( truthset::tttt ) &&
        lit. fm. vars. size( ) == 0 &&
        lit. fm. body. sel( ) == logic::op_equals )
@@ -132,7 +144,7 @@ calc::saturation::initial( dnf< logic::term > disj,
 {
    clauses. push_back( clause( notcreated ++ , index ));
    for( const auto& d : disj )
-      clauses. back( ). cl. insert( makeliteral(d) );
+      clauses. back( ). disj. insert( makeliteral(d) );
 
    std::cout << "YOU FORGOT THE LIFTING\n";
 }
@@ -167,36 +179,6 @@ calc::saturation::initial( dnf< logic::term > disj,
 }
 
 
-
-
-
-bool 
-calc::atp::rewrite( const clause& from, clause& into )
-{
-   for( auto p = from. begin( ); p != from. end( ); ++ p )
-   {
-      // exists( V, t1 == t2 ) can be used only when V is empty:
-
-      if( p -> vars. size( ) == 0 && 
-          p -> body. sel( ) == logic::op_equals )
-      {
-         auto bin = p -> body. view_binary( );
-         auto rewr = logic::rewriterule( bin. sub1( ), bin. sub2( ));
-
-         for( auto q = into. begin( ); q != into. end( ); ++ q )
-         { 
-            *q = outermost( rewr, std::move(*q), 0 );
-            if( rewr. counter )
-            {
-               if( subsumes( from, p, into, q ))
-                  return true; 
-            }
-         }
-      }
-   }
-
-   return false;
-}
 
 
 void calc::saturation::saturate( )
@@ -281,6 +263,19 @@ restart:
 }
 
 #endif
+
+bool calc::saturation::simplify( const clause& from, clause& into )
+{
+   if( calc::simplify( from. disj, into. disj, resolver( )) ||
+       calc::simplify( from. disj, into. disj, demodulator( ) ))
+   {
+      
+
+   }
+   else
+      return false;   
+
+}
 
 void calc::saturation::print( std::ostream& out ) const
 {
