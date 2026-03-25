@@ -8,10 +8,8 @@
 
 void calc::saturation::clause::print( std::ostream& out ) const
 {
-   out << nr;
    if( seqind. has_value( ))
-      out << ", initial(" << seqind. value( ) << ")";
-   out << " :\n";
+      out << "initial(" << seqind. value( ) << ") :\n";
    out << disj; 
 }
 
@@ -168,9 +166,9 @@ calc::saturation::demodulator::operator( ) ( littype lit )
 void 
 calc::saturation::initial( dnf< logic::term > disj, size_t index )
 {
-   clauses. push_back( clause( notcreated ++ , index ));
+   notnormalized. push_back( clause( index ));
    for( const auto& d : disj )
-      clauses. back( ). disj. insert( makeliteral(d));
+      notnormalized. back( ). disj. insert( makeliteral(d));
 }
 
 void calc::saturation::normalize( clause& cls )
@@ -179,6 +177,9 @@ void calc::saturation::normalize( clause& cls )
 
    for( auto& lit : cls. disj )
       direct( lit );
+
+   std::cout << "Move this procedure to disjunction_map\n";
+   std::cout << "note that disj is not a list\n";
 
    for( auto from = cls. disj. begin( ); from != cls. disj. end( ); ++ from )
    {
@@ -231,41 +232,64 @@ void calc::saturation::saturate( )
    std::cout << "starting saturation\n";
 
 restart: 
-   if( notnormalized < notcreated )
+   if( notnormalized. size( ))
    {
-      for( auto& cl : clauses )
-      {
-         if( cl. nr >= notnormalized )
-            normalize( cl );
-      }
+      for( auto& cl : notnormalized )
+         normalize( cl );
 
-      notnormalized = notcreated; 
+      passive. splice( passive. end( ), notnormalized ); 
    }
 
-   if( notsubsumed < notnormalized )
+select:
+   if( passive. size( ) == 0 )
+      throw std::logic_error( "got the saturation" );
+
+   auto picked = pick( );
+   for( const auto& cl : closed )
    {
-      for( auto from = clauses. begin( ); from != clauses. end( ); ++ p )
+      if( subsumes( cl, picked ))
       {
-         if( from -> nr >= notsubsumed && from -> nr < notnormalized )
+         goto select;
+      }
+   }
+
+   {
+      auto p = closed. begin( );
+      while( p != closed. end( ))
+      {
+         if( subsumes( picked, *p ))
          {
-
+            p = closed. erase(p);
          }
-
+         else
+            ++ p;
       }
-
    }
 
-   notsubsumed = notnormalized;
-
-#if 0
-   if( notsubsumed < notcreated )
+   for( const auto& cl : closed )
    {
+      if( simplify( cl, picked ))
+      {
+         notnormalized. push_back( std::move( picked ));
+         goto restart;
+      }
+   }
 
-   std::cout << "after clausewise simplification:\n";
-   for( const auto& cl : simp )
-      std::cout << "   " << cl << "\n";
-   std::cout << "\n";
- 
+   {
+      auto p = closed. begin( );
+      while( p != closed. end( ))
+      {
+         if( simplify( picked, *p ))
+         {
+            p = closed. erase(p);
+         }
+         else
+            ++ p;
+      }
+   }
+
+   closed. push_back( std::move( picked ));
+#if 0
    bool fixedpoint = false;
    while( !fixedpoint )
    {
@@ -329,26 +353,24 @@ restart:
 
 bool calc::saturation::simplify( const clause& from, clause& into )
 {
-   if( calc::simplify<exists<logic::term>, cheapequiv,resolver> ( from. disj, into. disj ) ||
-       calc::simplify<exists<logic::term>, cheapequiv,demodulator> ( from. disj, into. disj ))
-   {
-      into. nr = notcreated ++ ;
-      return true;
-   }
-   else
-      return false;   
-
+   return
+      calc::simplify<exists<logic::term>, cheapequiv,resolver> ( from. disj, into. disj ) ||
+      calc::simplify<exists<logic::term>, cheapequiv,demodulator> ( from. disj, into. disj );
 }
 
 void calc::saturation::print( std::ostream& out ) const
 {
    out << "Saturation:\n";
-   out << "   notsaturated =  " << notsaturated << "\n";
-   out << "   notsubsumed =   " << notsubsumed << "\n";
-   out << "   notnormalized = " << notnormalized << "\n";
-   out << "   notcreated =    " << notcreated << "\n";
+   if( closed. size( ))
+   {
+      out << "   " << "Closed:\n";
+   }
 
-   for( const auto& cl : clauses )
-      out << cl << "\n";
+   if( notnormalized. size( ))
+   {
+      out << "   Not normalized:\n";
+      for( const auto& cl : notnormalized )
+         out << "      " << cl << "\n";
+   }
 }
 

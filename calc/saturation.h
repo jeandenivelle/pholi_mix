@@ -23,30 +23,23 @@ namespace calc
       struct clause
       {
          disjunction_map< exists< logic::term >> disj;
-         uint64_t nr;
          std::optional< size_t > seqind;  // Index in sequent, if initial.
 
-         clause( uint64_t nr )
-            : nr( nr )
-         { }
+         clause( ) = default;
 
-         clause( uint64_t nr, size_t seqind )
-            : nr( nr ),
-              seqind( seqind )
+         explicit clause( size_t seqind )
+            : seqind( seqind )
          { }
 
          void print( std::ostream& out ) const; 
       };
       
-      uint64_t notsaturated = 0;
-      uint64_t notsubsumed = 0;
-      uint64_t notnormalized = 0;
-      uint64_t notcreated = 0;
-
-      std::list< clause > clauses;
+      std::list< clause > closed;
+      std::list< clause > passive; 
+      std::list< clause > notnormalized; 
 
       std::unordered_set< size_t > removed;
-         // Indices of subsumed initial clauses. They can be
+         // Indices of removed initial clauses. They can be
          // made hidden in the sequent later.
 
       saturation( ) noexcept = default;
@@ -64,6 +57,8 @@ namespace calc
 
       static void normalize( clause& cls );
 
+      clause pick( );
+       
       struct resolver
       {
          std::optional< littype > from; 
@@ -88,6 +83,8 @@ namespace calc
       void saturate( );
 
       bool simplify( const clause& from, clause& into ); 
+      bool subsumes( const clause& from, const clause& into );
+         // Methods can be static? or out of the class?
 
       void print( std::ostream& out ) const; 
    };
