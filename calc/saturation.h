@@ -34,8 +34,8 @@ namespace calc
          void print( std::ostream& out ) const; 
       };
       
-      std::list< clause > closed;
-      std::list< clause > passive; 
+      std::list< clause > checked;
+      std::list< clause > unchecked; 
       std::list< clause > notnormalized; 
 
       std::unordered_set< size_t > removed;
@@ -57,8 +57,12 @@ namespace calc
 
       static void normalize( clause& cls );
 
-      clause pick( );
-       
+      // A cheap equivalence relation:
+ 
+      static bool 
+      cheapequiv( const exists< logic::term > & lit1,
+                  const exists< logic::term > & lit2 );
+      
       struct resolver
       {
          std::optional< littype > from; 
@@ -80,11 +84,11 @@ namespace calc
          uint64_t used( ) const { return rewr. value( ). used; }
       };
 
+      std::list< clause > :: iterator pick( );
+         // Picks a clause from unchecked.
+         // unchecked must be non-empty.
+     
       void saturate( );
-
-      bool simplify( const clause& from, clause& into ); 
-      bool subsumes( const clause& from, const clause& into );
-         // Methods can be static? or out of the class?
 
       void print( std::ostream& out ) const; 
    };

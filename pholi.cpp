@@ -92,14 +92,27 @@ int main( int argc, char* argv[] )
 
    cl1. insert( tf( "de", calc::truthset::ffff ));
    cl1. insert( { "hans", calc::truthset::ffff } );
-   cl1. insert( { "nivelle", calc::truthset::tttt } );
+   cl1. insert( { "hans", calc::truthset::tttt } );
+   cl1. insert( { "aa", calc::truthset::empty } );
+   cl1. insert( { "aa", calc::truthset::tttt } );
+   cl1. insert( { "de", calc::truthset::tttt } );
+   cl1. insert( { "aa", calc::truthset::eeee } );
 
    cl2. insert( { "hans", calc::truthset::ffff } );
    cl2. insert( { "deX", calc::truthset::ffee } );
    cl2. insert( { "nivelle", calc::truthset::tttt } );
 
    std::cout << cl1 << "\n";
-   std::cout << cl2 << "\n";
+   // std::cout << cl2 << "\n";
+
+   cl1. merge_equiv< []( const std::string& s1, const std::string& s2 ) 
+      { return s1 == s2; } > ( );
+
+   std::cout << cl1 << "\n"; 
+
+   cl1. remove_nevertrue( );
+
+   std::cout << cl1 << "\n";
 
    return 0;
 

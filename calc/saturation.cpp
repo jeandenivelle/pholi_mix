@@ -13,6 +13,7 @@ void calc::saturation::clause::print( std::ostream& out ) const
    out << disj; 
 }
 
+
 calc::saturation::littype
 calc::saturation::makeliteral( const exists< logic::term > & lit )
 {
@@ -87,25 +88,32 @@ calc::saturation::direct( littype & lit )
    }
 }
 
-namespace
+
+void calc::saturation::normalize( clause& cls )
 {
-   // A cheap equivalence relation.
+   for( auto& lit : cls. disj )
+      direct( lit );
 
-   bool 
-   cheapequiv( const calc::exists< logic::term > & lit1,
-               const calc::exists< logic::term > & lit2  ) 
-   {
-      if( lit1. vars. size( ) != lit2. vars. size( )) 
-         return false;
-
-      for( size_t i = 0; i != lit1. vars. size( ); ++ i )
-      {
-         if( !equal( lit1. vars[i]. tp, lit2.vars[i]. tp ))
-            return false;
-      }
-      return equal( lit1. body, lit2. body );
-   }
+   cls. disj. merge_equiv< cheapequiv > ( ); 
+   cls. disj. remove_nevertrue( ); 
 }
+
+
+bool 
+calc::saturation::cheapequiv( const exists< logic::term > & lit1,
+                              const exists< logic::term > & lit2 ) 
+{
+   if( lit1. vars. size( ) != lit2. vars. size( )) 
+      return false;
+
+   for( size_t i = 0; i != lit1. vars. size( ); ++ i )
+   {
+      if( !equal( lit1. vars[i]. tp, lit2.vars[i]. tp ))
+         return false;
+   }
+   return equal( lit1. body, lit2. body );
+}
+
 
 calc::saturation::resolver::resolver( const littype& from )
    : fld_used(0) 
@@ -171,206 +179,156 @@ calc::saturation::initial( dnf< logic::term > disj, size_t index )
       notnormalized. back( ). disj. insert( makeliteral(d));
 }
 
-void calc::saturation::normalize( clause& cls )
+
+namespace calc
 {
-   // First direct equalities.
-
-   for( auto& lit : cls. disj )
-      direct( lit );
-
-   std::cout << "Move this procedure to disjunction_map\n";
-   std::cout << "note that disj is not a list\n";
-
-   for( auto from = cls. disj. begin( ); from != cls. disj. end( ); ++ from )
+   namespace
    {
-      auto into = cls. disj. begin( ); 
-      while( into != from )
-      {
-         if( cheapequiv( from -> fm, into -> fm ))
-         {
-            from -> lab |= into -> lab;
-            into= cls. disj. erase( into );
-         }
-         else
-            ++ into;
-      }
-   } 
 
-}
 
-#if 0
-{
-   for( auto p = from. begin( ); p != from. end( ); ++ p )
+      bool simplify( const saturation::clause& from, 
+                     saturation::clause& into )
    {
-      if( p -> first. vars. size( ) == 0 &&
-          p -> second == truthset::tttt &&
-          p -> first. body. sel( ) == logic::op_equals )
-      {
-         auto eq = p -> first. body. view_binary( );
-         logic::rewriterule rewr( eq. sub1( ), eq. sub2( ))
-         {
-            for( auto q = into. begin( ); q != into. end( ); ++ q )
-            {
-               auto lit = rewr( *q, 0 );
-               if( rewr. used && subsumes( from, p, into, q ))
-               { 
-                  *q = std::move(lit);
-                  return true;
-               }
-            }
-         }  
-      }
+      return
+      simplify< exists< logic::term >, 
+              saturation:: cheapequiv,
+              saturation:: resolver> ( from. disj, into. disj ) ||
+      simplify< exists<logic::term>, saturation::cheapequiv, saturation::demodulator> ( from. disj, into. disj );
    }
 
-   return false;
+
+      bool subsumes( const saturation::clause& from, 
+                     const saturation::clause& into )
+      {
+         return subsumes< exists< logic::term >, 
+                          saturation::cheapequiv > 
+              ( from. disj, from. disj. end( ), 
+                into. disj, into. disj. end( ));
+      }
+   }
 }
 
-#endif
+
+auto calc::saturation::pick( )
+-> std::list< clause > :: iterator 
+{
+   auto p = unchecked. begin( );
+   auto picked = p ++;
+   while( p != unchecked. end( )) 
+   {
+      if( p -> disj. size( ) < picked -> disj. size( ))
+         picked = p;
+
+      ++ p;
+   }
+ 
+   return picked; 
+}
 
 void calc::saturation::saturate( )
 {
    std::cout << "starting saturation\n";
 
-restart: 
+norm: 
+   std::cout << "norm\n";
+   print( std::cout );
+
    if( notnormalized. size( ))
    {
       for( auto& cl : notnormalized )
          normalize( cl );
 
-      passive. splice( passive. end( ), notnormalized ); 
+      unchecked. splice( unchecked. end( ), notnormalized ); 
    }
 
 select:
-   if( passive. size( ) == 0 )
-      throw std::logic_error( "got the saturation" );
+   if( unchecked. size( ) == 0 )
+      return;
 
    auto picked = pick( );
-   for( const auto& cl : closed )
+   std::cout << "picked " << *picked << "\n";
+
+   for( const auto& cl : checked )
    {
-      if( subsumes( cl, picked ))
+      if( subsumes( cl, *picked ))
       {
+         throw std::logic_error( "picked clause is subsumed\n" );
+
          goto select;
       }
    }
 
    {
-      auto p = closed. begin( );
-      while( p != closed. end( ))
+      auto p = checked. begin( );
+      while( p != checked. end( ))
       {
-         if( subsumes( picked, *p ))
+         if( subsumes( *picked, *p ))
          {
-            p = closed. erase(p);
+            if( p -> seqind. has_value( ))
+               removed. insert( p -> seqind. value( ));
+            p = checked. erase(p);
          }
          else
             ++ p;
       }
    }
 
-   for( const auto& cl : closed )
-   {
-      if( simplify( cl, picked ))
+   for( const auto& cl : checked )
+   { 
+      if( simplify( cl, *picked ))
       {
-         notnormalized. push_back( std::move( picked ));
-         goto restart;
+         if( picked -> seqind. has_value( ))
+            removed. insert( picked -> seqind. value( )); 
+         notnormalized. splice( notnormalized. end( ), 
+                                unchecked, picked );
+         goto norm;
       }
    }
 
    {
-      auto p = closed. begin( );
-      while( p != closed. end( ))
+      auto p = checked. begin( );
+      while( p != checked. end( ))
       {
-         if( simplify( picked, *p ))
+         if( simplify( *picked, *p ))
          {
-            p = closed. erase(p);
+            if( p -> seqind. has_value( ))
+               removed. insert( p -> seqind. value( ));
+            p = checked. erase(p);
          }
          else
             ++ p;
       }
    }
 
-   closed. push_back( std::move( picked ));
-#if 0
-   bool fixedpoint = false;
-   while( !fixedpoint )
-   {
-      fixedpoint = true;
-
-      for( auto from = simp. cbegin( ); from != simp. cend( ); ++ from )
-      {
-         if( !istruthconstant( *from ))  
-         {
-            std::cout << "picked: " << *from << "\n";
-            for( auto into = simp. begin( ); into != simp. end( ); ++ into )
-            {
-               if( into != from && !istruthconstant( *into ))
-               {
-                  if( subsumes( *from, from -> end( ),
-                                *into, into -> end( ) ))
-                  { 
-                     std::cout << "deleting: " << *into << "\n";
-                     maketruthconstant( *into );
-                     fixedpoint = false;
-                  }
-                  else
-                  {
-                     if( resolve( *from, *into ) || rewrite( *from, *into ))
-                     {
-                        std::cout << "   resolved or rewrote: " << *into << "\n";
-                        simplify( *into );  
-                        std::cout << "   simplified: " << *into << "\n";
-                        fixedpoint = false;
-                     }
-                  }
-               }
-            }
-         }
-      }
-
-   }
-
-   // We remove the clauses that were replaced by { TRUE }:
-
-   auto p1 = simp. begin( );
-   auto p2 = simp. cbegin( );
-   while( p2 != simp. cend( ))
-   {
-      if( !istruthconstant( *p2 ))
-      {
-         if( p1 != p2 )
-            *p1 = std::move( *p2 );
-         ++ p1; 
-      }
-      
-      ++ p2;       
-   }
-
-   while( p1 != simp. end( ))
-      simp. remove_last( );
-
-#endif
+   checked. splice( checked. end( ), unchecked, picked );
+   if( notnormalized. size( )) goto norm;
+   goto select;
 }
 
-
-bool calc::saturation::simplify( const clause& from, clause& into )
-{
-   return
-      calc::simplify<exists<logic::term>, cheapequiv,resolver> ( from. disj, into. disj ) ||
-      calc::simplify<exists<logic::term>, cheapequiv,demodulator> ( from. disj, into. disj );
-}
 
 void calc::saturation::print( std::ostream& out ) const
 {
    out << "Saturation:\n";
-   if( closed. size( ))
-   {
-      out << "   " << "Closed:\n";
-   }
 
    if( notnormalized. size( ))
    {
-      out << "   Not normalized:\n";
+      out << "Not normalized:\n";
       for( const auto& cl : notnormalized )
          out << "      " << cl << "\n";
+   }
+
+   if( unchecked. size( ))
+   {
+      out << "Unchecked:\n";
+      for( const auto& cl : unchecked )
+         out << "      " << cl << "\n";
+   }
+
+   if( checked. size( ))
+   {
+      out << "Checked:\n";
+      for( const auto& cl : checked )
+         out << cl << "\n";
    }
 }
 

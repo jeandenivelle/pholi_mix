@@ -226,8 +226,6 @@ void tests::pretty( const logic::beliefstate& blfs )
 
 void tests::saturate( )
 {
-   std::cout << "testing saturate\n";
-
    using namespace logic;
 
    type O = type( logic::type_obj );
@@ -254,9 +252,9 @@ void tests::saturate( )
 
    
    auto cl3 = calc::disjunction( { 
-      calc::exists( {{ "x", O }}, ! ( 11_db == 13_db )),
+      calc::exists( ! ( 10_db == 12_db )),
       calc::exists( "B"_unchecked ),
-      calc::exists( prop( "A"_unchecked )) } );
+      calc::exists( "A"_unchecked ) } );
 
    sat. initial( cl3, 30 );
    sat. saturate( );

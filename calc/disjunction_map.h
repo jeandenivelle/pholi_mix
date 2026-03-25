@@ -60,6 +60,9 @@ namespace calc
       iterator erase( iterator it ) 
          { return map. erase( it ); }
 
+      iterator erase( iterator it1, iterator it2 )
+         { return map. erase( it1, it2 ); }
+
       // Remove F-s with empty truthset:
 
       void remove_empty( )
@@ -77,25 +80,6 @@ namespace calc
          map. erase( p1, end( )); 
       }
 
-      // Merge equal F-s, where equality is determined by our
-      // E object. This is a quadratic procedure: 
-      // After merge( ), one can do remove_empty( ).
- 
-      void merge( )
-      {
-         for( auto p2 = begin( ); p2 != end( ); ++ p2 )    
-         {
-            for( auto p1 = begin( ); p1 != p2; ++ p1 )
-            {
-               if( eq( p1 -> first, p2 -> first ))
-               {
-                  ( p1 -> second ) |= p2 -> second;
-                  ( p2 -> second ) = truthset::empty;
-               }
-             } 
-         }
-      }
-
       // True if the clause is very obviously trivial:
 
       bool istrivial( ) const
@@ -106,6 +90,48 @@ namespace calc
                return true;
          }
          return false; 
+      }
+
+      // 1. Merge equivalent F-s, where equivalence is determined by equiv. 
+      // 2. Remove F-s, whose label is empty. 
+      // This is a quadratic procedure. 
+
+      template< bool equiv( const F&, const F& ) >  
+      void merge_equiv( )
+      {
+         for( auto from = begin( ); from != end( ); ++ from )    
+         { 
+            // Look for the first occurrence of the same formula:
+
+            auto into = begin( );
+            while( into != from && !equiv( from -> fm, into -> fm ))
+               ++ into;
+            
+            if( into != from )
+            {
+               ( into -> lab ) |= ( from -> lab );
+               ( from -> lab ) = truthset::empty;
+            } 
+         }
+      }
+
+      // Remove literals that cannot be true:
+
+      void remove_nevertrue( )
+      {
+         auto from = begin( );
+         auto into = begin( );
+         while( from != end( ))
+         {
+            if( !from -> lab. isconflict( ))
+            {
+               if( from != into )
+                  *into = std::move( *from );
+               ++ into;
+            }
+            ++ from;
+         }
+         erase( into, end( ));
       }
 
       void print( std::ostream& out ) const
