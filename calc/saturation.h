@@ -86,8 +86,9 @@ namespace calc
 
       std::list< clause > :: iterator pick( );
          // Picks a clause from unchecked.
-         // unchecked must be non-empty.
-     
+         // unchecked must be non-empty. Otherwise
+         // it is UB.
+
       void saturate( );
 
       void print( std::ostream& out ) const; 

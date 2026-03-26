@@ -79,6 +79,12 @@ includefile( logic::beliefstate& blfs,
 
 #include "calc/pretty.h"
 
+#if 0
+struct rewriter
+{
+   rewriter( ) noexcept = default;
+
+#endif
 
 int main( int argc, char* argv[] )
 {
