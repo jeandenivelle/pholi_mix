@@ -9,7 +9,7 @@
 void calc::saturation::clause::print( std::ostream& out ) const
 {
    if( seqind. has_value( ))
-      out << "initial(" << seqind. value( ) << ") :\n";
+      out << "initial(" << seqind. value( ) << ") : ";
    out << disj; 
 }
 

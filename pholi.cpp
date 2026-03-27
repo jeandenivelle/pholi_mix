@@ -79,40 +79,73 @@ includefile( logic::beliefstate& blfs,
 
 #include "calc/pretty.h"
 
-#if 0
 struct rewriter
 {
-   rewriter( ) noexcept = default;
+   std::optional< calc::truthform< std::string >> from;
+   uint64_t counter;
 
-#endif
+   rewriter( const calc::truthform< std::string > & from )
+      : counter(0)
+   {
+      if( from. fm. size( ) && isupper( from. fm[0] ) &&
+          !from. lab. istrivial( ))
+      {
+         ( this -> from ) = from; 
+      }
+   }
+
+   bool usable( ) const { return from. has_value( ); }
+
+   uint64_t used( ) const { return counter; }
+
+   calc::truthform< std::string > 
+   operator( ) ( calc::truthform< std::string > lit )
+   {
+      if( !from. has_value( ))
+         throw std::logic_error( "resolver: there is no from" );
+
+      auto lab = ( from. value( ). lab ) & lit. lab;
+
+      if( !lit. lab. implies( lab ))
+      {
+         if( from. value( ). fm == lit. fm )
+         {
+            ++ counter;
+            return calc::truthform( lit. fm, lab );
+         }
+      }
+      return lit;
+   }
+};
 
 int main( int argc, char* argv[] )
 {
    tests::saturate( );
-   return 0;
 
    using tf = calc::truthform< std::string > ;
  
    calc::disjunction_map< std::string > cl1;
    calc::disjunction_map< std::string > cl2;
 
-   cl1. insert( tf( "de", calc::truthset::ffff ));
-   cl1. insert( { "hans", calc::truthset::ffff } );
-   cl1. insert( { "hans", calc::truthset::tttt } );
-   cl1. insert( { "aa", calc::truthset::empty } );
-   cl1. insert( { "aa", calc::truthset::tttt } );
-   cl1. insert( { "de", calc::truthset::tttt } );
-   cl1. insert( { "aa", calc::truthset::eeee } );
+   cl1. insert( tf( "hans", calc::truthset::ffff ));
+   cl1. insert( { "Hans", calc::truthset::ffff } );
+   cl1. insert( { "nivelle", calc::truthset::eett } );
 
    cl2. insert( { "hans", calc::truthset::ffff } );
-   cl2. insert( { "deX", calc::truthset::ffee } );
-   cl2. insert( { "nivelle", calc::truthset::tttt } );
+   cl2. insert( { "Hans", calc::truthset::eeee } );
+   cl2. insert( { "nivelle", calc::truthset::eett } );
 
    std::cout << cl1 << "\n";
-   // std::cout << cl2 << "\n";
+   std::cout << cl2 << "\n"; 
+   auto lamb = []( const std::string& s1, const std::string& s2 )
+      { return s1 == s2; };
 
-   cl1. merge_equiv< []( const std::string& s1, const std::string& s2 ) 
-      { return s1 == s2; } > ( );
+   auto b = simplify< std::string, lamb, rewriter > ( cl1, cl2 );
+   std::cout << b << "\n";
+   std::cout << cl2 << "\n";
+   return 0;
+
+   cl1. merge_equiv< lamb > ( );
 
    std::cout << cl1 << "\n"; 
 

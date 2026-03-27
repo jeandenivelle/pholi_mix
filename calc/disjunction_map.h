@@ -134,11 +134,25 @@ namespace calc
          erase( into, end( ));
       }
 
-      void print( std::ostream& out ) const
+      void print( std::ostream& out, const_iterator skip ) const
       {
-         out << "Disjunction Map:\n";
-         for( auto& p : map )
-            out << "   " << p << "\n";
+         out << '{';
+         bool first = true;  
+         for( auto p = begin( ); p != end( ); ++ p ) 
+         {
+            if( p != skip )
+            {
+               if( first ) 
+                  out << ' ';
+               else
+                  out << ", ";
+
+               out << *p;
+
+               first = false;
+            }
+         } 
+         out << " }";
       }
 
    };
@@ -149,7 +163,6 @@ namespace calc
              const disjunction_map<F> & disj, 
              typename disjunction_map<F> :: const_iterator skip )
    {
-      std::cout << "subsumes " << lit << "\n";
       for( auto q = disj. begin( ); q != disj. end( ); ++ q )
       {
          if( q != skip && lit. lab. implies( q -> lab ) && 
@@ -169,6 +182,11 @@ namespace calc
              const disjunction_map<F> & disj2,
              typename disjunction_map<F> :: const_iterator skip2 )
    {
+      std::cout << "subsumes\n";
+      disj1. print( std::cout, skip1 ); std::cout << "\n";
+      disj2. print( std::cout, skip2 );
+      std::cout << "?\n";
+
       for( auto p1 = disj1. begin( ); p1 != disj1. end( ); ++ p1 )
       {
          if( p1 != skip1 && !subsumes<F,equiv>( *p1, disj2, skip2 ))
@@ -184,18 +202,18 @@ namespace calc
    {
       for( auto p = from. begin( ); p != from. end( ); ++ p )
       {
-         auto simpl = S( *p ); 
+         auto simpl = S(*p); 
          if( simpl. usable( ))
          {
             for( auto q = into. begin( ); q != into. end( ); ++ q )
             {
                uint64_t uu = simpl. used( );
-               auto ss = simpl( *q );
+               auto smp = simpl(*q);
 
                if( uu != simpl. used( ) && 
                    subsumes<F,equiv>( from, p, into, q ))
                {
-                  *q = std::move(ss); 
+                  *q = std::move( smp ); 
                   return true;
                }
             }
@@ -204,6 +222,13 @@ namespace calc
       return false; 
    }
 
+   template< typename F >
+   std::ostream& operator << ( std::ostream& out, 
+                               const disjunction_map<F> & from )
+   {
+      from. print( std::cout, from. end( ));
+      return out;
+   }
 
 }
 
