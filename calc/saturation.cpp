@@ -8,8 +8,10 @@
 
 void calc::saturation::clause::print( std::ostream& out ) const
 {
+   out << '#' << nr; 
    if( seqind. has_value( ))
-      out << "initial(" << seqind. value( ) << ") : ";
+      out << ", initial(" << seqind. value( ) << ") ";
+   out << " : ";
    out << disj; 
 }
 
@@ -118,7 +120,6 @@ calc::saturation::cheapequiv( const exists< logic::term > & lit1,
 calc::saturation::resolver::resolver( const littype& from )
    : fld_used(0) 
 {
-   std::cout << "setting resolver from " << from << "\n";
    if( from. fm. vars. size( ) == 0 &&
        from. fm. body. sel( ) != logic::op_equals &&
        !from. lab. istrivial( ))
@@ -166,7 +167,7 @@ calc::saturation::demodulator::operator( ) ( littype lit )
 -> littype 
 {
    if( !rewr. has_value( ))
-      throw std::logic_error( "demodulator: there is no from" );
+      throw std::logic_error( "demodulator: there is no equation" );
 
    return outermost( rewr. value( ), std::move( lit. fm ), 0 ); 
 }
@@ -174,7 +175,7 @@ calc::saturation::demodulator::operator( ) ( littype lit )
 void 
 calc::saturation::initial( dnf< logic::term > disj, size_t index )
 {
-   notnormalized. push_back( clause( index ));
+   notnormalized. push_back( clause( nrgenerated ++, index ));
    for( const auto& d : disj )
       notnormalized. back( ). disj. insert( makeliteral(d));
 }
@@ -230,7 +231,6 @@ void calc::saturation::saturate( )
    std::cout << "starting saturation\n";
 
 norm: 
-   std::cout << "norm\n";
    print( std::cout );
 
    if( notnormalized. size( ))
@@ -246,7 +246,7 @@ select:
       return;
 
    auto picked = pick( );
-   std::cout << "picked " << *picked << "\n";
+   std::cout << "picked   " << *picked << "\n";
 
    for( const auto& cl : checked )
    {
@@ -264,8 +264,8 @@ select:
       {
          if( subsumes( *picked, *p ))
          {
-            if( p -> seqind. has_value( ))
-               removed. insert( p -> seqind. value( ));
+            std::cout << "subsuming " << *p << "\n";
+            checkinitial( *p ); 
             p = checked. erase(p);
          }
          else
@@ -277,8 +277,9 @@ select:
    { 
       if( simplify( cl, *picked ))
       {
-         if( picked -> seqind. has_value( ))
-            removed. insert( picked -> seqind. value( )); 
+         checkinitial( *picked );
+         picked -> nr = nrgenerated ++ ;  
+         std::cout << "created " << *picked << "\n";
          notnormalized. splice( notnormalized. end( ), 
                                 unchecked, picked );
          goto norm;
@@ -289,23 +290,36 @@ select:
       auto p = checked. begin( );
       while( p != checked. end( ))
       {
+         auto p1 = p;
+         ++ p1;
          if( simplify( *picked, *p ))
          {
-            if( p -> seqind. has_value( ))
-               removed. insert( p -> seqind. value( ));
-            p = checked. erase(p);
+            std::cout << "created " << *p << "\n";
+            checkinitial( *p ); 
+            picked -> nr = nrgenerated ++ ;  
+ 
+            notnormalized. splice( notnormalized. end( ),
+                                   checked, p );
          }
-         else
-            ++ p;
+         p = p1;
       }
    }
 
    checked. splice( checked. end( ), unchecked, picked );
-   if( notnormalized. size( )) goto norm;
-   goto select;
+   goto norm;
 }
 
 
+void calc::saturation::checkinitial( clause& cl )
+{
+   if( cl. seqind. has_value( ))
+   {  
+      removed_initials. insert( cl. seqind. value( ));
+      cl. seqind. reset( );
+   }
+}
+
+   
 void calc::saturation::print( std::ostream& out ) const
 {
    out << "Saturation:\n";
@@ -314,21 +328,21 @@ void calc::saturation::print( std::ostream& out ) const
    {
       out << "Not normalized:\n";
       for( const auto& cl : notnormalized )
-         out << "      " << cl << "\n";
+         out << "   " << cl << "\n";
    }
 
    if( unchecked. size( ))
    {
       out << "Unchecked:\n";
       for( const auto& cl : unchecked )
-         out << "      " << cl << "\n";
+         out << "   " << cl << "\n";
    }
 
    if( checked. size( ))
    {
       out << "Checked:\n";
       for( const auto& cl : checked )
-         out << cl << "\n";
+         out << "   " << cl << "\n";
    }
 }
 

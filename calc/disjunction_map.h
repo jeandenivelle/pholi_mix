@@ -182,11 +182,12 @@ namespace calc
              const disjunction_map<F> & disj2,
              typename disjunction_map<F> :: const_iterator skip2 )
    {
+#if 0
       std::cout << "subsumes\n";
       disj1. print( std::cout, skip1 ); std::cout << "\n";
       disj2. print( std::cout, skip2 );
       std::cout << "?\n";
-
+#endif
       for( auto p1 = disj1. begin( ); p1 != disj1. end( ); ++ p1 )
       {
          if( p1 != skip1 && !subsumes<F,equiv>( *p1, disj2, skip2 ))

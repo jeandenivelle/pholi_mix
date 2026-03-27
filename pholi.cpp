@@ -118,6 +118,7 @@ struct rewriter
    }
 };
 
+
 int main( int argc, char* argv[] )
 {
    tests::saturate( );
@@ -129,11 +130,11 @@ int main( int argc, char* argv[] )
 
    cl1. insert( tf( "hans", calc::truthset::ffff ));
    cl1. insert( { "Hans", calc::truthset::ffff } );
-   cl1. insert( { "nivelle", calc::truthset::eett } );
+   cl1. insert( { "Nivelle", calc::truthset::ffee } );
 
    cl2. insert( { "hans", calc::truthset::ffff } );
-   cl2. insert( { "Hans", calc::truthset::eeee } );
-   cl2. insert( { "nivelle", calc::truthset::eett } );
+   cl2. insert( { "Hans", calc::truthset::ffff } );
+   cl2. insert( { "Nivelle", calc::truthset::eett } );
 
    std::cout << cl1 << "\n";
    std::cout << cl2 << "\n"; 

@@ -22,13 +22,15 @@ namespace calc
 
       struct clause
       {
-         disjunction_map< exists< logic::term >> disj;
+         uint64_t nr;
          std::optional< size_t > seqind;  // Index in sequent, if initial.
+
+         disjunction_map< exists< logic::term >> disj;
 
          clause( ) = default;
 
-         explicit clause( size_t seqind )
-            : seqind( seqind )
+         explicit clause( uint64_t nr, size_t seqind )
+            : nr( nr ), seqind( seqind )
          { }
 
          void print( std::ostream& out ) const; 
@@ -38,11 +40,15 @@ namespace calc
       std::list< clause > unchecked; 
       std::list< clause > notnormalized; 
 
-      std::unordered_set< size_t > removed;
+      std::unordered_set< size_t > removed_initials;
          // Indices of removed initial clauses. They can be
          // made hidden in the sequent later.
+ 
+      uint64_t nrgenerated;
 
-      saturation( ) noexcept = default;
+      saturation( ) noexcept 
+         : nrgenerated(0)
+      { }
 
       void initial( dnf< logic::term > disj, size_t index );
          // Add an initial clause. It will be lifted over liftdist,
@@ -90,6 +96,11 @@ namespace calc
          // it is UB.
 
       void saturate( );
+
+      void checkinitial( clause& cl );
+         // This is done with removed or simplified clauses.
+         // If the clause is initial, we inserts its number in 
+         // removed_initials.
 
       void print( std::ostream& out ) const; 
    };
