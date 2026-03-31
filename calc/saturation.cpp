@@ -40,12 +40,13 @@ calc::saturation::makeliteral( const exists< logic::term > & lit )
       }
    }
 
+   // Default is to add lit / tttt:
+
    return littype( lit, truthset::tttt ); 
 }
 
 
-void 
-calc::saturation::direct( littype & lit )
+void calc::saturation::direct( littype& lit )
 {
    if( lit. fm. body. sel( ) == logic::op_equals )
    {
@@ -53,14 +54,14 @@ calc::saturation::direct( littype & lit )
 
       lit. lab &= truthset::fftt;
  
-      // We compare the terms:
+      // We compare the terms with KBO:
 
       auto eq = lit. fm. body. view_binary( );
       auto c = kbo( eq. sub1( ), eq. sub2( ));
 
       // Check if equality must be swapped.
-      // It's an equivalence, so that the truth set does not 
-      // matter:
+      // It's an equivalence, so that the truth set and the variables 
+      // do not matter:
 
       if( is_lt(c))
       {
@@ -74,18 +75,12 @@ calc::saturation::direct( littype & lit )
 
       if( is_eq(c))
       {
-         if( truthset( truthset::tttt ). implies( lit. lab ))
-         {
-            lit. fm. body = logic::term( logic::op_true );
+         lit. fm. body = logic::term( logic::op_true );
 
-            // A non-empty existential quantifier cannot be a tautology.
+         // If there are no existential variables, then we are a tautology: 
 
-            if( lit. fm. vars. size( ) == 0 )
-               lit. lab = truthset::all; 
-            return; 
-         }       
-         else
-            lit. lab = truthset::empty;
+         if( lit. fm. vars. size( ) == 0 )
+            lit. lab = truthset::all; 
       }
    }
 }
@@ -113,6 +108,7 @@ calc::saturation::cheapequiv( const exists< logic::term > & lit1,
       if( !equal( lit1. vars[i]. tp, lit2.vars[i]. tp ))
          return false;
    }
+
    return equal( lit1. body, lit2. body );
 }
 
@@ -137,14 +133,15 @@ calc::saturation::resolver::operator( ) ( littype lit )
  
    if( lit. fm. vars. size( ) == 0 )
    {
-      auto lab = ( from. value( ). lab ) & lit. lab;
+      auto newlab = ( from. value( ). lab ) & lit. lab;
 
-      if( !lit. lab. implies( lab )) 
+      if( !lit. lab. implies( newlab )) 
       {
          if( cheapequiv( from. value( ). fm, lit. fm ))
          { 
             ++ fld_used; 
-            return truthform( lit. fm, lab );
+            lit. lab = newlab; 
+            return lit;
          }
       }
    }
@@ -169,7 +166,8 @@ calc::saturation::demodulator::operator( ) ( littype lit )
    if( !rewr. has_value( ))
       throw std::logic_error( "demodulator: there is no equation" );
 
-   return outermost( rewr. value( ), std::move( lit. fm ), 0 ); 
+   lit. fm = outermost( rewr. value( ), std::move( lit. fm ), 0 ); 
+   return lit; 
 }
 
 void 
@@ -231,8 +229,6 @@ void calc::saturation::saturate( )
    std::cout << "starting saturation\n";
 
 norm: 
-   print( std::cout );
-
    if( notnormalized. size( ))
    {
       for( auto& cl : notnormalized )
@@ -246,7 +242,7 @@ select:
       return;
 
    auto picked = pick( );
-   std::cout << "picked   " << *picked << "\n";
+   std::cout << "picked " << *picked << "\n";
 
    for( const auto& cl : checked )
    {
@@ -264,8 +260,8 @@ select:
       {
          if( subsumes( *picked, *p ))
          {
-            std::cout << "subsuming " << *p << "\n";
-            checkinitial( *p ); 
+            std::cout << "deleting " << *p << "\n";
+            rememberinitial( *p ); 
             p = checked. erase(p);
          }
          else
@@ -277,8 +273,8 @@ select:
    { 
       if( simplify( cl, *picked ))
       {
-         checkinitial( *picked );
-         picked -> nr = nrgenerated ++ ;  
+         rememberinitial( *picked );
+         ( picked -> nr ) = nrgenerated ++ ;  
          std::cout << "created " << *picked << "\n";
          notnormalized. splice( notnormalized. end( ), 
                                 unchecked, picked );
@@ -292,11 +288,12 @@ select:
       {
          auto p1 = p;
          ++ p1;
+
          if( simplify( *picked, *p ))
          {
             std::cout << "created " << *p << "\n";
-            checkinitial( *p ); 
-            picked -> nr = nrgenerated ++ ;  
+            rememberinitial( *p ); 
+            ( picked -> nr ) = nrgenerated ++ ;  
  
             notnormalized. splice( notnormalized. end( ),
                                    checked, p );
@@ -310,7 +307,7 @@ select:
 }
 
 
-void calc::saturation::checkinitial( clause& cl )
+void calc::saturation::rememberinitial( clause& cl )
 {
    if( cl. seqind. has_value( ))
    {  
@@ -343,6 +340,14 @@ void calc::saturation::print( std::ostream& out ) const
       out << "Checked:\n";
       for( const auto& cl : checked )
          out << "   " << cl << "\n";
+   }
+
+   if( removed_initials. size( ))
+   {
+      out << "Removed initials: ";
+      for( auto& r : removed_initials )
+         out << r << " ";
+      out << '\n';
    }
 }
 

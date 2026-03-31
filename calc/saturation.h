@@ -97,9 +97,9 @@ namespace calc
 
       void saturate( );
 
-      void checkinitial( clause& cl );
+      void rememberinitial( clause& cl );
          // This is done with removed or simplified clauses.
-         // If the clause is initial, we inserts its number in 
+         // If the clause is initial, we insert its number in 
          // removed_initials.
 
       void print( std::ostream& out ) const; 

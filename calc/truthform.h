@@ -16,11 +16,11 @@ namespace calc
       F fm;
       truthset lab;
 
-      truthform( const F& fm, truthset lab = truthset::tttt ) 
+      truthform( const F& fm, truthset lab ) 
          : fm( fm ), lab( lab )
       { }
 
-      truthform( F&& fm, truthset lab = truthset::tttt )
+      truthform( F&& fm, truthset lab )
          : fm( std::move( fm )), lab( lab )
       { }
 

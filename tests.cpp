@@ -220,7 +220,6 @@ void tests::pretty( const logic::beliefstate& blfs )
 
    pretty::uniquenamestack un;
    pretty::print( std::cout, blfs, un, tm, {0,0} );
-
 }
 
 
@@ -237,27 +236,18 @@ void tests::saturate( )
    calc::saturation sat;
 
    auto cl1 = calc::disjunction( { 
-      calc::exists( 10_db == 11_db ), 
-      calc::exists( ! "A"_unchecked ),
-      calc::exists( "B"_unchecked ) } );
-
+      calc::exists( "t1"_unchecked == "t2"_unchecked ),
+      calc::exists( "A"_unchecked ) } );
    sat. initial( cl1, 10 );
 
-   auto cl2 = calc::disjunction( { 
-      calc::exists( 11_db == 12_db ),
-      calc::exists( "B"_unchecked ),
-      calc::exists( "A"_unchecked ) } );
+   auto cl2 = calc::disjunction( 
+      { calc::exists( prop( apply( "f"_unchecked, { "t1"_unchecked, "t2"_unchecked  } ))) } );
+   sat. initial( cl2, 11 );
 
-   sat. initial( cl2, 20 );
-
-   
-   auto cl3 = calc::disjunction( { 
-      calc::exists( ! ( 10_db == 12_db )),
-      calc::exists( "B"_unchecked ),
-      calc::exists( "A"_unchecked ) } );
-
-   sat. initial( cl3, 30 );
-   sat. saturate( );
+   auto cl3 = calc::disjunction( 
+      { calc::exists( !prop( apply( "f"_unchecked, { "t2"_unchecked, "t1"_unchecked  } ))),
+        calc::exists( prop( "A"_unchecked )) } );
+   sat. initial( cl3, 12 );
 
 #if 0
    bool 
@@ -274,6 +264,7 @@ void tests::saturate( )
    std::cout << "after simplification\n";
 #endif
 
+   sat. saturate( );
    std::cout << sat << "\n";
 }
 
