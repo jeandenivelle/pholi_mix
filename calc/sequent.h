@@ -124,8 +124,9 @@ namespace calc
       void restore( size_t ss );
 
       void append( cnf< logic::term > c ); 
-         // We append the components separately, and trivial ones
-         // are appended as dnf.
+         // We append the components separately, and trivial 
+         // components are appended as dnf.
+
       void append( dnf< logic::term > d );
      
       bool hasindex( ssize_t ind ) const; 

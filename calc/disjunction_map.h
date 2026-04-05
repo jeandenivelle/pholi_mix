@@ -123,7 +123,7 @@ namespace calc
          auto into = begin( );
          while( from != end( ))
          {
-            if( !from -> lab. isconflict( ))
+            if( !from -> lab. isempty( ))
             {
                if( from != into )
                   *into = std::move( *from );
@@ -165,7 +165,7 @@ namespace calc
    {
       for( auto q = disj. begin( ); q != disj. end( ); ++ q )
       {
-         if( q != skip && lit. lab. implies( q -> lab ) && 
+         if( q != skip && lit. lab. subsetof( q -> lab ) && 
              equiv( lit. fm, q -> fm ))
          {
             return true;

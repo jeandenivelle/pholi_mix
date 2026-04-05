@@ -77,10 +77,16 @@ void calc::saturation::direct( littype& lit )
       {
          lit. fm. body = logic::term( logic::op_true );
 
-         // If there are no existential variables, then we are a tautology: 
-
-         if( lit. fm. vars. size( ) == 0 )
-            lit. lab = truthset::all; 
+         if( lit. lab. disjointwith( truthset::tttt ))
+         {
+            lit. lab = truthset::empty; 
+               // We are a contraction, even if we have variables. 
+         }
+         else
+         {
+            if( lit. fm. vars. size( ) == 0 )
+               lit. lab = truthset::all; 
+         }
       }
    }
 }
@@ -135,7 +141,7 @@ calc::saturation::resolver::operator( ) ( littype lit )
    {
       auto newlab = ( from. value( ). lab ) & lit. lab;
 
-      if( !lit. lab. implies( newlab )) 
+      if( !lit. lab. subsetof( newlab )) 
       {
          if( cheapequiv( from. value( ). fm, lit. fm ))
          { 
@@ -150,7 +156,7 @@ calc::saturation::resolver::operator( ) ( littype lit )
 
 calc::saturation::demodulator::demodulator( const littype& lit )
 {
-   if( lit. lab. implies( truthset::tttt ) &&
+   if( lit. lab. subsetof( truthset::tttt ) &&
        lit. fm. vars. size( ) == 0 &&
        lit. fm. body. sel( ) == logic::op_equals )
    {
@@ -184,16 +190,17 @@ namespace calc
    namespace
    {
 
-
       bool simplify( const saturation::clause& from, 
                      saturation::clause& into )
-   {
-      return
-      simplify< exists< logic::term >, 
-              saturation:: cheapequiv,
-              saturation:: resolver> ( from. disj, into. disj ) ||
-      simplify< exists<logic::term>, saturation::cheapequiv, saturation::demodulator> ( from. disj, into. disj );
-   }
+      {
+         return  
+            simplify< exists< logic::term >, 
+                      saturation:: cheapequiv,
+                      saturation:: resolver> ( from. disj, into. disj ) ||
+            simplify< exists<logic::term>, 
+                      saturation::cheapequiv, 
+                      saturation::demodulator> ( from. disj, into. disj );
+      }
 
 
       bool subsumes( const saturation::clause& from, 
@@ -224,9 +231,10 @@ auto calc::saturation::pick( )
    return picked; 
 }
 
+
 void calc::saturation::saturate( )
 {
-   std::cout << "starting saturation process\n";
+   std::cout << "Starting saturation process:\n";
 
 norm: 
    if( notnormalized. size( ))
@@ -350,5 +358,58 @@ void calc::saturation::print( std::ostream& out ) const
          out << r << " ";
       out << '\n';
    }
+}
+
+auto
+calc::make_dnf( const disjunction_map< exists< logic::term >> & disj )
+-> dnf< logic::term >
+{
+   dnf< logic::term > res; 
+   for( const auto& lit : disj )
+   {
+      auto lab = lit. lab;
+
+      // We remove the things that we handled from lab:
+  
+      if( !lab. subsetof( truthset::tttt ) && lit. fm. vars. size( ))
+      {
+         throw 
+         std::logic_error( "make_dnf: cannot handle existential variables" );
+      }
+          
+      if( truthset( truthset::fftt ). subsetof( lab ))
+      {
+         res. append( exists( logic::term( logic::op_prop, lit. fm. body )));
+         lab &= truthset::eeee;
+      }
+
+      if( truthset( truthset::tttt ). subsetof( lab ))
+      {
+         res. append( lit. fm );
+         lab &= truthset::ffee;
+      }
+
+      if( truthset( truthset::ffff ). subsetof( lab ))
+      {
+         res. append( exists( logic::term( logic::op_not, lit. fm. body )));
+         lab &= truthset::eett;
+      }
+
+      if( truthset( truthset::eeee ). subsetof( lab ))
+      {
+         res. append( 
+            exists( logic::term( logic::op_not, 
+                        logic::term( logic::op_prop, lit. fm. body ))));
+         lab &= truthset::fftt;
+      }  
+      
+      if( !lab. isempty( ))
+      { 
+         std::cout << lit << "\n";
+         throw std::logic_error( "not fully handled" );
+      }
+   }
+
+   return res; 
 }
 

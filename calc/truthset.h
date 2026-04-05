@@ -34,16 +34,16 @@ namespace calc
 
       static constexpr uint8_t all = ffff | eeee | tttt;
 
-      bool isconflict( ) const
+      bool isempty( ) const
          { return val == empty; }
 
       bool istrivial( ) const 
          { return val == all; }
 
-      bool implies( truthset s ) const 
+      bool subsetof( truthset s ) const 
          { return ! ( val & ~s. val ); }
 
-      bool conflicts( truthset s ) const
+      bool disjointwith( truthset s ) const
          { return ! ( val & s. val ); } 
 
       truthset& operator &= ( truthset s ) 

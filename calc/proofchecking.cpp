@@ -785,6 +785,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          if( !seq. at( -1 ). is_dnf( ))
             throw std::logic_error( "last formula not DNF" );
 
+         std::cout << seq. lastlevel( ). stacksize << "\n";
          std::cout << "chosen " << chosen << "\n";
          // chosen = seq. at( -1 ). get_dnf( ); 
          std::cout << "becomes " << chosen << "\n"; 
@@ -1042,11 +1043,12 @@ calc::checkproof( const logic::beliefstate& blfs,
          seq. back( ). push( forall( disjunction{ exists( fm ) } )); 
          return;  
       }
-
 #endif  
+
    case prf_simplify:
       {
          saturation sat; 
+
          for( size_t i = 0; i != seq. nrformulas( ); ++ i )
          {
             const auto& fm = seq. at(i);
@@ -1054,43 +1056,17 @@ calc::checkproof( const logic::beliefstate& blfs,
                sat. initial( lift( fm. get_dnf( ), seq. liftdist(i)), i );
          }
      
-         std::cout << sat << "\n"; 
-#if 0
-         std::vector< forall< disjunction< exists< logic::term >>>> ignored;
-         conjunction< atp::clause > simp; 
+         sat. saturate( );
+         std::cout << "after saturation\n";
+         std::cout << sat << "\n";
 
-         auto& last = seq. back( );
-         for( auto& f : last )
-         {
-            if( f. vars. size( ))
-               ignored. push_back( std::move(f));
-            else
-               simp. append( std::move( f. body ));
-         }
+         for( auto& rm : sat. removed_initials )
+            seq. hide( rm );
+
+         for( auto& cls : sat. checked )
+            seq. append( make_dnf( cls. disj ));
  
-#if 0 
-         std::cout << "before simplification: " << simp << "\n";
-         std::cout << "ignoring\n";
-         for( const auto& ig : ignored )
-            std::cout << "   " << ig << "\n"; 
-#endif
-         atp::simplify( simp );
-
-#if 0
-         std::cout << "after simplification: " << simp << "\n";
-#endif
-
-         seq. back( ). clear( );
-         for( auto& ig : ignored )
-            seq. back( ). push( std::move(ig) );
-
-         for( auto& s : simp )
-            seq. back( ). push( forall( std::move(s)) );
-
          return;
-
-#endif
-         throw std::logic_error( "simplify not finished" );
       }
 
    case prf_fake:
@@ -1120,7 +1096,6 @@ calc::checkproof( const logic::beliefstate& blfs,
       {
          return;   // Truly nothing was done. 
       }
-
 
    case prf_show:
       {

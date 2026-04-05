@@ -258,6 +258,9 @@ void tests::saturate( )
 
    sat. saturate( );
    std::cout << sat << "\n";
+
+   for( const auto& lit : sat. checked )
+      std::cout << make_dnf( lit. disj ) << "\n";
 }
 
 

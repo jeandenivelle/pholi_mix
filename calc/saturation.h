@@ -53,7 +53,7 @@ namespace calc
       void initial( dnf< logic::term > disj, size_t index );
          // Add an initial clause. It will be lifted over liftdist,
          // and its index will be index.
-
+ 
       littype makeliteral( const exists< logic::term > & lit );
 
       static void direct( littype& lit ); 
@@ -104,6 +104,9 @@ namespace calc
 
       void print( std::ostream& out ) const; 
    };
+
+   dnf< logic::term > 
+   make_dnf( const disjunction_map< exists< logic::term >> & disj );
 
 }
 

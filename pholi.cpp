@@ -85,7 +85,6 @@ int main( int argc, char* argv[] )
 {
    tests::saturate( );
 
-
    errorstack err;
    logic::beliefstate blfs;  
    filehasher seen;
