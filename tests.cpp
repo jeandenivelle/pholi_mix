@@ -240,29 +240,21 @@ void tests::saturate( )
       calc::exists( "A"_unchecked ) } );
    sat. initial( cl1, 10 );
 
-   auto cl2 = calc::disjunction( 
-      { calc::exists( prop( apply( "f"_unchecked, { "t1"_unchecked, "t2"_unchecked  } ))) } );
+   auto cl2 = calc::disjunction( {
+      calc::exists( "t2"_unchecked == "t3"_unchecked ),
+      calc::exists( "A"_unchecked ) } );
    sat. initial( cl2, 11 );
 
    auto cl3 = calc::disjunction( 
-      { calc::exists( !prop( apply( "f"_unchecked, { "t2"_unchecked, "t1"_unchecked  } ))),
+      { calc::exists( prop( apply( "f"_unchecked, { "t1"_unchecked, "t3"_unchecked  } ))),
+        calc::exists( apply( "f"_unchecked, { "t1"_unchecked, "t3"_unchecked  } )),
         calc::exists( prop( "A"_unchecked )) } );
    sat. initial( cl3, 12 );
 
-#if 0
-   bool 
-   res = calc::simplify< calc::exists< term >, 
-                         calc::exists_equal_to,
-                         calc::saturation::demodulator > ( sat. raw. front( ). first, sat. raw. back( ). first );
-
-   std::cout << res << "\n";
-   std::cout << cl3 << "\n";
-
-   std::cout << simp << "\n";
-   calc::atp::simplify( simp );
-   std::cout << "\n";
-   std::cout << "after simplification\n";
-#endif
+   auto cl4 = calc::disjunction( 
+      { calc::exists( !prop( apply( "f"_unchecked, { "t3"_unchecked, "t1"_unchecked  } ))),
+        calc::exists( prop( "A"_unchecked )) } );
+   sat. initial( cl4, 13 );
 
    sat. saturate( );
    std::cout << sat << "\n";

@@ -226,7 +226,7 @@ auto calc::saturation::pick( )
 
 void calc::saturation::saturate( )
 {
-   std::cout << "starting saturation\n";
+   std::cout << "starting saturation process\n";
 
 norm: 
    if( notnormalized. size( ))
@@ -248,8 +248,9 @@ select:
    {
       if( subsumes( cl, *picked ))
       {
-         throw std::logic_error( "picked clause is subsumed\n" );
-
+         std::cout << "deleting " << *picked << "\n";
+         rememberinitial( *picked );
+         unchecked. erase( picked );
          goto select;
       }
    }
