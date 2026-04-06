@@ -371,6 +371,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          return; 
       }
 #endif 
+
    case prf_existsrepl:
       {
          auto repl = prf. view_existsrepl( ); 
@@ -408,6 +409,8 @@ calc::checkproof( const logic::beliefstate& blfs,
  
          seq. append( disjunction( { exists( mainform. body ) } ));
 
+         // Check the subproof:
+
          for( size_t i = 0; i != repl. size( ); ++ i )
          {
             auto subproof = repl. extr_sub(i);
@@ -416,15 +419,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          }
 
 #if 0
-#if 0
-            // Was part of testing. Should be completely removed later:
-
-            seq. assume( "hhhh", logic::type( logic::type_form ));
-            seq. assume( "ssss", logic::type( logic::type_obj ));
-
-            seq. ugly( std::cout );  
-            std::cout << "\n";
-#endif
 
          // We use the last formula. If there are no formulas, 
          // it is an error:
@@ -841,9 +835,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          auto subst = logic::singlesubst( seq. defs. at(cc));
          std::cout << subst << "\n";
 
-         std::cout << "before\n";
-         seq. ugly( std::cout );
-
          for( size_t i = ff; i != seq. stack. size( ); ++ i )
          {
             auto& f = seq. at(i);
@@ -861,18 +852,17 @@ calc::checkproof( const logic::beliefstate& blfs,
                           outermost( subst, std::move( f. get_dnf( )), 0 ); 
                   }
 
-                  -- f. ctxtsize; 
                }
+
+               if( f. ctxtsize != cc + 1 )
+                  throw std::logic_error( "wrong context size" );
+
+               -- f. ctxtsize; 
             }
          }
  
-         std::cout << "cc = " << cc << "\n";
-         std::cout << "ff = " << ff << "\n";
-
          seq. restore( cc );
-         std::cout << "after\n";
-         seq. ugly( std::cout );  
-         throw std::logic_error( "deflocal is not finished" );
+         return; 
       }
 #if 0
 #if 0
