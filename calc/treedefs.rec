@@ -19,9 +19,9 @@
 
 %option existsrepl { prf_existsrepl } => 
    ind : ssize_t, eigen : std::vector< std::string > , [ sub : proofterm ]
-      // If you don't combine these two rules, you get too many segments.
       // Without explicit eigennames, you cannot refer to introduced 
-      // variables in proofs.
+      // variables in proofs. In principle, one could combine
+      // orrepl with existsrepl. I might do this in the future. 
 
 %option expand { prf_expand } => 
    ind : ssize_t, ident : identifier, occ : size_t 

@@ -16,7 +16,7 @@ namespace calc
    template< typename F > using cnf = conjunction< forall<F>> ;    
    template< typename F > using dnf = disjunction< exists<F>> ;
    
-   template< typename F > using anf = cnf< dnf<F>> ;
+   template< typename F > using anf = cnf<dnf<F>> ;
       // Left over from earlier versions.
 
 }

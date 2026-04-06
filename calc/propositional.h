@@ -9,7 +9,6 @@
 
 namespace calc
 {
-
    
    template< typename F > struct disjunction
    {

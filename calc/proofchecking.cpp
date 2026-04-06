@@ -742,7 +742,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          if( !seq. hasindex( ind ))
          {
             throw std::logic_error( "orrepl: wrong index" );
-
          } 
 
          if( !seq. at( ind ). is_dnf( ))
@@ -755,7 +754,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             throw std::logic_error( "orrepl: alternative does not exist" ); 
          }
 
-         // Now we are certain that the rule will be applied.
+         // Now we are certain that the rule can be applied.
 
          auto chosen = seq. at( ind ). get_dnf( ). at( alt );
          chosen = lift( std::move( chosen ), seq. liftdist( ind ));

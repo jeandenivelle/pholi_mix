@@ -39,6 +39,50 @@ namespace calc
                     const std::vector< logic::type > & tps );
       // True if blf (as theorem) is applicable on tps.
 
+   // Replace fm. at( pos ) by becomes:
+
+   template< typename T >
+   disjunction<T> replace( const disjunction<T> & fm, 
+                           size_t pos, const disjunction<T> & becomes )
+   {
+      disjunction<T> res; 
+      for( size_t i = 0; i != fm. size( ); ++ i )
+      {
+         if( i != pos )
+            res. append( fm. at(i)); 
+         else
+         {
+            for( const auto& d : becomes )
+               res. append(d);
+         }
+      }
+      return res;
+   }
+
+   template< typename T, bool implies( const T&, const T& ) >
+   bool subsumes( const T& t, disjunction<T> & disj )
+   {
+      for( const auto& d : disj )
+      {
+         if( implies( t, d ))
+            return true;
+      }
+      return false;
+   }
+
+   template< typename T, bool implies( const T&, const T& ) > 
+   disjunction<T> remove_subsuming( const disjunction<T> & disj ) 
+   {
+      disjunction<T> res;
+      for( const auto& d : disj )
+      {
+         if( !implies( d, res ))
+            res. append(d);
+      }
+      return res; 
+   }
+ 
+      
    void checkproof( const logic::beliefstate& blfs,
                     proofterm& prf, sequent& seq, errorstack& err );
       // In case of failure, we vent our frustration into err, and 

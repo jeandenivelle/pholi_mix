@@ -83,6 +83,14 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
+   calc::disjunction< int > cl = { 1, -2, 4, 5 };
+   calc::disjunction< int > becomes = { -1, 5, 6 };
+
+   std::cout << cl << "\n";
+   std::cout << becomes << "\n";
+   std::cout << replace( cl, 0, becomes ) << "\n";
+   return 0;
+ 
    tests::saturate( );
 
    errorstack err;
