@@ -90,7 +90,7 @@ namespace logic
 
 
    // A single subst replaces #0 by value. 
-   // Remaining variables are decreased by one.
+   // The other variables are decreased by one.
 
    struct singlesubst : public has_used
    {

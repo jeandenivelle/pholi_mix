@@ -512,6 +512,7 @@ calc::checkproof( const logic::beliefstate& blfs,
 
                concl. body. at(i). vars = std::move( quant );
 #endif
+            
             throw std::logic_error( "this loop is not finished" );
          }
 
@@ -756,14 +757,19 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          // Now we are certain that the rule can be applied.
 
-         auto chosen = seq. at( ind ). get_dnf( ). at( alt );
-         chosen = lift( std::move( chosen ), seq. liftdist( ind ));
-         std::cout << "chosen after lift: " << chosen << "\n"; 
+         // Take the disjunction, and lift it:
+
+         auto disj = seq. at( ind ). get_dnf( );
+         disj = lift( std::move( disj ), seq. liftdist( ind ));
+         std::cout << "disjunction = " << disj << "\n";
+         seq. hide( ind );  // It will be replaced.
+  
+         auto chosen = std::move( disj. at( alt ));
+         std::cout << "chosen: " << chosen << "\n"; 
 
          size_t lev = seq. nrlevels( ); 
          seq. appendlevel( );
 
-         seq. hide( repl. ind( ));
          seq. append( disjunction( { std::move( chosen ) } ));
 
          for( size_t i = 0; i != repl. size( ); ++ i )
@@ -785,10 +791,14 @@ calc::checkproof( const logic::beliefstate& blfs,
             throw std::logic_error( "last formula not DNF" );
 
          std::cout << seq. lastlevel( ). stacksize << "\n";
-         std::cout << "chosen " << chosen << "\n";
-         // chosen = seq. at( -1 ). get_dnf( ); 
-         std::cout << "becomes " << chosen << "\n"; 
-         throw std::logic_error( "orrepl not finished" );
+
+         disj = replace( std::move( disj ), alt, seq. at( -1 ). get_dnf( )); 
+         std::cout << "replaced disj = " << disj << "\n";
+         seq. poplevel( ); 
+         seq. append( std::move( disj ));
+         seq. ugly( std::cout );  
+
+         return;
       }
 
    case prf_deflocal: 
@@ -804,8 +814,9 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          def. update_val( val );
 
-         size_t ss = seq. ctxt. size( );
+         size_t cc = seq. ctxt. size( );
          size_t ff = seq. stack. size( );
+         size_t ll = seq. nrlevels( );
 
          seq. define( def. name( ), val, tp. value( ));
 
@@ -816,28 +827,52 @@ calc::checkproof( const logic::beliefstate& blfs,
             def. update_sub( i, std::move( sub ));
          }
 
-#if 0
          // We need to apply the substitution:
 
-         if( seq. ctxt. size( ) != ss + 1 )
+         if( seq. ctxt. size( ) != cc + 1 )
             throw std::logic_error( "something went wrong with size" );
  
-         if( !seq. defs. contains(ss))
+         if( !seq. defs. contains(cc))
             throw std::logic_error( "something went wrong with def" ); 
 
-         auto subst = logic::singlesubst( seq. defs. at(ss));
+         if( seq. nrlevels( ) != ll )
+            throw std::logic_error( "something went wrong with the levels" );
+
+         auto subst = logic::singlesubst( seq. defs. at(cc));
          std::cout << subst << "\n";
 
-         for( auto& fm : seq. back( ))
-            fm = outermost( subst, std::move( fm ), 0 );
+         std::cout << "before\n";
+         seq. ugly( std::cout );
 
-         seq. restore(ss);
-         -- seq. back( ). contextsize;
+         for( size_t i = ff; i != seq. stack. size( ); ++ i )
+         {
+            auto& f = seq. at(i);
+            {
+               if( !f. hidden )
+               {
+                  if( f. is_unf( ))
+                  {
+                     f. get_unf( ) = 
+                          outermost( subst, std::move( f. get_unf( )), 0 );
+                  }
+                  else
+                  {
+                     f. get_dnf( ) = 
+                          outermost( subst, std::move( f. get_dnf( )), 0 ); 
+                  }
 
-         std::cout << "deflocal is not terribly well tested\n";
-         return; 
-#endif
-         throw std::logic_error( "deflocal" );
+                  -- f. ctxtsize; 
+               }
+            }
+         }
+ 
+         std::cout << "cc = " << cc << "\n";
+         std::cout << "ff = " << ff << "\n";
+
+         seq. restore( cc );
+         std::cout << "after\n";
+         seq. ugly( std::cout );  
+         throw std::logic_error( "deflocal is not finished" );
       }
 #if 0
 #if 0

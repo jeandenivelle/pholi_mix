@@ -70,19 +70,21 @@ namespace calc
       return false;
    }
 
+   // This simple function remains a problem. What can we have?
+   // What do we want?
+
    template< typename T, bool implies( const T&, const T& ) > 
-   disjunction<T> remove_subsuming( const disjunction<T> & disj ) 
+   disjunction<T> without_subsuming( const disjunction<T> & disj ) 
    {
       disjunction<T> res;
       for( const auto& d : disj )
       {
-         if( !implies( d, res ))
+         if( !subsumes< T, implies > ( d, res ))
             res. append(d);
       }
       return res; 
    }
- 
-      
+
    void checkproof( const logic::beliefstate& blfs,
                     proofterm& prf, sequent& seq, errorstack& err );
       // In case of failure, we vent our frustration into err, and 

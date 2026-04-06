@@ -51,7 +51,12 @@ namespace calc
 
          const unf< logic::term > & get_unf( ) const 
             { return get< unf< logic::term >> ( fm ); }
+         unf< logic::term > & get_unf( )
+            { return get< unf< logic::term >> ( fm ); }
+
          const dnf< logic::term > & get_dnf( ) const 
+            { return get< dnf< logic::term >> ( fm ); }
+         dnf< logic::term > & get_dnf( ) 
             { return get< dnf< logic::term >> ( fm ); }
 
          void print( std::ostream& out ) const; 
@@ -84,24 +89,6 @@ namespace calc
               stacksize( stacksize )
          { }
  
-#if 0 
-         void push( forall< disjunction< exists< logic::term >>> form )
-            { stack. push_back( std::move( form )); }
-
-         // We use Python style indexing. That means that -1 is the last
-         // element, and 0 is the first element: 
-
-         forall< disjunction< exists< logic::term >>> &
-            at( ssize_t ind );
-
-         void erase( ssize_t ind );
-
-         void clear( ) { stack. clear( ); }    
-            // Forget about everything. Used to think that it was so easy.
-
-         size_t size( ) const { return stack. size( ); } 
-#endif
-
          bool inrange( ssize_t ind ) const;
             // True if ind can be used as an index.
 
@@ -121,7 +108,9 @@ namespace calc
       size_t define( const std::string& name, const logic::term& val,
                      const logic::type& tp );
 
-      void restore( size_t ss );
+      void restore( size_t cc );
+         // Restore context to size cc.
+         // If there are definitions, we remove those as well.
 
       void append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 
@@ -135,10 +124,15 @@ namespace calc
          // We use Python style circular indexing.
 
       size_t nrlevels( ) const { return levels. size( ); }
+
       void appendlevel( ) 
          { levels. push_back( level( ctxt. size( ), stack. size( ))); }
-      void poplevel( ) 
-         { levels. pop_back( ); }
+
+      void poplevel( );  
+          // Also unhide everything that was hidden at our level,
+          // and restore the stack. We don't restore ctxt,
+          // but we require that it was restored in advance.
+ 
       const level& lastlevel( ) const 
          { return levels. back( ); }
 

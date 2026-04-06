@@ -25,41 +25,6 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
       out << "   (hidden)";
 }
 
-#if 0
-
-void calc::sequent::segment::erase( ssize_t ind )
-{
-   auto it = find( ind );
-   stack. erase( it );
-}
-
-auto
-calc::sequent::segment::find( ssize_t ind ) 
-   -> segment::iterator
-{
-   if( !inrange( ind ))
-      throw std::range_error( "segment: index out of range" );
-
-   if( ind >= 0 )
-      return stack. begin( ) + ind;
-   else
-      return stack. end( ) + ind;
-}
-
-auto
-calc::sequent::segment::find( ssize_t ind ) const
-   -> segment::const_iterator
-{
-   if( !inrange( ind ))
-      throw std::range_error( "segment: index out of range" );
-
-   if( ind >= 0 )
-      return stack. begin( ) + ind;
-   else
-      return stack. end( ) + ind;
-}
-
-#endif
 
 size_t
 calc::sequent::assume( const std::string& name,
@@ -79,6 +44,16 @@ calc::sequent::define( const std::string& name,
    size_t nr = assume( name, tp );
    defs. insert( std::pair( nr, val ));
    return nr;
+}
+
+void
+calc::sequent::restore( size_t cc )
+{
+   for( size_t i = 0; i != cc; ++ i )
+      defs. erase(i);
+
+   ctxt. restore(cc);
+   db. restore(cc);
 }
 
 void calc::sequent::append( cnf< logic::term > c )
@@ -135,6 +110,20 @@ void calc::sequent::hide( ssize_t ind )
    }
 }
 
+void calc::sequent::poplevel( )
+{
+   if( stack. back( ). ctxtsize != ctxt. size( ))
+      throw std::logic_error( "poplevel( ): context not restored" );
+
+   for( auto h : levels. back( ). hidden )
+      stack[h]. hidden = false; 
+  
+   while( stack. size( ) > levels. back( ). stacksize )
+      stack. pop_back( ); 
+
+   levels. pop_back( );  
+}
+
 size_t calc::sequent::liftdist( ssize_t ind ) const
 {
    size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
@@ -169,18 +158,6 @@ calc::sequent::getexactname( size_t i ) const
 }
 
 #endif
-
-void calc::sequent::restore( size_t ss )
-{
-   for( size_t dd = ss; dd < ctxt. size( ); ++ dd )
-   {
-      if( defs. contains( dd ))
-         defs. erase(dd);
-   }
-
-   ctxt. restore(ss);
-   db. restore(ss);
-}
 
 #endif
 
