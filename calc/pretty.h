@@ -43,10 +43,10 @@ namespace calc
       size_t ns = print. names. size( );
       if( vars. size( ))
       {
-         print << qname;
+         print << qname << '(';
          logic::pretty::print( print. out, print. blfs, print. names,
             [&vars]( size_t i ) { return vars. at(i); }, vars. size( ));
-         print << " IN ";
+         print << " ): ";
       }
 
       print << body;

@@ -213,7 +213,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          dnf< logic::term > result;
             // This will be our result.
 
-         size_t ss = seq. ctxt. size( ); 
+         size_t cc = seq. ctxt. size( ); 
          size_t nrsegments = seq. size( );
 
          if( disj. size( ) < elim. size( ))
@@ -345,7 +345,7 @@ calc::checkproof( const logic::beliefstate& blfs,
                throw std::logic_error( "something went wrong with the segments" );
 
             seq. pop_back( );
-            seq. ctxt. restore( ss );
+            seq. restore_ctxt( ss );
 
             // concl still is a forall without variables:
 
@@ -381,7 +381,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             throw std::logic_error( "existsrepl: index out of range" );
 
          if( !seq. at( ind ). is_dnf( ))
-            throw std::logic_error( "existsrepl: formula is not DNF" );
+            throw std::logic_error( "existsrepl: formula is not in DNF" );
 
          if( seq. at( ind ). get_dnf( ). size( ) != 1 )
             throw std::logic_error( "existsrepl: formula not a singleton" ); 
@@ -389,9 +389,11 @@ calc::checkproof( const logic::beliefstate& blfs,
          enf< logic::term > mainform = seq. at( ind ). get_dnf( ). at(0); 
 
          mainform = lift( std::move( mainform ), seq. liftdist( ind ));
-         std::cout << "mainform = " << mainform << "\n\n\n";
+         std::cout << "lifted mainform = " << mainform << "\n\n\n";
 
-         size_t ss = seq. ctxt. size( );
+         size_t cc = seq. ctxt. size( );
+         size_t ff = seq. stack. size( );
+         size_t ll = seq. nrlevels( );
 
          // Assume the existentially quantified variables of alt:
 
@@ -418,8 +420,18 @@ calc::checkproof( const logic::beliefstate& blfs,
             repl. update_sub( i, std::move( subproof ));
          }
 
-#if 0
+         std::cout << "here we should continue\n";
+         seq. ugly( std::cout ); 
 
+         std::cout << "cc = " << cc << "\n";
+         std::cout << "ff = " << ff << "\n";
+
+         if( ll != seq. nrlevels( ))
+            throw std::logic_error( "something went wrong with the levels" );
+ 
+         // The question is what we do with UNF formulas.
+  
+#if 0
          // We use the last formula. If there are no formulas, 
          // it is an error:
 
@@ -515,7 +527,7 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          seq. pop_back( );
    
-         seq. restore( ss );
+         seq. restore_ctxt( cc );
 
          atp::simplify( concl. body );
 
@@ -861,7 +873,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             }
          }
  
-         seq. restore( cc );
+         seq. restore_ctxt( cc );
          return; 
       }
 #if 0
@@ -929,7 +941,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          size_t errstart = err. size( );
          logic::fullsubst subst;
 
-         size_t ss = seq. ctxt. size( );
+         size_t cc = seq. ctxt. size( );
 
          bool alltypescorrect = true;
 

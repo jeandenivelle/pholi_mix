@@ -47,7 +47,7 @@ calc::sequent::define( const std::string& name,
 }
 
 void
-calc::sequent::restore( size_t cc )
+calc::sequent::restore_ctxt( size_t cc )
 {
    for( size_t i = 0; i != cc; ++ i )
       defs. erase(i);

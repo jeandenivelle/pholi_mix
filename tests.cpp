@@ -862,10 +862,11 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                       proofterm( prf_simplify ) 
                    }) 
                     
-                } ),
-                proofterm( prf_show, "after disjelim" )  
+                } ) 
              } 
              ),
+             proofterm( prf_normalize, -1 ),
+             proofterm( prf_show, "before existsrepl" )
           } ) 
         } ) } );
 #if 0

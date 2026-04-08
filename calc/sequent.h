@@ -108,9 +108,10 @@ namespace calc
       size_t define( const std::string& name, const logic::term& val,
                      const logic::type& tp );
 
-      void restore( size_t cc );
+      void restore_ctxt( size_t cc );
          // Restore context to size cc.
          // If there are definitions, we remove those as well.
+         // Don't restore ctxt directly.
 
       void append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 

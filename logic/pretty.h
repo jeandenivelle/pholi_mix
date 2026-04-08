@@ -1,7 +1,7 @@
 
 // Everything related to pretty printing. 
 // Written by Alikhan Balpykov and Hans de Nivelle.
-// May 2023.
+// May 2025.
 
 #ifndef LOGIC_PRETTY_
 #define LOGIC_PRETTY_
