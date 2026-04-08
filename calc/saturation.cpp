@@ -46,7 +46,7 @@ calc::saturation::makeliteral( const exists< logic::term > & lit )
 }
 
 
-void calc::saturation::direct( littype& lit )
+void calc::saturation::equalities( littype& lit )
 {
    if( lit. fm. body. sel( ) == logic::op_equals )
    {
@@ -75,8 +75,6 @@ void calc::saturation::direct( littype& lit )
 
       if( is_eq(c))
       {
-         lit. fm. body = logic::term( logic::op_true );
-
          if( lit. lab. disjointwith( truthset::tttt ))
          {
             lit. lab = truthset::empty; 
@@ -84,6 +82,8 @@ void calc::saturation::direct( littype& lit )
          }
          else
          {
+            lit. fm. body = logic::term( logic::op_true );
+
             if( lit. fm. vars. size( ) == 0 )
                lit. lab = truthset::all; 
          }
@@ -95,7 +95,7 @@ void calc::saturation::direct( littype& lit )
 void calc::saturation::normalize( clause& cls )
 {
    for( auto& lit : cls. disj )
-      direct( lit );
+      equalities( lit );
 
    cls. disj. merge_equiv< cheapequiv > ( ); 
    cls. disj. remove_nevertrue( ); 
@@ -240,7 +240,20 @@ norm:
    if( notnormalized. size( ))
    {
       for( auto& cl : notnormalized )
+      {
+         size_t ss = cl. disj. size( ); 
          normalize( cl );
+
+         // If cl became shorter, then it was simplified.
+         // We give it a new number, and mark it
+         // as subsumed, if it was initial. 
+
+         if( cl. disj. size( ) < ss )
+         {
+            rememberinitial( cl );
+            cl. nr = nrgenerated ++ ;
+         }
+      }
 
       unchecked. splice( unchecked. end( ), notnormalized ); 
    }
@@ -251,6 +264,9 @@ select:
 
    auto picked = pick( );
    std::cout << "picked " << *picked << "\n";
+ 
+   if( picked -> disj. istrivial( ))
+      throw std::logic_error( "picked clause is obviously trivial" );
 
    for( const auto& cl : checked )
    {

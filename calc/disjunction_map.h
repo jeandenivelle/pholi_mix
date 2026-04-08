@@ -86,7 +86,7 @@ namespace calc
       {
          for( const auto& lit : map )
          {
-            if( lit. second. istrivial( ))
+            if( lit. lab. istrivial( ))
                return true;
          }
          return false; 

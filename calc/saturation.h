@@ -23,7 +23,7 @@ namespace calc
       struct clause
       {
          uint64_t nr;
-         std::optional< size_t > seqind;  // Index in sequent, if initial.
+         std::optional< size_t > seqind;   // Index in sequent, if initial.
 
          disjunction_map< exists< logic::term >> disj;
 
@@ -56,10 +56,12 @@ namespace calc
  
       littype makeliteral( const exists< logic::term > & lit );
 
-      static void direct( littype& lit ); 
+      static void equalities( littype& lit ); 
          // Direct equalities from bigger to smaller using KBO.
-         // If the equality has form t == t, modify the truth set,
-         // in order to make triviality obvious.
+         // If the equality has form t == t, we make the truthset 
+         // equal to {F,E,T}, and replace the body by TRUE. 
+         // If the equality has form exists y1 ... yn ( t != t ),
+         // them we make the truth set empty. 
 
       static void normalize( clause& cls );
 

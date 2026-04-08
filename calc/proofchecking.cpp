@@ -98,9 +98,9 @@ calc::checktype( const logic::beliefstate& blfs,
    return tp; 
 }
 
-#if 0
 
 // Function should be moved, and also used when a proof is started.
+// Moreover, the loop that uses it should also be moved.
 
 bool 
 calc::applicable( const logic::belief& blf, 
@@ -126,7 +126,6 @@ calc::applicable( const logic::belief& blf,
    return true;
 }
 
-#endif
 
 void
 calc::checkproof( const logic::beliefstate& blfs,
@@ -150,6 +149,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          {
             auto f = lift( seq. at( flat. ind( )). get_dnf( ), 
                            seq. liftdist( flat. ind( )));
+
             std::cout << "f = " << f << "\n"; 
             if( istrivial(f))
             {
@@ -171,22 +171,9 @@ calc::checkproof( const logic::beliefstate& blfs,
                seq. append( std::move(f)); 
                return;
             }
-
-            
          }
 
-#if 0
-         auto fm = std::move( seq. back( ). at( flat. ind( )) );
-         seq. back( ). erase( flat. ind( )); 
-
-         anf< logic::term > conj;
-         conj. append( std::move(fm));
-         conj = flatten( std::move( conj ));
-
-         for( auto& c : conj )
-            seq. back( ). push( std::move(c) );
-#endif
-         throw std::logic_error( "this is flatten" );
+         std::cout << "flatten did not change the formula\n";
          return;
       }
 
@@ -768,6 +755,10 @@ calc::checkproof( const logic::beliefstate& blfs,
          auto disj = seq. at( ind ). get_dnf( );
          disj = lift( std::move( disj ), seq. liftdist( ind ));
          std::cout << "disjunction = " << disj << "\n";
+
+         if( disj. size( ) == 1 )
+            std::cout << "orrepl is redundant\n";
+
          seq. hide( ind );  // It will be replaced.
   
          auto chosen = std::move( disj. at( alt ));
@@ -1014,7 +1005,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          return;  
       }
 
-#if 0 
    case prf_import:
       {
          auto imp = prf. view_import( );
@@ -1069,17 +1059,17 @@ calc::checkproof( const logic::beliefstate& blfs,
          if( nrapplicable > 1 )
          {
             std::cout << imp. ident( ) << "\n";
-            throw std::runtime_error( "too many overloads" );
+            throw std::runtime_error( "ambiguous overload in theorem import" );
          }
 
          std::cout << lastapplicable << "\n";
+
          const auto& picked = blfs. at( overcands. at( lastapplicable ));
          const auto& fm = picked. view_form( ). fm( );
 
-         seq. back( ). push( forall( disjunction{ exists( fm ) } )); 
+         seq. append( disjunction( { exists( fm ) } ));
          return;  
       }
-#endif  
 
    case prf_simplify:
       {
@@ -1099,9 +1089,13 @@ calc::checkproof( const logic::beliefstate& blfs,
          for( auto& rm : sat. removed_initials )
             seq. hide( rm );
 
-         for( auto& cls : sat. checked )
-            seq. append( make_dnf( cls. disj ));
- 
+         for( auto& cls : sat. checked ) 
+         {
+            // We don't add initial ones, because they are already there.
+
+            if( !cls. seqind )
+               seq. append( make_dnf( cls. disj ));
+         } 
          return;
       }
 

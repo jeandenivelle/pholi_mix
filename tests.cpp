@@ -827,8 +827,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
    auto proof = chain( 
       { proofterm( prf_cut, "goal"_unchecked ),
         proofterm( prf_orrepl, -1, 1, 
-        { prf_nop,
-          proofterm( prf_expandlocal, -1, "goal", 0 ),
+        { proofterm( prf_expandlocal, -1, "goal", 0 ),
           proofterm( prf_flatten, -1 ),
           proofterm( prf_existsrepl, -1, std::vector<std::string> { }, 
           { 
@@ -838,7 +837,6 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
              proofterm( prf_normalize, -1 ), 
              proofterm( prf_deflocal, "Q", indhyp, 
              {
-                proofterm( prf_show, "before" ),
                 proofterm( prf_flatten, -1 ),
                 proofterm( prf_forallelim, -1,
                    { apply( "Q"_unchecked, { "s1"_unchecked, "s2"_unchecked } ) } ),
@@ -849,7 +847,6 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                    proofterm( prf_normalize, -1 ),
                    proofterm( prf_flatten, -1 ),
 
-                   proofterm( prf_show, "induction" ), 
                    proofterm( prf_orrepl, -1, 0, 
                    {
                       proofterm( prf_expandlocal, -1, "Q", 0 ),
@@ -857,14 +854,54 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                       proofterm( prf_flatten, -1 ), 
                       proofterm( prf_hide, -1 ), 
                       proofterm( prf_flatten, -2 ), 
-                      proofterm( prf_show, "base-case" ),
-                  
-                      proofterm( prf_simplify ) 
-                   }) 
-                    
-                } ) 
-             } 
-             ),
+                      proofterm( prf_simplify ), 
+                   }),
+                   proofterm( prf_show, "step-case" ),
+                   proofterm( prf_existsrepl, -1, std::vector<std::string> { "y1", "y2" },
+                   { 
+                      proofterm( prf_flatten, -1 ),
+                      proofterm( prf_expandlocal, -1, "Q", 0 ),
+                      proofterm( prf_normalize, -1 ),
+                      proofterm( prf_flatten, -1 ),
+                      proofterm( prf_expandlocal, 24, "Q", 0 ),
+                      proofterm( prf_normalize, -1 ), 
+                      proofterm( prf_flatten, -1 ),
+                      proofterm( prf_orrepl, -1, 0,
+                      {
+                         proofterm( prf_forallelim, 29, { "y1"_unchecked, "y2"_unchecked } ),
+                         proofterm( prf_flatten, -1 ),
+                         proofterm( prf_simplify ),
+                         proofterm( prf_import, identifier( ) + "minhomrel_zero", { Nat, Nat } ),
+                         proofterm( prf_flatten, -1 ),
+                         proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked } ),
+                         proofterm( prf_flatten, 33 ),
+                         proofterm( prf_simplify ) 
+                      }),
+                      proofterm( prf_existsrepl, -1, std::vector<std::string> { "z1", "z2" },
+                      {
+                         proofterm( prf_flatten, -1 ),
+                         proofterm( prf_forallelim, 29, { "y1"_unchecked, "y2"_unchecked } ),
+                         proofterm( prf_flatten, -1 ),
+                         proofterm( prf_import, identifier( ) + "minhomrel_succ", { Nat, Nat } ),
+                         proofterm( prf_flatten, -1 ),
+                         proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked, "z1"_unchecked, "z2"_unchecked } ),
+                         proofterm( prf_flatten, -1 ),
+                         proofterm( prf_import, identifier( ) + "gen_succ", { Nat, O } ),
+                         proofterm( prf_flatten, -1 ),
+                         proofterm( prf_forallelim, -1, { "s1"_unchecked, "z1"_unchecked } ),
+                         proofterm( prf_flatten, -1 ), 
+                         proofterm( prf_forallelim, -3, { "s2"_unchecked, "z2"_unchecked } ),
+                         proofterm( prf_flatten, -1 ),
+                         proofterm( prf_simplify ),
+                      }),
+                      // proofterm( prf_forallelim, -1,
+          
+                      //   { "y1"_unchecked, "y2"_unchecked } ),
+                      // proofterm( prf_hide, -2 ),
+                      proofterm( prf_show, "should-be-empty" ),
+                   })
+                }) 
+             }),
              proofterm( prf_normalize, -1 ),
              proofterm( prf_show, "before existsrepl" )
           } ) 
