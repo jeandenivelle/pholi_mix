@@ -406,12 +406,8 @@ calc::checkproof( const logic::beliefstate& blfs,
             repl. update_sub( i, std::move( subproof ));
          }
 
-         std::cout << "cc = " << cc << "\n";
-         std::cout << "ff = " << ff << "\n";
-
          if( ll != seq. nrlevels( ))
             throw std::logic_error( "something went wrong with the levels" );
- 
 
          for( size_t ind = ff; ind != seq. stack. size( ); ++ ind )
          {

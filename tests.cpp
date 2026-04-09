@@ -782,11 +782,8 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                               proofterm( prf_expand, -1, identifier( ) + "stricton", 0 ), 
                               proofterm( prf_expand, -1, identifier( ) + "prod", 0 ), 
                               proofterm( prf_normalize, -1 ),
-                              proofterm( prf_erase, -2 ),
-                              proofterm( prf_erase, -2 ),
-                              proofterm( prf_erase, -2 ),
-                              proofterm( prf_erase, -2 ),
                               proofterm( prf_flatten, -1 ),
+                              AA, 
                               proofterm( prf_orexistselimintro, -1, 0, "stricton", { "y1", "y2" },
                               { 
                                  proofterm( prf_expandlocal, -1, "Q", 0 ),
@@ -856,7 +853,6 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                       proofterm( prf_flatten, -2 ), 
                       proofterm( prf_simplify ), 
                    }),
-                   proofterm( prf_show, "step-case" ),
                    proofterm( prf_existsrepl, -1, std::vector<std::string> { "y1", "y2" },
                    { 
                       proofterm( prf_flatten, -1 ),
@@ -894,13 +890,24 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                          proofterm( prf_flatten, -1 ),
                          proofterm( prf_simplify ),
                       }),
-                      // proofterm( prf_forallelim, -1,
-          
-                      //   { "y1"_unchecked, "y2"_unchecked } ),
-                      // proofterm( prf_hide, -2 ),
-                      proofterm( prf_show, "should-be-empty" ),
-                   })
-                }) 
+                   }),
+                }),
+                proofterm( prf_expand, -1, identifier( ) + "stricton", 0 ),
+                proofterm( prf_expand, -1, identifier( ) + "prod", 0 ),
+                proofterm( prf_normalize, -1 ),
+                proofterm( prf_flatten, -1 ),
+                proofterm( prf_show, "BEFORE" ),
+
+                proofterm( prf_orrepl, -1, 1,
+                {
+                   proofterm( prf_expandlocal, -1, "Q", 0 ),                   
+                   proofterm( prf_show, "GOAL" )
+                }),
+                proofterm( prf_existsrepl, -1, { "y1", "y2" },
+                {
+                   proofterm( prf_expandlocal, -1, "Q", 0 )
+                }),
+                proofterm( prf_show, "END" ) 
              }),
              proofterm( prf_normalize, -1 ),
              proofterm( prf_show, "before existsrepl" )

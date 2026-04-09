@@ -106,8 +106,6 @@ int main( int argc, char* argv[] )
 
    std::cout << blfs << "\n";
 
-   // tests::clausify( blfs, err );
-
    // tests::truthtables( );
 
    // tests::smallproofs( blfs, err );
