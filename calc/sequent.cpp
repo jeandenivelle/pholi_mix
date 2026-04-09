@@ -8,6 +8,9 @@ void calc::sequent::seqform::print( std::ostream& out ) const
    if( is_dnf( ))
       out << get_dnf( );
 
+   if( is_unf( ))
+      out << get_unf( );
+
    out << " / " << ctxtsize;
    if( hidden ) out << "   (hidden)";
 }
@@ -96,6 +99,15 @@ calc::sequent::seqform& calc::sequent::at( ssize_t ind )
    auto it = ind >= 0 ? ( stack. begin( ) + ind ) : ( stack. end( ) + ind );
    return *it;
 }           
+
+void
+calc::sequent::maketrivial( ssize_t ind )
+{
+   size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
+   auto tr = exists( logic::term( logic::op_true ));
+   stack. at(k). fm = disjunction( { std::move( tr ) } ); 
+   stack. at(k). hidden = true;
+}
 
 void calc::sequent::hide( ssize_t ind ) 
 {

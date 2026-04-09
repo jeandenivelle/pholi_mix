@@ -376,7 +376,6 @@ calc::checkproof( const logic::beliefstate& blfs,
          enf< logic::term > mainform = seq. at( ind ). get_dnf( ). at(0); 
 
          mainform = lift( std::move( mainform ), seq. liftdist( ind ));
-         std::cout << "lifted mainform = " << mainform << "\n\n\n";
 
          size_t cc = seq. ctxt. size( );
          size_t ff = seq. stack. size( );
@@ -407,38 +406,84 @@ calc::checkproof( const logic::beliefstate& blfs,
             repl. update_sub( i, std::move( subproof ));
          }
 
-         std::cout << "here we should continue\n";
-         seq. ugly( std::cout ); 
-
          std::cout << "cc = " << cc << "\n";
          std::cout << "ff = " << ff << "\n";
 
          if( ll != seq. nrlevels( ))
             throw std::logic_error( "something went wrong with the levels" );
  
-         // The question is what we do with UNF formulas.
-  
+
+         for( size_t ind = ff; ind != seq. stack. size( ); ++ ind )
+         {
+            if( seq. at( ind ). ctxtsize != seq. ctxt. size( ))
+               throw std::logic_error( "existsrepl: wrong context size" );
+
+            // Formulas that are not DNF, we make trivial:
+
+            if( seq. at( ind ). is_dnf( ))
+            {
+               auto& dnf = seq. at( ind ). get_dnf( );
+
+               // For each disjunct separately,
+               // we determine its free variables, and
+               // add existential quantifiers for them.
+
+               for( size_t i = 0; i != dnf. size( ); ++ i )
+               {
+                  // We need construct a substitution that normalizes
+                  // the free variables in concl. body. at(i).
+
+                  // we first collect the free variables of dnf. at(i) :
+
+                  logic::debruijn_counter vars;
+                  traverse( vars, seq. at( ind ). get_dnf( ). at(i), 0 );
+ 
+                  // We don't care about all free variables, only about the 
+                  // ones that we assumed just now. 
+                  // We go through our assumptions, check if they occur
+                  // in vars. We create a normalizing subsitution for those. 
+
+                  auto norm = logic::normalizer( seq. ctxt. size( ) - cc );
+
+                  for( size_t v = 0; v + cc < seq. ctxt. size( ); ++ v )
+                  {
+                     if( vars. contains(v))
+                        norm. append(v);
+                  }
+ 
+                  // apply norm to the body:
+
+                  dnf. at(i) = 
+                     outermost( norm, std::move( dnf. at(i)), 0 );
+
+                  std::vector< logic::vartype > quant;
+
+                  // These are the assumptions that we are about to drop:
+
+                  for( size_t v = seq. ctxt. size( ) - cc; v -- ; )
+                  {
+                     if( vars. contains(v))
+                        quant. push_back( { seq. ctxt. getname(v),
+                                         seq. ctxt. gettype(v) } );                          
+                  }
+
+                  for( auto& q : dnf. at(i). vars )
+                     quant. push_back( std::move(q));
+
+                  dnf. at(i). vars = std::move( quant );
+               }
+            }
+            else
+            {
+               seq. maketrivial( ind );
+               seq. hide( ind );
+            }
+
+            seq. at( ind ). ctxtsize = cc;
+               // We decrease the level. 
+         }
+
 #if 0
-         // We use the last formula. If there are no formulas, 
-         // it is an error:
-
-         if( seq. back( ). size( ) == 0 )
-         {
-            throw std::runtime_error( "orexistselimintro: No result" );
-         }
-
-         auto concl = std::move( seq. back( ). at( -1 ));
-            // Conclusion of our current assumption.
-
-         if( concl. vars. size( ))
-         {
-            std::cout << concl << "\n";
-            throw std::runtime_error( "orexistselimintro: universal variables in conclusion" );
-         }
-
-         // concl is a forall without variables, 
-         // containing a disjunctive normal form.
-
 #if 0
             // This was used for testing.
 
@@ -453,86 +498,9 @@ calc::checkproof( const logic::beliefstate& blfs,
             std::cout << "concl = " << concl << "\n";
             std::cout << "ss = " << ss << "\n";
 #endif
-
-         // concl. body( ) is a disjunction of existentially
-         // quantified formulas. For each disjunct separately,
-         // we determine its free variables, and 
-         // add existential quantifiers for them.
-
-         for( size_t i = 0; i != concl. body. size( ); ++ i )
-         {
-            // We construct a substitution that normalizes
-            // the free variables in concl. body. at(i).
-
-            // In order to do that, we first collect 
-            // the free variables of concl. body. at(i) : 
- 
-#if 0
-               logic::debruijn_counter vars;
-               traverse( vars, concl. body. at(i), 0 );
-
-               // We don't care about all free variables, only about the 
-               // ones that we assumed by ourselves. 
-               // We go through our assumptions, check if they occur
-               // in vars. We create a normalizing subsitution for those. 
-
-               auto norm = logic::normalizer( seq. ctxt. size( ) - ss );
-
-               for( size_t v = 0; v + ss < seq. ctxt. size( ); ++ v )
-               {
-                  if( vars. contains(v))
-                     norm. append(v);
-               }
- 
-               // apply norm on the body:
-
-               concl. body. at(i) = 
-                  outermost( norm, std::move( concl. body. at(i)), 0 );
-
-               std::vector< logic::vartype > quant;
-
-               // These are the assumptions that we are about to drop:
-
-               for( size_t v = seq. ctxt. size( ) - ss; v -- ; )
-               {
-                  if( vars. contains(v))
-                     quant. push_back( { seq. ctxt. getname(v),
-                                         seq. ctxt. gettype(v) } );                          
-               }
-
-               for( auto& q : concl. body. at(i). vars )
-                  quant. push_back( std::move(q));
-
-               concl. body. at(i). vars = std::move( quant );
 #endif
-            
-            throw std::logic_error( "this loop is not finished" );
-         }
-
-         if( seq. size( ) != nrsegments + 1 )
-            throw std::logic_error( "something went wrong with the segments" );
-
-         seq. pop_back( );
-   
-         seq. restore_ctxt( cc );
-
-         atp::simplify( concl. body );
-
-         for( size_t i = 0; i != disj. size( ); ++ i )
-         {
-            if( i == elim. alt( )) 
-            {
-               for( auto& b : concl. body )
-                  mainform. body. append( std::move(b));
-            }
-            else
-               mainform. body. append( disj. at(i));
-         }
-
-         seq. back( ). push( std::move( mainform ));
-         return; 
-#endif
-         throw std::logic_error( "existsrepl is not finished" ); 
+         seq. ctxt. restore( cc );
+         return;
       }
 
    case prf_cut:
@@ -781,7 +749,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          if( lev + 1 != seq. nrlevels( ))
             throw std::logic_error( "levels are not right" );
 
-         if( seq. lastlevel( ). stacksize >= seq. nrformulas( ))
+         if( seq. lastlevel( ). stacksize >= seq. stack. size( ))
             throw std::logic_error( "there is no formula" );
 
          if( !seq. at( -1 ). is_dnf( ))
@@ -1075,7 +1043,7 @@ calc::checkproof( const logic::beliefstate& blfs,
       {
          saturation sat; 
 
-         for( size_t i = 0; i != seq. nrformulas( ); ++ i )
+         for( size_t i = 0; i != seq. stack. size( ); ++ i )
          {
             const auto& fm = seq. at(i);
             if( !fm. hidden && fm. is_dnf( )) 

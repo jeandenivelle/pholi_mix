@@ -123,8 +123,11 @@ namespace calc
       const seqform& at( ssize_t ind ) const; 
       seqform& at( ssize_t ind );
          // We use Python style circular indexing.
+         // In the future, we will need a separate class for this. 
+      void maketrivial( ssize_t ind );
+         // This is different from hiding, because it is permanent.
 
-      size_t nrlevels( ) const { return levels. size( ); }
+      size_t stacksize( ) const { return stack. size( ); }
 
       void appendlevel( ) 
          { levels. push_back( level( ctxt. size( ), stack. size( ))); }
@@ -137,15 +140,16 @@ namespace calc
       const level& lastlevel( ) const 
          { return levels. back( ); }
 
+      size_t nrlevels( ) const { return levels. size( ); }
+
       void hide( ssize_t ind );
          // If we have a choice level, we register the hiding,
          // so that it can be undone. 
 
+
       size_t liftdist( ssize_t ind ) const;
          // The distance over which the formula at ind must be lifted
          // in order to put it at the end of the context. 
-
-      size_t nrformulas( ) const { return stack. size( ); }
 
    };
 
