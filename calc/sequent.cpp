@@ -28,7 +28,6 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
       out << "   (hidden)";
 }
 
-
 size_t
 calc::sequent::assume( const std::string& name,
                        const logic::type& tp )
@@ -49,10 +48,9 @@ calc::sequent::define( const std::string& name,
    return nr;
 }
 
-void
-calc::sequent::restore_ctxt( size_t cc )
+void calc::sequent::restore_ctxt( size_t cc )
 {
-   for( size_t i = 0; i != cc; ++ i )
+   for( size_t i = cc; i != ctxt. size( ); ++ i )
       defs. erase(i);
 
    ctxt. restore(cc);

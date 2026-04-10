@@ -71,6 +71,7 @@ calc::checktype( const logic::beliefstate& blfs,
 {
    if( seq. ctxt. size( ) != seq. db. size( ))
    {
+      std::cout << seq. ctxt << "\n";
       std::cout << seq. db << "\n";
       throw std::logic_error( "De Bruijn index wrong size" );
    }
@@ -90,8 +91,8 @@ calc::checktype( const logic::beliefstate& blfs,
 
    if( !tp. has_value( ))
    {
-      seq. ugly( std::cout );
-      std::cout << "the term is " << tm << "\n";
+      std::cout << seq. db << "\n";
+      std::cout << "the resolved term is " << tm << "\n";
       throw std::logic_error( "term has no type" ); 
    }
 
@@ -151,6 +152,10 @@ calc::checkproof( const logic::beliefstate& blfs,
                            seq. liftdist( flat. ind( )));
 
             std::cout << "f = " << f << "\n"; 
+            // I don't trust this part. What about A & ( true )?
+            // It will simplify into A, which is still trivial.
+            // I think one must register the complexity.
+
             if( istrivial(f))
             {
                auto cnf = conjunction( { forall( f. at(0). body ) } );
@@ -161,77 +166,21 @@ calc::checkproof( const logic::beliefstate& blfs,
                   seq. append( std::move( cnf ));
                   return;
                } 
-
             }
             f = flatten( std::move(f) );
-            std::cout << "after flattening " << f << "\n";
-            if( !istrivial(f))
-            {
-               seq. hide( flat. ind( ));
-               seq. append( std::move(f)); 
-               return;
-            }
+            
+            seq. hide( flat. ind( ));
+            seq. append( std::move(f)); 
+            return;
          }
 
-         std::cout << "flatten did not change the formula\n";
-         return;
+         if( seq. at( flat. ind( )). is_unf( ))
+            throw std::logic_error( "this case is not handled" );
+
+         throw std::logic_error( "unreachable" );
       }
 
 #if 0
-   case prf_orexistselim:
-      {
-         auto elim = prf. view_orexistselim( ); 
-         auto mainform = std::move( seq. back( ). at( elim. ind( )) );
-            // Should be a universally quantified disjunction,
-            // without variables.
-
-         std::cout << "mainform = " << mainform << "\n";
-         seq. back( ). erase( elim. ind( ));
-
-         if( mainform. vars. size( ))
-         {
-            std::cout << "orexistselim\n";
-            throw std::runtime_error( "there are universal variables" );
-         }
-
-         const dnf< logic::term > disj = std::move( mainform. body );
-            // It is a disjunction of existential formulas. 
-
-         dnf< logic::term > result;
-            // This will be our result.
-
-         size_t cc = seq. ctxt. size( ); 
-         size_t nrsegments = seq. size( );
-
-         if( disj. size( ) < elim. size( ))
-         {
-            std::cout << elim. name( ) << "\n";  
-            throw std::runtime_error( "disjunction is too small" );
-         }
-
-         for( size_t i = 0; i != elim. size( ); ++ i )
-         {
-            const auto& sub = disj. at(i);
- 
-            // Assume the existential variables:
- 
-            for( size_t v = 0; v != sub. vars. size( ); ++ v )
-               seq. assume( sub. vars[v]. pref, sub. vars[v]. tp );
-
-            // Create a new segment in the sequent:
-
-            seq. push_back( elim. name( ));
-
-            seq. back( ). push( forall( disjunction{ exists( sub. body ) } ));
-            auto subproof = elim. extr_branch(i);
-            checkproof( blfs, subproof, seq, err );
-            elim. update_branch( i, std::move( subproof ));
-
-            std::cout << "==============================\n";
-            std::cout << "disjunction is " << disj << "\n";
-            std::cout << "number options = " << disj. size( ) << "\n";
-            std::cout << "choice was: " << i << "\n";
-
 #if 0
             // Was part of testing. Should be completely removed later:
 
@@ -385,10 +334,13 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          for( size_t v = 0; v != mainform. vars. size( ); ++ v )
          {
-            if( v < repl. eigen( ). size( ))
+            if( v < repl. eigen( ). size( ) && 
+                repl. eigen( ). at(v). size( ) != 0 ) 
+            {
                seq. assume( repl. eigen( ). at(v), mainform. vars[v]. tp );
+            }
             else
-               seq. assume( mainform. vars[v]. pref, mainform. vars[v]. tp );
+               seq. assume( "_", mainform. vars[v]. tp );
          }
 
          seq. hide( ind );
@@ -495,7 +447,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             std::cout << "ss = " << ss << "\n";
 #endif
 #endif
-         seq. ctxt. restore( cc );
+         seq. restore_ctxt( cc );
          return;
       }
 
@@ -595,7 +547,10 @@ calc::checkproof( const logic::beliefstate& blfs,
          auto p = seq. defs. find( var );
          if( p == seq. defs. end( ))
          {
-            throw std::logic_error( "variable is not a definition" );
+            seq. ugly( std::cout );
+            std::cout << name << "\n";
+            std::cout << var << "\n"; 
+            throw std::logic_error( "variable does not have a definition" );
          }
 
          auto def = localexpander( seq. ctxt. size( ) - var - 1,  

@@ -109,9 +109,9 @@ namespace calc
                      const logic::type& tp );
 
       void restore_ctxt( size_t cc );
-         // Restore context to size cc.
+         // Restore context and db to size cc.
          // If there are definitions, we remove those as well.
-         // Don't restore ctxt directly.
+         // Don't restore ctxt directly. 
 
       void append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 

@@ -19,7 +19,6 @@ namespace
       out << " ] :   ";
    }
 
-
    void appendvars( std::vector< logic::vartype > & ctxt,
                     const logic::term& fm )
    {

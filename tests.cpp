@@ -705,7 +705,6 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
    auto mainproof =
       chain( { proofterm( prf_expandlocal, -1, "goal", 0 ),  
                proofterm( prf_flatten, -1 ),
-               proofterm( prf_show, "BEFORE" ),
                proofterm( prf_orexistselimintro, -1, 0, "outermost", { },
                { 
                   proofterm( prf_flatten, -1 ),
@@ -826,7 +825,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
         proofterm( prf_orrepl, -1, 1, 
         { proofterm( prf_expandlocal, -1, "goal", 0 ),
           proofterm( prf_flatten, -1 ),
-          proofterm( prf_existsrepl, -1, std::vector<std::string> { }, 
+          proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" }, 
           { 
              proofterm( prf_flatten, -1 ),
              proofterm( prf_expand, -3, identifier( ) + "minhomrel", 0 ),
@@ -896,23 +895,71 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
                 proofterm( prf_expand, -1, identifier( ) + "prod", 0 ),
                 proofterm( prf_normalize, -1 ),
                 proofterm( prf_flatten, -1 ),
-                proofterm( prf_show, "BEFORE" ),
 
                 proofterm( prf_orrepl, -1, 1,
                 {
-                   proofterm( prf_expandlocal, -1, "Q", 0 ),                   
-                   proofterm( prf_show, "GOAL" )
+                   proofterm( prf_expandlocal, -1, "Q", 0 ), 
+                   proofterm( prf_normalize, -1 ),
+                   proofterm( prf_flatten, -1 ),
+                   proofterm( prf_orrepl, -1, 0,
+                   {
+                      proofterm( prf_flatten, 8 ),
+                      proofterm( prf_flatten, 25 ), 
+                      proofterm( prf_simplify ) 
+                   }),
+                   proofterm( prf_existsrepl, -1, { "y1", "y2" },
+                   {
+                      proofterm( prf_forallelim, 9, { "y1"_unchecked, "y2"_unchecked } ),
+                      proofterm( prf_simplify ) 
+                   })  
                 }),
                 proofterm( prf_existsrepl, -1, { "y1", "y2" },
                 {
-                   proofterm( prf_expandlocal, -1, "Q", 0 )
+                   proofterm( prf_expandlocal, -1, "Q", 0 ),
+                   proofterm( prf_normalize, -1 ),
+                   proofterm( prf_flatten, -1 ),
+                   proofterm( prf_flatten, -1 ),
+                   proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
+                   proofterm( prf_flatten, -1 ),
+                   proofterm( prf_orrepl, -3, 0,
+                   {
+                      proofterm( prf_existsrepl, -1, { "y" },
+                      {
+                         proofterm( prf_forallelim, -3, { "s1"_unchecked, "y"_unchecked } ), 
+                         proofterm( prf_simplify ),
+                      }) 
+                   }),
+                   proofterm( prf_orrepl, -1, 0,
+                   {
+                      proofterm( prf_existsrepl, -1, { "", "y" },
+                      {
+                         proofterm( prf_forallelim, -4, { "s2"_unchecked, "y"_unchecked } ),
+                         proofterm( prf_simplify ), 
+                      })
+                   }),
+                   proofterm( prf_existsrepl, -1, { "y1a", "y2a", "y1", "y2" },  
+                   {
+                      proofterm( prf_flatten, -1 ),
+                      proofterm( prf_flatten, -1 ),    // This makes sense when there is an alternation.
+                      proofterm( prf_import, identifier( ) + "minhomrel_prop", { Nat, Nat } ),
+                      proofterm( prf_flatten, -1 ),
+                      proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked } ),
+                      proofterm( prf_forallelim, -1, { "y1a"_unchecked, "y2a"_unchecked } ),
+                      proofterm( prf_flatten, -1 ),
+                      proofterm( prf_simplify ) 
+                   }) 
                 }),
-                proofterm( prf_show, "END" ) 
              }),
              proofterm( prf_normalize, -1 ),
-             proofterm( prf_show, "before existsrepl" )
           } ) 
-        } ) } );
+        } ),
+        proofterm( prf_orrepl, -1, 0,
+        { 
+           proofterm( prf_expandlocal, -1, "goal", 0 ),
+           proofterm( prf_flatten, -1 ),
+           proofterm( prf_show, "PROP" ),
+        }), 
+        proofterm( prf_show, "WHATISTHIS" ) } );
 #if 0
         orexistselim( -1, "notprop", 
         { propproof, 
