@@ -1,0 +1,49 @@
+
+Problems on April 11th 2026:
+
+- The output syntax differs from the input syntax. The output syntax
+  is the right one.
+
+- Indexing into formulas in the sequent is messed up.
+  The user can use ssize_t, while internally size_t is used.
+  The idea was to allow the user to index from the end, Python style. 
+  This idea is good in principle, 
+  but indices by the user should be a separate class 
+  that does not implicitly convert to size_t. 
+  The at( ) methods should use size_t. 
+  Once one has a separate class, one can look into even nicer 
+  types of indexing, like for example 'last universal formula'.
+  One could also start using the attached strings.  
+
+- Hiding the second last formula of a sequent, should permanetly delete it,
+  since it will never be unhidden anyway. 
+  I expect that this will make sequents a lot shorter. 
+  One could consider using map instead of vector.
+
+- Currently, local definitions are stored separately in a sequent.
+  This is a wrong design.
+  The class logic::context should be modified to hold
+  definitions. I didn't do this from the beginning, because
+  I thought it was necessarily ugly, but the way it is done
+  in sequent (using a separate map for the values) is actually elegant.
+  The only problems is that it should be done in the context itself. 
+
+- Flattening doesn't work well. It should try both DNF and CNF,
+  whichever succeeds, but it doesn't always notice when it succeeds.
+  It checks that the result is not trivial (No quantifier, singleton
+  propositional operator), but non-triviality does not detect all succesful 
+  simplifications. For example,
+  ( A & TRUE ) becomes A, which is still trivial.
+  One should use weight for detecting success.
+
+- The theorem lookup mechanism used by import, should be moved to
+  logic::structural.
+
+- I designed a great error reporting mechanism, which unfortunately
+  is used almost nowhere. I should gradually start using it.
+  Also, more systematic testing of some of the rules is needed.
+
+For the rest, I think that the calculus itself is nice and meeting its 
+goals. I also think that the automatic saturation procedure works great. 
+If I manage to go down to one proof step per minute, proving should
+become acceptable. 

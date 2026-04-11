@@ -957,19 +957,76 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
         { 
            proofterm( prf_expandlocal, -1, "goal", 0 ),
            proofterm( prf_flatten, -1 ),
-           proofterm( prf_show, "PROP" ),
+           proofterm( prf_orrepl, -1, 0,
+           {
+              proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" },
+              {
+                 proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
+                 proofterm( prf_flatten, -1 ),
+                 proofterm( prf_forallelim, -1, { "s1"_unchecked, "x1"_unchecked } ),
+                 proofterm( prf_simplify )  
+              })
+           }),
+           proofterm( prf_orrepl, -1, 0,
+           {
+              proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" },
+              {
+                 proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
+                 proofterm( prf_flatten, -1 ),
+                 proofterm( prf_forallelim, -1, { "s2"_unchecked, "x2"_unchecked } ),
+                 proofterm( prf_simplify )  
+              })
+           }), 
+           proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" },
+           {
+              proofterm( prf_flatten, -1 ),
+              proofterm( prf_flatten, -1 ),
+              proofterm( prf_orrepl, -1, 0,
+              {  
+                  proofterm( prf_import, identifier( ) + "minhomrel_prop", { Nat, Nat } ),
+                  proofterm( prf_flatten, -1 ), 
+                  proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked, 
+                                                   "x1"_unchecked, "x2"_unchecked } ),
+                  proofterm( prf_flatten, -1 ),
+                  proofterm( prf_simplify ), 
+              }),
+              proofterm( prf_orrepl, -1, 0,
+              {  
+                 proofterm( prf_existsrepl, -1, { "x", "" },
+                 {
+                    proofterm( prf_simplify ),
+                    proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
+                    proofterm( prf_flatten, -1 ),
+                    proofterm( prf_forallelim, -1, { "s1"_unchecked, "x"_unchecked } ),
+                    proofterm( prf_simplify )
+                 })
+              }),
+              proofterm( prf_orrepl, -1, 0,
+              {  
+                 proofterm( prf_existsrepl, -1, { "", "x" },
+                 {
+                    proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
+                    proofterm( prf_flatten, -1 ),
+                    proofterm( prf_forallelim, -1, { "s2"_unchecked, "x"_unchecked } ),
+                    proofterm( prf_simplify )
+                 })
+              }),
+              proofterm( prf_existsrepl, -1, { "y1", "y2" },
+              {
+                 proofterm( prf_flatten, -1 ),
+                 proofterm( prf_flatten, -1 ),
+                 proofterm( prf_import, identifier( ) + "minhomrel_prop", { Nat, Nat } ),
+                 proofterm( prf_flatten, -1 ),
+                 proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked,
+                                                  "y1"_unchecked, "y2"_unchecked } ),
+                 proofterm( prf_flatten, -1 ),
+                 proofterm( prf_simplify ) 
+              }) 
+           }),
         }), 
-        proofterm( prf_show, "WHATISTHIS" ) } );
-#if 0
-        orexistselim( -1, "notprop", 
-        { propproof, 
-          chain(
-           { proofterm( prf_cut, -1 ),
-             orexistselim( -1, "false_true", { mainproof } )
-           }
-       ) })
-      });
-#endif
+        proofterm( prf_show, "END" ) } 
+   ); 
+
    proof. print( indentation( ), std::cout );
 
    checkproof( blfs, proof, seq, err );

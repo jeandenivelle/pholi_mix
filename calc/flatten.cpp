@@ -404,7 +404,7 @@ calc::extract_prop( std::vector< logic::vartype > & ctxt,
                     polarity pol, const logic::term& fm,
                     conjunction< forall< logic::term >> & conj )
 {
-   std::cout << "extract-conj-prop " << pol << " :  " << fm << " " << "\n";
+   // std::cout << "extract-conj-prop " << pol << " :  " << fm << " " << "\n";
 
    using namespace logic;
 
