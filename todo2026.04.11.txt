@@ -39,6 +39,10 @@ Problems on April 11th 2026:
 - The theorem lookup mechanism used by import, should be moved to
   logic::structural.
 
+- I believe that expandlocal is not correctly implemented.
+  It should use the De Bruijn index of sequent, as with all local
+  variables. 
+
 - I designed a great error reporting mechanism, which unfortunately
   is used almost nowhere. I should gradually start using it.
   Also, more systematic testing of some of the rules is needed.
