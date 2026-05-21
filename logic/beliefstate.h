@@ -46,9 +46,6 @@ namespace logic
          // as a const-reference, it is harmless that it will
          // be shared.
 
-      static void remove_candidates( identifier2exact& overloads,
-                                     const identifier& id, exact ex );
-
    public:  
       beliefstate( ) noexcept = default; 
       beliefstate( beliefstate&& ) noexcept = default;

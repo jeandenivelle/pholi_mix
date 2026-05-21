@@ -15,6 +15,7 @@
 #include "traverse.h"
 #include "flatten.h"
 #include "saturation.h"
+#include "calc/structural.h"
 
 #include "printing.h"
 
@@ -97,34 +98,6 @@ calc::checktype( const logic::beliefstate& blfs,
    }
 
    return tp; 
-}
-
-
-// Function should be moved, and also used when a proof is started.
-// Moreover, the loop that uses it should also be moved.
-
-bool 
-calc::applicable( const logic::belief& blf, 
-                  const std::vector< logic::type > & tps )
-{
-   if( blf. sel( ) != logic::bel_axiom && 
-       blf. sel( ) != logic::bel_thm )
-   {
-      return false;
-   }
-
-   const auto& fm = blf. view_form( );
-
-   if( tps. size( ) > fm. size( ))
-      return false;
-
-   for( size_t i = 0; i != tps. size( ); ++ i )
-   {
-      if( !equal( fm. tp(i), tps. at(i)) )
-         return false; 
-   }
-
-   return true;
 }
 
 
@@ -492,7 +465,7 @@ calc::checkproof( const logic::beliefstate& blfs,
    case prf_expand:
       {
          auto exp = prf. view_expand( ); 
-         size_t ind = exp. ind( );
+         ssize_t ind = exp. ind( );
    
          expander def( exp. ident( ), exp. occ( ), blfs, err );
             // We are using unchecked identifier exp. ident( ).
@@ -948,42 +921,11 @@ calc::checkproof( const logic::beliefstate& blfs,
          if( !alltypescorrect )
             throw std::logic_error( "import : failed type checking" );
 
-         const auto& ident = imp. ident( );
-         const auto& overcands = blfs. getformulas( ident ); 
+         auto ex = checkandresolve( blfs, err, imp. ident( ), types );
+         if( !ex. has_value( ))
+            return;
 
-         size_t nrapplicable = 0;
-         size_t lastapplicable = 0;
- 
-         for( size_t i = 0; i != overcands. size( ); ++ i )
-         {
-            auto ex = overcands. at(i);
-            const auto& form = blfs. at(ex);
-            if( applicable( form, types ))
-            {
-               ++ nrapplicable;
-               lastapplicable = i;
-            }
-         }
-
-         // If nrapplicable == 1, we found a usable overload,
-         // otherwise it's error.
-
-         if( nrapplicable == 0 )
-         {
-            std::cout << imp. ident( ) << "\n";
-            throw std::runtime_error( "no overload found" );
-         }
-
-         if( nrapplicable > 1 )
-         {
-            std::cout << imp. ident( ) << "\n";
-            throw std::runtime_error( "ambiguous overload in theorem import" );
-         }
-
-         std::cout << lastapplicable << "\n";
-
-         const auto& picked = blfs. at( overcands. at( lastapplicable ));
-         const auto& fm = picked. view_form( ). fm( );
+         const auto& fm = blfs. at( ex. value( )). view_form( ). fm( );
 
          seq. append( disjunction( { exists( fm ) } ));
          return;  

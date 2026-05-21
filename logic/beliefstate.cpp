@@ -1,23 +1,8 @@
 
 #include "beliefstate.h"
 #include "pretty.h"
+#include "structural.h"
 
-
-void 
-logic::beliefstate::remove_candidates( identifier2exact& overloads,
-                const identifier& id,
-                logic::exact name ) 
-{
-   auto p = overloads. find( id );
-   if( p != overloads. end( ))
-   {
-      if( p -> second. size( ) && p -> second. back( ) == name )
-         p -> second. pop_back( );
-
-      if( p -> second. size( ) == 0 )
-         overloads. erase(p); 
-   }
-}
 
 logic::exact logic::beliefstate::append( belief&& bl )
 {

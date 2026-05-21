@@ -50,6 +50,7 @@
    proofchecking.cpp
    saturation.cpp
    truthset.cpp
+   structural.cpp
    
 %dir Source/natded
 %sources
