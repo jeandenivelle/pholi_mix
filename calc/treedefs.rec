@@ -36,7 +36,7 @@
 
 %option forallelim { prf_forallelim } => 
    ind : ssize_t, [ value : logic::term ] 
-      // Replace ind by an instance.
+      // Add an instance of ind.
 
 %option deflocal { prf_deflocal } =>
    name : std::string, val : logic::term, [ sub : proofterm ]

@@ -17,20 +17,19 @@ calc::checkandresolve( const logic::beliefstate& blfs, errorstack& err,
       return { };
    }
   
-   auto cand1 = candidates. end( );
-   auto cand2 = candidates. end( );
+   size_t nrfits = 0; 
+   auto cand = candidates. end( );
 
    for( auto p = candidates. begin( ); p != candidates. end( ); ++ p )
    {
       if( applicable( blfs. at( *p ), types ))
       {
-         if( cand1 == candidates. end( ))
-            cand1 = p; 
-         cand2 = p; 
+         cand = p; 
+         ++ nrfits; 
       } 
    }
 
-   if( cand1 == candidates. end( ))
+   if( nrfits == 0 )
    {
       errorstack::builder bld;
       bld << "Import: No suitable formula found for " << ident;
@@ -38,7 +37,7 @@ calc::checkandresolve( const logic::beliefstate& blfs, errorstack& err,
       return { };
    }
 
-   if( cand1 != cand2 )
+   if( nrfits > 1 )
    {
       errorstack::builder bld;
       bld << "Import: More than suitable formula found for " << ident;
@@ -46,7 +45,7 @@ calc::checkandresolve( const logic::beliefstate& blfs, errorstack& err,
       return { };
    }
   
-   return *cand1; 
+   return *cand; 
 }
 
 

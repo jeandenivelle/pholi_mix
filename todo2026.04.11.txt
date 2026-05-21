@@ -29,7 +29,7 @@ Problems on April 11th 2026:
   The only problems is that it should be done in the context itself. 
   (fixed this, 2026.05.21)
 
-- Flattening doesn't work well. It should try both DNF and CNF,
+- Flattening needs fixing. It should try both DNF and CNF,
   whichever succeeds, but it doesn't always notice when it succeeds.
   It checks that the result is not trivial (No quantifier, singleton
   propositional operator), but non-triviality does not detect all succesful 
@@ -38,7 +38,8 @@ Problems on April 11th 2026:
   One should use weight for detecting success.
 
 - The theorem lookup mechanism used by import, should be moved to
-  logic::structural.
+  logic::structural. I think that I fixed this on
+  2026.05.21. 
 
 - I believe that expandlocal is not correctly implemented.
   It should use the De Bruijn index of sequent, as with all local

@@ -15,9 +15,6 @@ namespace calc
 {
    void printbar( std::ostream& out );
 
-   errorstack::builder
-   errorheader( const sequent& seq, std::string_view rule );
-
    template< typename T > 
    bool istrivial( const cnf<T> & c )
    {

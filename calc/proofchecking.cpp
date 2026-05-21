@@ -881,7 +881,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          }
 
          // We do not remove the outermost forall, because its 
-         // its presence is required by the data structure. 
+         // presence is required by the data structure. 
          // We remove the variables It is allowed that some variables remain. 
 
          mainform. vars. erase( mainform. vars. begin( ),
