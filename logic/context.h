@@ -5,8 +5,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
-#include "type.h"
+#include "term.h" 
 #include "util/print.h"
 
 namespace logic 
@@ -16,13 +17,17 @@ namespace logic
    {
       std::vector< std::pair< std::string, type >> vect; 
          // As usual, the string is only a suggestion.
+
+      std::unordered_map< size_t, term > defs;
+         // If a position in vect is a definition, the value is here.
+         // We count from the beginning of course.
  
    public:
       context( ) noexcept = default;
       context( context&& ) noexcept = default;
       context& operator = ( context&& ) noexcept = default; 
 
-      void append( const std::string& name, const type& tp )
+      void assume( const std::string& name, const type& tp )
          { vect. push_back( std::pair( name, tp )); } 
             // The name is only a suggestion. When terms are printed, 
             // the pretty printer interprets trailing digits as an index, 
@@ -30,10 +35,15 @@ namespace logic
             // This is done in order to ensure uniqueness of names.
             // See in class uniquenamestack. 
 
+      void define( const std::string& name, const term& val, const type& tp )
+         {
+            defs. insert( std::pair( vect. size( ), val ));  
+            vect. push_back( std::pair( name, tp ));
+         }
+
       void restore( size_t s );
 
-      size_t size( ) const 
-         { return vect. size( ); } 
+      size_t size( ) const { return vect. size( ); } 
 
       // Correctly index a De Bruijn index.
       // The name is only a suggestion. If you want to print,
@@ -44,6 +54,12 @@ namespace logic
 
       const type& gettype( size_t index ) const
          { return vect[ vect. size( ) - index - 1 ]. second; } 
+
+      bool hasdefinition( size_t index ) const
+         { return defs. find( vect. size( ) - index - 1 ) != defs. end( ); }
+
+      const term& getdefinition( size_t index ) const
+         { return defs. at( vect. size( ) - index - 1 ); }
 
       void print( std::ostream& out ) const;
    };

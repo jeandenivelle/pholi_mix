@@ -2,7 +2,7 @@
 Problems on April 11th 2026:
 
 - The output syntax differs from the input syntax. The output syntax
-  is the right one.
+  is the right one. Fix the parser.
 
 - Indexing into formulas in the sequent is messed up.
   The user can use ssize_t, while internally size_t is used.
@@ -11,22 +11,23 @@ Problems on April 11th 2026:
   but indices by the user should be a separate class 
   that does not implicitly convert to size_t. 
   The at( ) methods should use size_t. 
-  Once one has a separate class, one can look into even nicer 
+  Once we have a separate class, one can look into even nicer 
   types of indexing, like for example 'last universal formula'.
   One could also start using the attached strings.  
 
 - Hiding the second last formula of a sequent, should permanetly delete it,
-  since it will never be unhidden anyway. 
+  because it will be never unhidden again. 
   I expect that this will make sequents a lot shorter. 
-  One could consider using map instead of vector.
+  One could also consider using map instead of vector.
 
 - Currently, local definitions are stored separately in a sequent.
-  This is a wrong design.
+  This is a bad design.
   The class logic::context should be modified to hold
   definitions. I didn't do this from the beginning, because
   I thought it was necessarily ugly, but the way it is done
   in sequent (using a separate map for the values) is actually elegant.
   The only problems is that it should be done in the context itself. 
+  (fixed this, 2026.05.21)
 
 - Flattening doesn't work well. It should try both DNF and CNF,
   whichever succeeds, but it doesn't always notice when it succeeds.

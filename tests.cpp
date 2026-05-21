@@ -373,7 +373,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          throw std::runtime_error( "cannot continue" );
       auto seq = sequent( );
 
-      auto nr = seq. define( "goal",
+      auto nr = seq. ctxt_define( "goal",
                              blfs. at( f. front( )). view_form( ). fm( ),
                              logic::type( logic::type_form ));
       seq. push_back( "start" );
@@ -463,7 +463,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          throw std::runtime_error( "cannot continue minhomrel_succ" );
     
       auto seq = sequent( );
-      auto nr = seq. define( "goal",
+      auto nr = seq. ctxt_define( "goal",
                              blfs. at( f. front( )). view_form( ). fm( ),
                              logic::type( logic::type_form ));
 
@@ -607,9 +607,10 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
 
    auto seq = sequent( );
 
-   auto nr = seq. define( "goal",
-                          blfs. at( f. front( )). view_form( ). fm( ),
-                          logic::type( logic::type_form ));
+   size_t nr = seq. ctxt. size( ); 
+   seq. ctxt_define( "goal",
+                     blfs. at( f. front( )). view_form( ). fm( ),
+                     logic::type( logic::type_form ));
 
    seq. ugly( std::cout );
 

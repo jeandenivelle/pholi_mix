@@ -67,13 +67,9 @@ namespace calc
       indexedstack< std::string, size_t > db;
          // db is needed because we typecheck terms during 
          // proofchecking. 'db' stands for De Bruijn. 
-         // We look from the beginning!
+         // We always count from the beginning!
 
       std::vector< seqform > stack;
-
-      std::map< size_t, logic::term > defs;
-         // If a position in ctxt is a definition, its value is here.
-         // We look from the beginning of course. 
 
       struct level
       {
@@ -103,15 +99,24 @@ namespace calc
       void ugly( std::ostream& out ) const;  
       void pretty( pretty_printer& out ) const;
 
-      size_t assume( const std::string& name, const logic::type& tp );
+      void ctxt_assume( const std::string& name, const logic::type& tp )
+      {
+         db. push( name, ctxt. size( ));
+         ctxt. assume( name, tp );
+      }
 
-      size_t define( const std::string& name, const logic::term& val,
-                     const logic::type& tp );
+      void ctxt_define( const std::string& name, 
+                        const logic::term& val, const logic::type& tp )
+      {
+         db. push( name, ctxt. size( ));
+         ctxt. define( name, val, tp ); 
+      }
 
-      void restore_ctxt( size_t cc );
-         // Restore context and db to size cc.
-         // If there are definitions, we remove those as well.
-         // Don't restore ctxt directly. 
+      void ctxt_restore( size_t cc )
+      {
+         ctxt. restore(cc);
+         db. restore(cc);
+      }
 
       void append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 

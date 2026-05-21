@@ -2,7 +2,6 @@
 #include "sequent.h"
 #include "logic/pretty.h"
 
-
 void calc::sequent::seqform::print( std::ostream& out ) const
 {
    if( is_dnf( ))
@@ -26,35 +25,6 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
    }
    else
       out << "   (hidden)";
-}
-
-size_t
-calc::sequent::assume( const std::string& name,
-                       const logic::type& tp )
-{
-   size_t nr = ctxt. size( );
-   ctxt. append( name, tp );
-   db. push( name, nr );
-   return nr;
-}
-
-size_t 
-calc::sequent::define( const std::string& name,
-                       const logic::term& val, 
-                       const logic::type& tp )
-{
-   size_t nr = assume( name, tp );
-   defs. insert( std::pair( nr, val ));
-   return nr;
-}
-
-void calc::sequent::restore_ctxt( size_t cc )
-{
-   for( size_t i = cc; i != ctxt. size( ); ++ i )
-      defs. erase(i);
-
-   ctxt. restore(cc);
-   db. restore(cc);
 }
 
 void calc::sequent::append( cnf< logic::term > c )
@@ -176,9 +146,6 @@ void calc::sequent::ugly( std::ostream& out ) const
    out << "Sequent:\n";
    out << ctxt;
    out << "\n";
-   out << "Definitions:\n";
-   for( const auto& def : defs )
-      out << "   #" << def. first << " := " << def. second << "\n";
 
    out << "Stack:\n";
    for( size_t i = 0; i != stack. size( ); ++ i )
@@ -202,10 +169,11 @@ calc::sequent::pretty( pretty_printer& out ) const
          size_t ind = ctxt. size( ) - db - 1;
          out << "   " << out. names. extend( ctxt. getname( ind ));
          out << " : " << ctxt. gettype( ind ); 
-         if( auto p = defs. find( db ); p != defs. end( ))
+         if( ctxt. hasdefinition( ind ))
          {
+            // Perhaps one should change the printing order:
             out. names. restore( out. names. size( ) - 1 );
-            out << " := " << ( p -> second );
+            out << " := " << ctxt. getdefinition( ind );
             out. names. extend( ctxt. getname( ind ));
          }
          out << '\n';

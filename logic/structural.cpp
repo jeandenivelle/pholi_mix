@@ -746,7 +746,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
          }
 
          for( size_t i = 0; i != quant. size( ); ++ i )
-            ctxt. append( quant. var(i). pref, quant. var(i). tp );
+            ctxt. assume( quant. var(i). pref, quant. var(i). tp );
 
          std::optional< type > bodytype; 
 
@@ -836,7 +836,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             return { };
          }
 
-         ctxt. append( let. var( ). pref, let. var( ). tp );  
+         ctxt. assume( let. var( ). pref, let. var( ). tp );  
 
          std::optional< type > bodytype;
          {
@@ -1011,7 +1011,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
          size_t contextsize = ctxt. size( );
 
          for( size_t i = 0; i != lamb. size( ); ++ i )
-            ctxt. append( lamb. var(i). pref, lamb. var(i). tp );
+            ctxt. assume( lamb. var(i). pref, lamb. var(i). tp );
 
          std::optional< type > bodytype;
 

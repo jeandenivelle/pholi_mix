@@ -184,8 +184,8 @@ calc::checkproof( const logic::beliefstate& blfs,
 #if 0
             // Was part of testing. Should be completely removed later:
 
-            seq. assume( "hhhh", logic::type( logic::type_form ));
-            seq. assume( "ssss", logic::type( logic::type_obj ));
+            seq. ctxt_assume( "hhhh", logic::type( logic::type_form ));
+            seq. ctxt_assume( "ssss", logic::type( logic::type_obj ));
 
             seq. ugly( std::cout );  
             std::cout << "\n";
@@ -281,7 +281,7 @@ calc::checkproof( const logic::beliefstate& blfs,
                throw std::logic_error( "something went wrong with the segments" );
 
             seq. pop_back( );
-            seq. restore_ctxt( ss );
+            seq. ctxt_restore( ss );
 
             // concl still is a forall without variables:
 
@@ -311,7 +311,7 @@ calc::checkproof( const logic::beliefstate& blfs,
    case prf_existsrepl:
       {
          auto repl = prf. view_existsrepl( ); 
-         size_t ind = repl. ind( ); 
+         ssize_t ind = repl. ind( ); 
 
          if( !seq. hasindex( ind ))
             throw std::logic_error( "existsrepl: index out of range" );
@@ -320,8 +320,9 @@ calc::checkproof( const logic::beliefstate& blfs,
             throw std::logic_error( "existsrepl: formula is not in DNF" );
 
          if( seq. at( ind ). get_dnf( ). size( ) != 1 )
+         {
             throw std::logic_error( "existsrepl: formula not a singleton" ); 
-
+         }
          enf< logic::term > mainform = seq. at( ind ). get_dnf( ). at(0); 
 
          mainform = lift( std::move( mainform ), seq. liftdist( ind ));
@@ -337,10 +338,10 @@ calc::checkproof( const logic::beliefstate& blfs,
             if( v < repl. eigen( ). size( ) && 
                 repl. eigen( ). at(v). size( ) != 0 ) 
             {
-               seq. assume( repl. eigen( ). at(v), mainform. vars[v]. tp );
+               seq. ctxt_assume( repl. eigen( ). at(v), mainform. vars[v]. tp );
             }
             else
-               seq. assume( "_", mainform. vars[v]. tp );
+               seq. ctxt_assume( "_", mainform. vars[v]. tp );
          }
 
          seq. hide( ind );
@@ -447,7 +448,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             std::cout << "ss = " << ss << "\n";
 #endif
 #endif
-         seq. restore_ctxt( cc );
+         seq. ctxt_restore( cc );
          return;
       }
 
@@ -541,11 +542,9 @@ calc::checkproof( const logic::beliefstate& blfs,
                throw std::logic_error( "did not find the variable" );
             }
 
-            var = p -> second;
+            var = seq. ctxt. size( ) - ( p -> second ) - 1;
          }
-
-         auto p = seq. defs. find( var );
-         if( p == seq. defs. end( ))
+         if( !seq. ctxt. hasdefinition( var ))
          {
             seq. ugly( std::cout );
             std::cout << name << "\n";
@@ -553,10 +552,10 @@ calc::checkproof( const logic::beliefstate& blfs,
             throw std::logic_error( "variable does not have a definition" );
          }
 
-         auto def = localexpander( seq. ctxt. size( ) - var - 1,  
-                                   p -> second, 
+         auto def = localexpander( var,  
+                                   seq. ctxt. getdefinition( var ), 
                                    prf. view_expandlocal( ). occ( ));
-        
+       
          if( !seq. hasindex( ind ))
             throw std::logic_error( "expandlocal: index out of range" );
 
@@ -649,7 +648,7 @@ calc::checkproof( const logic::beliefstate& blfs,
    case prf_orrepl:
       {
          auto repl = prf. view_orrepl( );
-         size_t ind = repl. ind( );
+         ssize_t ind = repl. ind( );
          size_t alt = repl. alt( );
 
          if( !seq. hasindex( ind ))
@@ -734,7 +733,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          size_t ff = seq. stack. size( );
          size_t ll = seq. nrlevels( );
 
-         seq. define( def. name( ), val, tp. value( ));
+         seq. ctxt_define( def. name( ), val, tp. value( ));
 
          for( size_t i = 0; i != def. size( ); ++ i )
          {
@@ -747,14 +746,14 @@ calc::checkproof( const logic::beliefstate& blfs,
 
          if( seq. ctxt. size( ) != cc + 1 )
             throw std::logic_error( "something went wrong with size" );
- 
-         if( !seq. defs. contains(cc))
+
+         if( !seq. ctxt. hasdefinition(0))
             throw std::logic_error( "something went wrong with def" ); 
 
          if( seq. nrlevels( ) != ll )
             throw std::logic_error( "something went wrong with the levels" );
 
-         auto subst = logic::singlesubst( seq. defs. at(cc));
+         auto subst = logic::singlesubst( seq. ctxt. getdefinition(0));
          std::cout << subst << "\n";
 
          for( size_t i = ff; i != seq. stack. size( ); ++ i )
@@ -783,7 +782,7 @@ calc::checkproof( const logic::beliefstate& blfs,
             }
          }
  
-         seq. restore_ctxt( cc );
+         seq. ctxt_restore( cc );
          return; 
       }
 #if 0
@@ -800,7 +799,7 @@ calc::checkproof( const logic::beliefstate& blfs,
          for( size_t i = 0; i != intro. size( ); ++ i )
          {
             logic::exact name = 
-               seq. assume( intro.var(i).pref, intro.var(i).tp );
+               seq. ctxt_assume( intro.var(i).pref, intro.var(i).tp );
 
             exactnames. push_back( name );
          }
