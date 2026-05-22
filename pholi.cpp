@@ -14,6 +14,8 @@
 
 #include "parsing/parser.h"
 
+#include "calc/label.h"
+
 void
 includefile( logic::beliefstate& blfs, 
              filehasher& seen, const std::filesystem::path& file,
@@ -83,6 +85,20 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
+   calc::label lab1 = "noceform"; 
+   std::cout << ( lab1 ++ ) << "\n";
+   std::cout << lab1 << "\n";
+
+   calc::label lab2 = "niceform";
+   std::cout << ( lab2 ++ ) << "\n";
+   std::cout << lab2 << "\n";
+  
+   std::cout << ( lab1 == lab2 ) << " " << ( lab1 != lab2 ) << "\n";
+   std::cout << ( lab1 <= lab2 ) << " " << ( lab1 >= lab2 ) << "\n";
+ 
+
+   return 0;
+ 
    tests::saturate( );
 
    errorstack err;

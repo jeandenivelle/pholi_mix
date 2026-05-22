@@ -44,6 +44,7 @@
    expander.cpp
    localexpander.cpp
    projection.cpp
+   label.cpp
    sequent.cpp
    proofterm.cpp
    printing.cpp

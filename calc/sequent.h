@@ -28,7 +28,7 @@ namespace calc
             // In case we are UNF, there must be at least one
             // quantified variable.
 
-         size_t ctxtsize;      // sizs of context at moment of creation. 
+         size_t ctxtsize;      // size of context at moment of creation. 
          bool hidden;          // True if formula is hidden.
          std::string comment;  
 
@@ -85,9 +85,6 @@ namespace calc
               stacksize( stacksize )
          { }
  
-         bool inrange( ssize_t ind ) const;
-            // True if ind can be used as an index.
-
       };
 
       std::vector< level > levels;
@@ -98,6 +95,8 @@ namespace calc
 
       void ugly( std::ostream& out ) const;  
       void pretty( pretty_printer& out ) const;
+
+      // These functions will eventually disappear:
 
       void ctxt_assume( const std::string& name, const logic::type& tp )
       {
