@@ -31,7 +31,6 @@ namespace calc
 
          size_t ctxtsize;      // size of context at moment of creation. 
          bool hidden;          // True if formula is hidden.
-         std::string comment;  
 
          seqform( unf< logic::term > u, size_t ctxtsize )
             : fm( std::move(u)),
@@ -65,12 +64,8 @@ namespace calc
       };
  
       logic::context ctxt;
-      indexedstack< std::string, size_t > db;
-         // db is needed because we typecheck terms during 
-         // proofchecking. 'db' stands for De Bruijn. 
-         // We always count from the beginning!
 
-      label nextlab = "form";
+      label nextlabel = "form";
       indexedstack< label, seqform, label::hash, label::equal_to > stack;
 
       struct level
@@ -97,27 +92,6 @@ namespace calc
 
       void ugly( std::ostream& out ) const;  
       void pretty( pretty_printer& out ) const;
-
-      // These functions will eventually disappear:
-
-      void ctxt_assume( const std::string& name, const logic::type& tp )
-      {
-         db. push( name, ctxt. size( ));
-         ctxt. assume( name, tp );
-      }
-
-      void ctxt_define( const std::string& name, 
-                        const logic::term& val, const logic::type& tp )
-      {
-         db. push( name, ctxt. size( ));
-         ctxt. define( name, val, tp ); 
-      }
-
-      void ctxt_restore( size_t cc )
-      {
-         ctxt. restore(cc);
-         db. restore(cc);
-      }
 
       void append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 
@@ -151,7 +125,6 @@ namespace calc
       void hide( ssize_t ind );
          // If we have a choice level, we register the hiding,
          // so that it can be undone. 
-
 
       size_t liftdist( ssize_t ind ) const;
          // The distance over which the formula at ind must be lifted

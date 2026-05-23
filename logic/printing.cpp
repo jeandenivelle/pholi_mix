@@ -201,12 +201,25 @@ void logic::belief::print( std::ostream& out ) const
 
    case bel_axiom:
    case bel_thm:
-      if( sel( ) == bel_axiom )
-         out << "axiom ";
-      if( sel( ) == bel_thm )
-         out << "theorem ";
+      {
+         if( sel( ) == bel_axiom )
+            out << "axiom ";
+         if( sel( ) == bel_thm )
+            out << "theorem ";
+         out << ident( );
 
-      out << ident( ) << " : " << view_form( ). fm( );
+         auto f = view_form( );
+         out << '(';
+         for( size_t i = 0; i != f. size( ); ++ i )
+         {
+            if( i == 0 )
+               out << " ";
+            else
+               out << ", ";
+            out << f. tp(i);
+         }
+         out << " ) : " << view_form( ). fm( );
+      }
       return;
 
    case bel_fld:

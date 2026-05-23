@@ -82,10 +82,11 @@ namespace calc
       return res; 
    }
 
-   void checkproof( const logic::beliefstate& blfs,
-                    proofterm& prf, sequent& seq, errorstack& err );
-      // In case of failure, we vent our frustration into err, and 
-      // return nothing. As with type checking,
+   void checkproof( const logic::beliefstate& blfs, sequent& seq, 
+                    proofterm& prf, errorstack& err, 
+                    logic::exact::unordered_set& dependencies );
+      // In case of failure, we vent our frustration into err.
+      // As with type checkin,
       // we may try to recover from these errors, and check
       // other parts of the proof. 
       // The proofterm is not const, because we resolve overloads.

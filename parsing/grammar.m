@@ -116,20 +116,19 @@ File =>
           tp = abstract( abstr, std::move(tp) );
           blfs. append( logic::belief( logic::bel_def, id, tm, tp )); 
        }
-    | File SYMBOL Identifier : id ParSeqSeq : abstr COLON StructType : tp SEMICOLON 
+    | File SYMBOL Identifier : id ParSeqSeq : abstr COLON 
+      StructType : tp SEMICOLON 
       {
          tp = abstract( abstr, std::move(tp) ); 
          blfs. append( logic::belief( logic::bel_symbol, id, tp ));
       }
     | File AXIOM Identifier : id COLON Term : f SEMICOLON 
        { 
-          blfs. append( logic::belief( logic::bel_axiom, id, f, 
-                                       logic::proof( ), { } )); 
+          blfs. append( logic::belief( logic::bel_axiom, id, f, 0, { }, { } )); 
        } 
     | File THM Identifier : id COLON Term : f SEMICOLON
        { 
-          blfs. append( logic::belief( logic::bel_thm, id, f, 
-                                       logic::proof( ), { } )); 
+          blfs. append( logic::belief( logic::bel_thm, id, f, 0, { }, { } ));
        } 
     | File _recover_ SEMICOLON
        { std::cout << "recovered!!!\n"; } 

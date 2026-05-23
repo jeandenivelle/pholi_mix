@@ -33,7 +33,7 @@ namespace logic
       // Make term t unchecked again.
 
 
-   logic::term
+   term
    replace_debruijn( indexedstack< std::string, size_t > & db, term t );
 
    term replace_debruijn( term t );

@@ -15,6 +15,7 @@
 #include "calc/projection.h"
 #include "calc/proofoperators.h"
 #include "calc/saturation.h"
+#include "calc/structural.h"
 
 #include "natded/eval.h"
 
@@ -354,7 +355,7 @@ void tests::betareduction( logic::beliefstate& blfs, errorstack& err )
 void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 {
    auto O = logic::type( logic::type_obj );
-   auto T = logic::type( logic::type_form );
+   auto F = logic::type( logic::type_form );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
 
    using namespace calc;
@@ -373,7 +374,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          throw std::runtime_error( "cannot continue" );
       auto seq = sequent( );
 
-      auto nr = seq. ctxt_define( "goal",
+      nr = seq. ctxt_define( "goal",
                              blfs. at( f. front( )). view_form( ). fm( ),
                              logic::type( logic::type_form ));
       seq. push_back( "start" );
@@ -448,7 +449,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       });
       prf. print( indentation( ), std::cout );
 
-      // checkproof( blfs, prf, seq, err );
+      checkproof( blfs, prf, seq, err, calc::prf_fake( op_false ));
       std::cout << "FINAL STATE" << id << " :\n";
       seq. ugly( std::cout );
    }
@@ -457,12 +458,14 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
    if constexpr( true )
    {
       auto id = identifier( ) + "induction";
-
-      const auto& f = blfs. getformulas( id );
-      std::cout << f. size( ) << "\n";
-      if( f. size( ) != 1 )
-         throw std::runtime_error( "cannot continue minhomrel_succ" );
-    
+      auto bl = calc::findformula( blfs, err, id, { } ); 
+      if( bl. has_value( ))
+      {
+         auto prf = proofterm( prf_fake, "FF"_unchecked );
+         prf = chain( { prf, proofterm( prf_cut, "goal"_unchecked ) } );
+         prf = replace_debruijn( std::move( prf )); 
+         checkproof( blfs, err, bl. value( ), prf ); 
+#if 0
       auto seq = sequent( );
       seq. ctxt_define( "goal",
                         blfs. at( f. front( )). view_form( ). fm( ),
@@ -470,6 +473,14 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 
       // seq. push_back( "goal" );
       // seq. ugly( std::cout );
+#endif
+      }
+      else
+      { 
+         errorstack::builder bld;
+         bld << "no formula with name " << id << " was found"; 
+         err. push( std::move( bld ));
+      } 
    }
 
 #if 0
@@ -643,7 +654,6 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
       indhyp = lambda( {{ "x1", O }, { "x2", O }}, indhyp );
       indhyp = lambda( {{ "n1", Nat }, { "n2", Nat }}, indhyp );
    }
-
 
    auto proof = chain( 
       { proofterm( prf_cut, "goal"_unchecked ),

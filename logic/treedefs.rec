@@ -20,7 +20,6 @@
 	#include "tvm/includes.h"
 	#include "identifier.h"
         #include "exact.h"
-        #include "proof.h"
 	#include "util/print.h"
 } 
 
@@ -79,8 +78,6 @@
 %h_after {
    std::ostream& operator << ( std::ostream& , const vartype& );
 
-   bool 
-   very_equal( const std::vector< proof > & , const std::vector< proof > & );
 } 
 
 %cpp_back {
@@ -107,8 +104,10 @@
 %option def { bel_def } => val : term, tp : type
 
 %option form { bel_axiom, bel_thm } => 
-   fm : term, prop : proof, [ tp : type ]
-      // tp can be used for overload resolution.
+   fm : term, proven : int, dependencies : exact::unordered_set, [ tp : type ] 
+      // tp is intended for overload resolution. If proven does not
+      // have the magic value, then prem may be incomplete. 
+      // Contrary to the original approach, we are not storing the proof.
 
 %option field { bel_fld } => sdef : exact, offset : size_t 
    // The meanings are:

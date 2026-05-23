@@ -85,36 +85,36 @@ public:
    errorstack( errorstack&& ) noexcept = default;
    errorstack& operator = ( errorstack&& ) noexcept = default;
 
-   void push( const std::string& meh, 
+   void push( const std::string& meeh, 
               error::seriousness ser = error::serious )
    { 
       sub. push_back( vect. size( ));
-      vect. emplace_back( meh, ser ); 
+      vect. emplace_back( meeh, ser ); 
    }
 
-   void push( std::string&& meh,
+   void push( std::string&& meeh,
               error::seriousness ser = error::serious )
    {
       sub. push_back( vect. size( ));
-      vect. emplace_back( std::move( meh ), ser );
+      vect. emplace_back( std::move( meeh ), ser );
    }
 
-   void push( const char* meh,
+   void push( const char* meeh,
               error::seriousness ser = error::serious )
    {
       sub. push_back( vect. size( ));
-      vect. emplace_back( meh, ser );
+      vect. emplace_back( meeh, ser );
    }
 
    using builder = std::ostringstream;
       // You can whine into the builder, and push the builder
       // when you're done. 
 
-   void push( builder&& meh,
+   void push( builder&& meeh,
               error::seriousness ser = error::serious )
    {
       sub. push_back( vect. size( ));
-      vect. emplace_back( std::move(meh). str( ), ser );
+      vect. emplace_back( std::move(meeh). str( ), ser );
    }
 
    void addheader( size_t start, const std::string& header )

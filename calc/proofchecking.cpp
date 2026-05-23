@@ -70,15 +70,6 @@ std::optional< logic::type >
 calc::checktype( const logic::beliefstate& blfs,
                  logic::term& tm, sequent& seq, errorstack& err )
 {
-   if( seq. ctxt. size( ) != seq. db. size( ))
-   {
-      std::cout << seq. ctxt << "\n";
-      std::cout << seq. db << "\n";
-      throw std::logic_error( "De Bruijn index wrong size" );
-   }
-
-   tm = replace_debruijn( seq. db, std::move(tm) );
-
    size_t ss = seq. ctxt. size( );
    size_t ee = err. size( );
 
@@ -87,30 +78,21 @@ calc::checktype( const logic::beliefstate& blfs,
    if( seq. ctxt. size( ) != ss )
       throw std::logic_error( "context not restored" );
 
-   if( ee != err. size( ))
-      std::cout << ( err. size( ) - ee ) << " errors were created\n";
-
-   if( !tp. has_value( ))
-   {
-      std::cout << seq. db << "\n";
-      std::cout << "the resolved term is " << tm << "\n";
-      throw std::logic_error( "term has no type" ); 
-   }
-
    return tp; 
 }
 
 
 void
-calc::checkproof( const logic::beliefstate& blfs,
-                  proofterm& prf, sequent& seq, errorstack& err )
+calc::checkproof( const logic::beliefstate& blfs, sequent& seq, 
+                  proofterm& prf, errorstack& err,
+                  logic::exact::unordered_set& dependencies )
 {
    std::cout << "checkproof: " << prf. sel( ) << "\n";
 
-#if 0
    switch( prf. sel( ))
    {
 
+#if 0
    case prf_flatten: 
       {
          auto flat = prf. view_flatten( ); 
@@ -960,28 +942,30 @@ calc::checkproof( const logic::beliefstate& blfs,
          return;
       }
 
+#endif 
    case prf_fake:
       {
          auto trmp = prf. view_fake( ). extr_goal( );
          auto tp = checktype( blfs, trmp, seq, err );
 
-         if( tp. has_value( ))
-            std::cout << "found type: " << tp. value( ) << "\n";
-         else
+         if( !tp. has_value( ))
+            return;  // Error is already created. 
+
+         if( tp. value( ). sel( ) != logic::type_form )
          {
-            throw std::logic_error( "fake: Not a formula" ); 
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs ); 
+            prnt << "Type of faked formala is not F, instead it is ";
+            prnt << tp. value( );
+            err. push( std::move( bld ));
+            return; 
          }
 
-         prf. view_fake( ). update_goal( trmp );
-
-         // auto cls = disjunction( { exists( std::move(res) ) } ); 
-         // seq. back( ). push( forall( std::move( cls ))); 
-         seq. append( disjunction( { exists( std::move( trmp )) } ));
-
          std::cout << "faking: " << trmp << "\n";
+         seq. append( disjunction( { exists( std::move( trmp )) } ));
          return;
       }
-
+#if 0
 
    case prf_nop:
       {
@@ -999,12 +983,11 @@ calc::checkproof( const logic::beliefstate& blfs,
          seq. pretty( out );
          return;
       } 
-
-   }
 #endif
+   }
 
    std::cout << prf. sel( ) << "\n";
-   throw std::logic_error( "dont know how to check proof term" );
+   throw std::logic_error( "dont know how to check this rule" );
 }
 
 

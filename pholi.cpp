@@ -97,7 +97,6 @@ int main( int argc, char* argv[] )
    std::cout << ( lab1 == lab2 ) << " " << ( lab1 != lab2 ) << "\n";
    std::cout << ( lab1 <= lab2 ) << " " << ( lab1 >= lab2 ) << "\n";
  
- 
    tests::saturate( );
 
    errorstack err;

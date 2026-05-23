@@ -40,12 +40,10 @@ void calc::sequent::append( cnf< logic::term > c )
 }
 #endif
 
-#if 0
 void calc::sequent::append( dnf< logic::term > d )
 {
-   stack. push_back( seqform( std::move(d), ctxt. size( )));
+   stack. push( nextlabel ++, seqform( std::move(d), ctxt. size( )));
 }
-#endif
 
 bool
 calc::sequent::hasindex( ssize_t ind ) const
@@ -149,6 +147,7 @@ calc::sequent::getexactname( size_t i ) const
 
 #endif
 
+#endif
 
 void calc::sequent::ugly( std::ostream& out ) const
 {
@@ -157,13 +156,13 @@ void calc::sequent::ugly( std::ostream& out ) const
    out << "\n";
 
    out << "Stack:\n";
-   for( size_t i = 0; i != stack. size( ); ++ i )
+   for( const auto& f : stack ) 
    {
-      out << "   " << i << " : " << stack[i] << "\n";
+      out << "   " << f. first << " : " << f. second << "\n";
    }
+   out << "\n";
 }
 
-#endif
 
 #if 0
 void 
