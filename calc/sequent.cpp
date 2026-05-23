@@ -27,6 +27,7 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
       out << "   (hidden)";
 }
 
+#if 0
 void calc::sequent::append( cnf< logic::term > c )
 {
    for( auto& u : c )
@@ -37,11 +38,14 @@ void calc::sequent::append( cnf< logic::term > c )
          stack. push_back( seqform( std::move(u), ctxt. size( )));
    }
 }
+#endif
 
+#if 0
 void calc::sequent::append( dnf< logic::term > d )
 {
    stack. push_back( seqform( std::move(d), ctxt. size( )));
 }
+#endif
 
 bool
 calc::sequent::hasindex( ssize_t ind ) const
@@ -50,6 +54,7 @@ calc::sequent::hasindex( ssize_t ind ) const
    return ind >= -ss && ind < ss;
 }
 
+#if 0
 const calc::sequent::seqform& calc::sequent::at( ssize_t ind ) const 
 {
    if( !hasindex( ind ))
@@ -89,7 +94,9 @@ void calc::sequent::hide( ssize_t ind )
          levels. back( ). hidden. push_back(k); 
    }
 }
+#endif
 
+#if 0
 void calc::sequent::poplevel( )
 {
    if( stack. back( ). ctxtsize != ctxt. size( ))
@@ -103,12 +110,15 @@ void calc::sequent::poplevel( )
 
    levels. pop_back( );  
 }
+#endif
 
+#if 0
 size_t calc::sequent::liftdist( ssize_t ind ) const
 {
    size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
    return ctxt. size( ) - stack[k]. ctxtsize; 
 }
+#endif
 
 #if 0
 
@@ -139,7 +149,6 @@ calc::sequent::getexactname( size_t i ) const
 
 #endif
 
-#endif
 
 void calc::sequent::ugly( std::ostream& out ) const
 {
@@ -154,7 +163,9 @@ void calc::sequent::ugly( std::ostream& out ) const
    }
 }
 
+#endif
 
+#if 0
 void 
 calc::sequent::pretty( pretty_printer& out ) const
 {
@@ -186,4 +197,4 @@ calc::sequent::pretty( pretty_printer& out ) const
    }
 }
 
-
+#endif

@@ -353,7 +353,6 @@ void tests::betareduction( logic::beliefstate& blfs, errorstack& err )
 
 void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 {
-#if 0
    auto O = logic::type( logic::type_obj );
    auto T = logic::type( logic::type_form );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
@@ -362,6 +361,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 
    // This is the first proof that passed!
 
+#if 0
    if constexpr( true ) 
    {
       // This proof was completed on 16 december 2025, 05.23 CET.
@@ -452,10 +452,11 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       std::cout << "FINAL STATE" << id << " :\n";
       seq. ugly( std::cout );
    }
+#endif
 
    if constexpr( true )
    {
-      auto id = identifier( ) + "minhomrel_succ";
+      auto id = identifier( ) + "induction";
 
       const auto& f = blfs. getformulas( id );
       std::cout << f. size( ) << "\n";
@@ -463,12 +464,13 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          throw std::runtime_error( "cannot continue minhomrel_succ" );
     
       auto seq = sequent( );
-      auto nr = seq. ctxt_define( "goal",
-                             blfs. at( f. front( )). view_form( ). fm( ),
-                             logic::type( logic::type_form ));
+      seq. ctxt_define( "goal",
+                        blfs. at( f. front( )). view_form( ). fm( ),
+                        logic::type( logic::type_form ));
 
-      seq. push_back( "goal" );
-      seq. ugly( std::cout );
+      // seq. push_back( "goal" );
+      // seq. ugly( std::cout );
+   }
 
 #if 0
       auto splitprop = orexistselim( -1, "prop",
@@ -508,8 +510,8 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
                       chain( { calc::show( "GAL" ) } )
                    } ) } )
          } );
-
 #endif
+#if 0
       auto prf = chain( 
       { 
          proofterm( prf_cut, "goal"_unchecked ), 
@@ -606,7 +608,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
       throw std::runtime_error( "cannot continue" );
 
    auto seq = sequent( );
-
+#if 0
    size_t nr = seq. ctxt. size( ); 
    seq. ctxt_define( "goal",
                      blfs. at( f. front( )). view_form( ). fm( ),
@@ -856,6 +858,7 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
    std::cout << "\n";
    std::cout << "FINAL STATE\n";
    seq. ugly( std::cout );
+#endif
 }
 
 

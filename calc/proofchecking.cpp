@@ -107,6 +107,7 @@ calc::checkproof( const logic::beliefstate& blfs,
 {
    std::cout << "checkproof: " << prf. sel( ) << "\n";
 
+#if 0
    switch( prf. sel( ))
    {
 
@@ -1000,6 +1001,7 @@ calc::checkproof( const logic::beliefstate& blfs,
       } 
 
    }
+#endif
 
    std::cout << prf. sel( ) << "\n";
    throw std::logic_error( "dont know how to check proof term" );

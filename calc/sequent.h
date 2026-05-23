@@ -15,6 +15,7 @@
 #include "logic/context.h"
 #include "normalforms.h"
 #include "pretty.h"
+#include "label.h"
 
 namespace calc
 {
@@ -69,7 +70,8 @@ namespace calc
          // proofchecking. 'db' stands for De Bruijn. 
          // We always count from the beginning!
 
-      std::vector< seqform > stack;
+      label nextlab = "form";
+      indexedstack< label, seqform, label::hash, label::equal_to > stack;
 
       struct level
       {

@@ -26,6 +26,19 @@ namespace calc
 
       label operator ++ ( int )
          { auto copy = *this; ++ index; return copy; }  
+
+      struct hash
+      {
+         hash( ) noexcept = default; 
+         size_t operator( ) ( const label& lab ) const;
+      };
+
+      struct equal_to
+      {
+         equal_to( ) noexcept = default;
+         bool operator( ) ( const label& lab1, const label& lab2 ) const;
+      };
+
    };
 
    bool operator < ( const label& lab1, const label& lab2 );

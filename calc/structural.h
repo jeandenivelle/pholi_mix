@@ -17,6 +17,11 @@ namespace calc
    checkandresolve( const logic::beliefstate& blfs, errorstack& errors, 
                     const identifier& ident,
                     std::vector< logic::type > & argtypes ); 
+
+   void setproof( const logic::beliefstate& blfs, errorstack& err,
+                  logic::belief& blf, 
+                  std::vector< logic::type > & argtypes );
+                    
 }
 
 #endif
