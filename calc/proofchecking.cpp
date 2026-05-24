@@ -71,7 +71,6 @@ calc::checktype( const logic::beliefstate& blfs,
                  logic::term& tm, sequent& seq, errorstack& err )
 {
    size_t ss = seq. ctxt. size( );
-   size_t ee = err. size( );
 
    auto tp = checkandresolve( blfs, err, seq. ctxt, tm );
 
@@ -408,6 +407,8 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return;
       }
 
+#endif
+
    case prf_cut:
       {
          auto cut = prf. view_cut( );
@@ -415,19 +416,25 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          auto fm = cut. extr_fm( );  
 
          auto tp = checktype( blfs, fm, seq, err );
-         if( !tp. has_value( ) || tp. value( ). sel( ) != logic::type_form )
+         if( !tp. has_value( ))
+            return; 
+
+         if( tp. value( ). sel( ) != logic::type_form )
          {
-            std::cout << "wrong type!\n";
-            throw std::logic_error( "cut: type is not FORM" ); 
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs ); 
+            prnt << "Type of cut formula is not F, instead it is ";
+            prnt << tp. value( );
+            err. push( std::move( bld ));
+            return;
          }
-         cut. update_fm( fm );
 
          auto f1 = logic::term( logic::op_not, 
                       logic::term( logic::op_prop, fm ));
          auto f2 = logic::term( logic::op_not, fm );
-         auto f3 = std::move( fm );
 
-         seq. append( disjunction{ exists(f1), exists(f2), exists(f3) } );
+         seq. append( 
+            disjunction{ exists(f1), exists(f2), exists(fm) } );
          return;
       }
 
@@ -437,14 +444,14 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
          for( size_t i = 0; i != ch. size( ); ++ i )
          {
-            auto step = ch. extr_step(i);
-            checkproof( blfs, step, seq, err );
-            ch. update_step( i, std::move( step ));
+            auto prf = ch. extr_sub(i);
+            checkproof( blfs, seq, prf, err, dependencies );
          } 
 
          return; 
       }
 
+#if 0
    case prf_expand:
       {
          auto exp = prf. view_expand( ); 

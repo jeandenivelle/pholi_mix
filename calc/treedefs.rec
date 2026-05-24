@@ -4,18 +4,18 @@
 
 %define proofterm ( prf_nop ) 
 
+%option nop { prf_nop } => 
+
 %option cut { prf_cut } => fm : logic::term
 
-%option chain { prf_chain } => [ step : proofterm ] 
-%option nop { prf_nop } => 
+%option chain { prf_chain } => [ sub : proofterm ] 
 
 %option flatten { prf_flatten } => ind : ssize_t 
 
-%option copy { prf_copy } => segname : std::string, ind : ssize_t
 %option hide { prf_hide } => ind : ssize_t
 
 %option orrepl { prf_orrepl } => 
-   ind : ssize_t, alt : size_t, [ sub : proofterm ] 
+    disj : label, alt : size_t, [ sub : proofterm ] 
 
 %option existsrepl { prf_existsrepl } => 
    ind : ssize_t, eigen : std::vector< std::string > , [ sub : proofterm ]

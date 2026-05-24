@@ -462,7 +462,15 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       if( bl. has_value( ))
       {
          auto prf = proofterm( prf_fake, "FF"_unchecked );
-         prf = chain( { prf, proofterm( prf_cut, "goal"_unchecked ) } );
+         prf = chain( 
+         { prf, 
+           proofterm( prf_cut, "goal"_unchecked ),
+           proofterm( prf_orrepl, label( "form1" ), 0,
+           {
+              
+
+           }), 
+         });
          prf = replace_debruijn( std::move( prf )); 
          checkproof( blfs, err, bl. value( ), prf ); 
 #if 0

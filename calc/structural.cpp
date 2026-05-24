@@ -118,6 +118,23 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
    switch( prf. sel( ))
    {
 
+   case prf_cut:
+      {
+         auto ct = prf. view_cut( );
+         ct. update_fm( replace_debruijn( db, ct. extr_fm( )) );
+         return prf; 
+      }
+
+   case prf_chain:
+      {
+         auto ch = prf. view_chain( );
+         for( size_t i = 0; i != ch. size( ); ++ i )
+         {
+            ch. update_sub( i, replace_debruijn( db, ch. extr_sub(i)) );
+         }
+         return prf; 
+      }
+
    case prf_fake: 
       {
          auto fk = prf. view_fake( );
