@@ -13,7 +13,18 @@
 
 namespace calc
 {
-   void printbar( std::ostream& out );
+
+   struct bar
+   {
+      size_t len;
+      bar( size_t len = 70 )
+         : len( len )
+      { }
+   };
+
+   std::ostream& operator << ( std::ostream& out, bar b );
+
+   // Will be deleted soon:
 
    template< typename T > 
    bool istrivial( const cnf<T> & c )
@@ -36,50 +47,48 @@ namespace calc
                     const std::vector< logic::type > & tps );
       // True if blf (as theorem) is applicable on tps.
 
-   // Replace fm. at( pos ) by becomes:
 
-   template< typename T >
-   disjunction<T> replace( const disjunction<T> & fm, 
-                           size_t pos, const disjunction<T> & becomes )
+   // A few nice subsumption functions:
+
+   bool subsumes( const logic::term& tm1, const logic::term& tm2 );
+      // For the moment just equality.
+
+   template< typename F > 
+   bool subsumes( const exists<F> & ex1, const exists<F> & ex2 )
    {
-      disjunction<T> res; 
-      for( size_t i = 0; i != fm. size( ); ++ i )
+      if( ex1. vars. size( ) != ex2. vars. size( ))
+         return false;
+
+      for( size_t i = 0; i != ex1. vars. size( ); ++ i )
       {
-         if( i != pos )
-            res. append( fm. at(i)); 
-         else
-         {
-            for( const auto& d : becomes )
-               res. append(d);
-         }
+         if( !equal( ex1. vars. at(i). tp, ex2. vars. at(i). tp ))
+            return false; 
       }
-      return res;
+
+      return subsumes( ex1. body, ex2. body );
    }
 
-   template< typename T, bool implies( const T&, const T& ) >
-   bool subsumes( const T& t, disjunction<T> & disj )
+   template< typename F > 
+   bool subsumes( const F& lit, const disjunction<F> & disj )
    {
       for( const auto& d : disj )
       {
-         if( implies( t, d ))
+         if( subsumes( lit, d ))
             return true;
       }
       return false;
    }
 
-   // This simple function remains a problem. What can we have?
-   // What do we want?
-
-   template< typename T, bool implies( const T&, const T& ) > 
-   disjunction<T> without_subsuming( const disjunction<T> & disj ) 
+   template< typename F >
+   bool 
+   subsumes( const disjunction<F> & disj1, const disjunction<F> & disj2 )
    {
-      disjunction<T> res;
-      for( const auto& d : disj )
+      for( const auto& lit : disj1 )
       {
-         if( !subsumes< T, implies > ( d, res ))
-            res. append(d);
+         if( !subsumes( lit, disj2 ))
+            return false;
       }
-      return res; 
+      return true;
    }
 
    void checkproof( const logic::beliefstate& blfs, sequent& seq, 

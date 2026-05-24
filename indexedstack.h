@@ -1,6 +1,8 @@
 
 // Written by Hans de Nivelle, Oct 2023.
 // Added hash and equal_to parameters in Sept 2024.
+// Replaced iterators by indices on 2026.05.24. 
+// Use of iterators was ridiculous because they are not stable. 
 
 #ifndef INDEXEDSTACK_
 #define INDEXEDSTACK_
@@ -19,31 +21,22 @@ template< typename K, typename V,
 class indexedstack
 {
    std::unordered_map< K, std::vector< size_t >, H, E > index;
-   std::vector<std::pair<K,V>> stack; 
+   std::vector< std::pair<K,V> > stack; 
 
 public:
    indexedstack( ) noexcept = default;
-
-   using iterator = typename std::vector< std::pair<K,V>> :: iterator; 
-   using const_iterator = typename std::vector<std::pair<K,V>> :: const_iterator;
-
-   iterator begin( ) { return stack. begin( ); }
-   iterator end( ) { return stack. end( ); }
-
-   const_iterator begin( ) const { return stack. begin( ); }
-   const_iterator end( ) const { return stack. end( ); }
-
-   const_iterator cbegin( ) const { return stack. cbegin( ); }
-   const_iterator cend( ) const { return stack. cend( ); }
+   indexedstack( indexedstack&& ) noexcept = default;
+   indexedstack& operator = ( indexedstack&& ) noexcept = default;
 
    size_t size( ) const { return stack. size( ); }
    bool empty( ) const { return stack. empty( ); }
 
-   void push( const K& k, const V& v )
+   size_t push( const K& k, const V& v )
    {
       size_t s = stack. size( );
       stack. push_back( std::pair( k, v ));
       index[k]. push_back(s);
+      return s;
    }
 
    void pop( ) 
@@ -61,23 +54,26 @@ public:
          pop( );
    }
 
-   iterator find( const K& k )
+   size_t find( const K& k )
    {
       auto p = index. find(k);
       if( p != index. end( ))
-         return stack. begin( ) + ( p -> second. back( ));
+         return p -> second. back( );
       else 
-         return stack. end( );
+         return stack. size( );
    }
 
-   const_iterator find( const K& k ) const
-   {
-      auto p = index. find(k);
-      if( p != index. end( ))
-         return stack. begin( ) + ( p -> second. back( ));
-      else
-         return stack. end( );
-   }
+   const std::pair<K,V> & at( size_t i ) const 
+      { return stack. at(i); }
+
+   std::pair<K,V> & at( size_t i ) 
+      { return stack. at(i); }
+
+   const std::pair<K,V> & back( ) const
+      { return stack. back( ); }
+
+   std::pair<K,V> & back( ) 
+      { return stack. back( ); }
 
    void print( std::ostream& out ) const
    requires requires( const K k, const V v, std::ostream out ) 

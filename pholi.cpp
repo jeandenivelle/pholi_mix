@@ -85,18 +85,6 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
-   calc::label lab1 = "someform"; 
-   std::cout << ( lab1 ++ ) << "\n";
-   std::cout << ( lab1 ++ ) << "\n";
-   std::cout << lab1 << "\n";
-
-   calc::label lab2 = "someform";
-   std::cout << ( lab2 ++ ) << "\n";
-   std::cout << lab2 << "\n";
-  
-   std::cout << ( lab1 == lab2 ) << " " << ( lab1 != lab2 ) << "\n";
-   std::cout << ( lab1 <= lab2 ) << " " << ( lab1 >= lab2 ) << "\n";
- 
    tests::saturate( );
 
    errorstack err;

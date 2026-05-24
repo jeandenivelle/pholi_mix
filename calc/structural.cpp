@@ -135,12 +135,26 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
          return prf; 
       }
 
+   case prf_orrepl:
+      {
+         auto repl = prf. view_orrepl( );
+         for( size_t i = 0; i != repl. size( ); ++ i )
+         {
+            repl. update_sub( i, replace_debruijn( db, repl. extr_sub(i)) );
+         }
+         return prf;
+      }
+
    case prf_fake: 
       {
          auto fk = prf. view_fake( );
          fk. update_goal( replace_debruijn( db, fk. extr_goal( )) );
          return prf;  
       }
+
+   case prf_show:
+      return prf; 
+
    }
    std::cout << prf. sel( ) << "\n";
    throw std::logic_error( "unknown selector in replace_debruijn" );

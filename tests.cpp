@@ -467,8 +467,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
            proofterm( prf_cut, "goal"_unchecked ),
            proofterm( prf_orrepl, label( "form1" ), 0,
            {
-              
-
+              proofterm( prf_show, "this is the point" ) 
            }), 
          });
          prf = replace_debruijn( std::move( prf )); 

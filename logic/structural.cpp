@@ -307,9 +307,9 @@ logic::replace_debruijn( indexedstack< std::string, size_t > & db, term t )
          if( id. size( ) != 1 )
             return t;
  
-         auto p = db. find( id. at(0));  
-         if( p != db. end( )) 
-            return term( op_debruijn, db. size( ) - ( p -> second ) - 1 );
+         size_t i = db. find( id. at(0));  
+         if( i != db. size( )) 
+            return term( op_debruijn, db. size( ) - db. at(i). second - 1 );
 
          return t;
       }

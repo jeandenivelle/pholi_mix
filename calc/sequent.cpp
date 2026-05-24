@@ -45,13 +45,6 @@ void calc::sequent::append( dnf< logic::term > d )
    stack. push( nextlabel ++, seqform( std::move(d), ctxt. size( )));
 }
 
-bool
-calc::sequent::hasindex( ssize_t ind ) const
-{
-   ssize_t ss = stack. size( );
-   return ind >= -ss && ind < ss;
-}
-
 #if 0
 const calc::sequent::seqform& calc::sequent::at( ssize_t ind ) const 
 {
@@ -80,43 +73,39 @@ calc::sequent::maketrivial( ssize_t ind )
    stack. at(k). hidden = true;
 }
 
-void calc::sequent::hide( ssize_t ind ) 
-{
-   size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
-      // This is the real index in stack.
-
-   if( !stack[k]. hidden )
-   {
-      stack[k]. hidden = true;
-      if( levels. size( ) > 0 )
-         levels. back( ). hidden. push_back(k); 
-   }
-}
 #endif
 
-#if 0
+void calc::sequent::hide( size_t ind ) 
+{
+   if( !stack. at( ind ). second. hidden )
+   {
+      stack. at( ind ). second. hidden = true;
+      if( levels. size( ) > 0 )
+         levels. back( ). hidden. push_back( ind ); 
+   }
+}
+
 void calc::sequent::poplevel( )
 {
-   if( stack. back( ). ctxtsize != ctxt. size( ))
+   if( levels. empty( ))
+      throw std::logic_error( "poplevel( ): there is no level" );
+ 
+   if( levels. back( ). ctxtsize != ctxt. size( ))
       throw std::logic_error( "poplevel( ): context not restored" );
 
    for( auto h : levels. back( ). hidden )
-      stack[h]. hidden = false; 
+      stack. at(h). second. hidden = false; 
   
-   while( stack. size( ) > levels. back( ). stacksize )
-      stack. pop_back( ); 
+   stack. restore( levels. back( ). stacksize );
 
    levels. pop_back( );  
 }
-#endif
 
-#if 0
-size_t calc::sequent::liftdist( ssize_t ind ) const
+
+size_t calc::sequent::liftdist( size_t ind ) const
 {
-   size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
-   return ctxt. size( ) - stack[k]. ctxtsize; 
+   return ctxt. size( ) - stack. at( ind ). second. ctxtsize; 
 }
-#endif
 
 #if 0
 
@@ -156,15 +145,15 @@ void calc::sequent::ugly( std::ostream& out ) const
    out << "\n";
 
    out << "Stack:\n";
-   for( const auto& f : stack ) 
+   for( size_t i = 0; i != stack. size( ); ++ i )
    {
-      out << "   " << f. first << " : " << f. second << "\n";
+      out << "   " << stack. at(i). first;
+      out << " : " << stack. at(i). second << "\n";
    }
    out << "\n";
 }
 
 
-#if 0
 void 
 calc::sequent::pretty( pretty_printer& out ) const
 {
@@ -174,7 +163,7 @@ calc::sequent::pretty( pretty_printer& out ) const
 
    for( size_t ind = 0; ind != stack. size( ); ++ ind )
    { 
-      while( db < stack[ ind ]. ctxtsize )
+      while( db < stack. at( ind ). second. ctxtsize )
       {
          size_t ind = ctxt. size( ) - db - 1;
          out << "   " << out. names. extend( ctxt. getname( ind ));
@@ -190,10 +179,10 @@ calc::sequent::pretty( pretty_printer& out ) const
          ++ db;
       }
 
-      out << "      " << ind << " : ";
-      stack[ ind ]. print( out ); 
+      out << "      " << stack. at( ind ). first;
+      out << "   : ";
+      stack. at( ind ). second. print( out ); 
       out << '\n';
    }
 }
 
-#endif

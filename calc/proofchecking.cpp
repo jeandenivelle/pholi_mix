@@ -21,14 +21,21 @@
 
 #include "logic/termoperators.h"
 
-void calc::printbar( std::ostream& out ) 
+std::ostream& calc::operator << ( std::ostream& out, bar b ) 
 {
-   for( short unsigned int i = 0; i < 70; ++ i )
+   for( size_t i = 0; i != b. len; ++ i )
       out << '-';
+   return out;
+}
+
+bool calc::subsumes( const logic::term& tm1, const logic::term& tm2 )
+{
+   return equal( tm1, tm2 );
 }
 
 namespace
 {
+
    template< typename F > F lift( F f, size_t dist )
    {
       // std::cout << "lifting " << f << " over distance " << dist << "\n";
@@ -608,40 +615,49 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return;
       }
 
+#endif
+
    case prf_orrepl:
       {
          auto repl = prf. view_orrepl( );
-         ssize_t ind = repl. ind( );
-         size_t alt = repl. alt( );
 
-         if( !seq. hasindex( ind ))
+         size_t ind = seq. find( repl. disj( ));
+         if( ind == seq. stack. size( ))
          {
-            throw std::logic_error( "orrepl: wrong index" );
-         } 
-
-         if( !seq. at( ind ). is_dnf( ))
-         {
-            throw std::logic_error( "orrepl: formula is not DNF" );
+            errorstack::builder bld;
+            bld << "orrepl: Unknown label for disjunction " << repl. disj( );
+            err. push( std::move( bld ));
+            return; 
          }
 
-         if( alt >= seq. at( ind ). get_dnf( ). size( ))
+         if( !seq. formula( ind ). is_dnf( ))
+         { 
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs ); 
+            prnt << "orrepl: Formula not disjunction " << seq. formula( ind );
+            err. push( std::move( bld ));
+            return;
+         }
+
+         size_t alt = repl. alt( );
+         if( alt >= seq. formula( ind ). get_dnf( ). size( ))
          {
-            throw std::logic_error( "orrepl: alternative does not exist" ); 
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs ); 
+            prnt << "orrepl: Alternative does not exist "; seq. formula( ind );
+            prnt << " ( " << alt << " )";
+            err. push( std::move( bld ));
+            return;
          }
 
          // Now we are certain that the rule can be applied.
 
          // Take the disjunction, and lift it:
 
-         auto disj = seq. at( ind ). get_dnf( );
+         auto disj = seq. formula( ind ). get_dnf( );
          disj = lift( std::move( disj ), seq. liftdist( ind ));
-         std::cout << "disjunction = " << disj << "\n";
+         std::cout << "lifted disjunction = " << disj << "\n";
 
-         if( disj. size( ) == 1 )
-            std::cout << "orrepl is redundant\n";
-
-         seq. hide( ind );  // It will be replaced.
-  
          auto chosen = std::move( disj. at( alt ));
          std::cout << "chosen: " << chosen << "\n"; 
 
@@ -650,35 +666,62 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
          seq. append( disjunction( { std::move( chosen ) } ));
 
+         seq. hide( ind );
+            // We can hide the parent disjunction, since it is 
+            // subsumed by chosen.
+
          for( size_t i = 0; i != repl. size( ); ++ i )
          {
             auto prf = repl. extr_sub(i);
-            checkproof( blfs, prf, seq, err ); 
+            checkproof( blfs, seq, prf, err, dependencies ); 
             repl. update_sub( i, std::move( prf )); 
          }
-
-         seq. ugly( std::cout );
 
          if( lev + 1 != seq. nrlevels( ))
             throw std::logic_error( "levels are not right" );
 
          if( seq. lastlevel( ). stacksize >= seq. stack. size( ))
-            throw std::logic_error( "there is no formula" );
+         {
+            errorstack::builder bld;
+            bld << "disjunction elimination has no result"; 
+            err. push( std::move( bld ));
+            return; 
+         }
 
-         if( !seq. at( -1 ). is_dnf( ))
-            throw std::logic_error( "last formula not DNF" );
+         if( !seq. back( ). is_dnf( ))
+         {
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs );
+            prnt << "orrepl: Last formula not disjunction " << seq. back( );
+            err. push( std::move( bld ));
+            return;
+         }
 
-         std::cout << seq. lastlevel( ). stacksize << "\n";
+         decltype( disj ) result;
+         std::cout << disj << "\n";
+         for( size_t i = 0; i != disj. size( ); ++ i )
+         {
+            if( i != alt ) 
+               result. append( disj. at(i));
+         }
 
-         disj = replace( std::move( disj ), alt, seq. at( -1 ). get_dnf( )); 
-         std::cout << "replaced disj = " << disj << "\n";
+         for( auto& lit : seq. back( ). get_dnf( ) ) 
+         {
+            if( !subsumes( lit, result ))
+               result. append( std::move( lit ));
+         }
+
+         std::cout << "result = " << result << "\n";
          seq. poplevel( ); 
-         seq. append( std::move( disj ));
-         seq. ugly( std::cout );  
 
+         if( subsumes( result, seq. formula( ind ). get_dnf( )) )
+            seq. hide( ind ); 
+
+         seq. append( std::move( result ));
+         seq. ugly( std::cout );  
          return;
       }
-
+#if 0
    case prf_deflocal: 
       {
          auto def = prf. view_deflocal( );
@@ -979,18 +1022,18 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return;   // Truly nothing was done. 
       }
 
+#endif
    case prf_show:
       {
          auto show = prf. view_show( ); 
-         printbar( std::cout );
-         std::cout << "\n"; 
 
-         std::cout << "proof state " << show. comment( ) << ":\n";
          auto out = pretty_printer( std::cout, blfs );
+         out << bar( 75 ) << "\n";
+         out << "proof state " << show. comment( ) << ":\n";
          seq. pretty( out );
+         out << bar( 75 ) << "\n";
          return;
       } 
-#endif
    }
 
    std::cout << prf. sel( ) << "\n";

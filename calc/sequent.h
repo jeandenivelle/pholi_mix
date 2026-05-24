@@ -75,7 +75,7 @@ namespace calc
             // Sizes of context and stack.
 
          std::vector< size_t > hidden;
-            // Indices of formulas that are hidden by us.
+            // Formulas that are hidden by us.
  
          level( size_t ctxtsize, size_t stacksize )
             : ctxtsize( ctxtsize ),
@@ -99,11 +99,18 @@ namespace calc
 
       void append( dnf< logic::term > d );
      
-      bool hasindex( ssize_t ind ) const; 
-      const seqform& at( ssize_t ind ) const; 
-      seqform& at( ssize_t ind );
-         // We use Python style circular indexing.
-         // In the future, we will need a separate class for this. 
+      size_t find( const label& lab ) 
+         { return stack. find( lab ); }
+            // Returns stack. size( ) if not found. 
+ 
+      const seqform& formula( size_t ind ) const
+         { return stack. at( ind ). second; } 
+      seqform& at( size_t ind )
+         { return stack. at( ind ). second; } 
+
+      const seqform& back( ) const 
+         { return stack. back( ). second; }
+
       void maketrivial( ssize_t ind );
          // This is different from hiding, because it is permanent.
 
@@ -122,12 +129,12 @@ namespace calc
 
       size_t nrlevels( ) const { return levels. size( ); }
 
-      void hide( ssize_t ind );
+      void hide( size_t );
          // If we have a choice level, we register the hiding,
          // so that it can be undone. 
 
-      size_t liftdist( ssize_t ind ) const;
-         // The distance over which the formula at ind must be lifted
+      size_t liftdist( size_t ) const;
+         // The distance over which the formula at it must be lifted
          // in order to put it at the end of the context. 
 
    };
