@@ -498,6 +498,13 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
                  {
                     proofterm( prf_expand, label( "form6" ), identifier( ) + "stricton", 0 ),
                     proofterm( prf_normalize, label( "form7" )),
+                    proofterm( prf_flatten, label( "form8" )),
+                    proofterm( prf_existsrepl, label( "form9" ), { "x" },
+                    {
+                       proofterm( prf_import, identifier( ) + "gen_prop",
+                                  { Nat, logic::type( logic::type_obj ) } ), 
+                       proofterm( prf_show, "tiefer" )
+                    }),
                     proofterm( prf_show, "inside" )
                  }),
                  proofterm( prf_show, "AA" ) 
