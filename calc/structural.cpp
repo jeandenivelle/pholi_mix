@@ -135,12 +135,33 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
          return prf; 
       }
 
+   case prf_flatten:
+      return prf;
+
    case prf_orrepl:
       {
          auto repl = prf. view_orrepl( );
          for( size_t i = 0; i != repl. size( ); ++ i )
          {
             repl. update_sub( i, replace_debruijn( db, repl. extr_sub(i)) );
+         }
+         return prf;
+      }
+
+   case prf_expand:
+      {
+         auto exp = prf. view_expand( );
+         const auto& id = exp. ident( );
+         if( id. size( ) == 1 )
+         {
+            auto s = db. find( id. at(0)); 
+            if( s != db. size( ))
+            {
+               return proofterm( prf_expandlocal, 
+                                 exp. fm( ), 
+                                 db. size( ) - db. at(s). second - 1,
+                                 exp. occ( ));
+            }
          }
          return prf;
       }

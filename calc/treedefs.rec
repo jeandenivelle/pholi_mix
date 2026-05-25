@@ -10,7 +10,7 @@
 
 %option chain { prf_chain } => [ sub : proofterm ] 
 
-%option flatten { prf_flatten } => ind : ssize_t 
+%option flatten { prf_flatten } => fm : label
 
 %option hide { prf_hide } => ind : ssize_t
 
@@ -24,10 +24,10 @@
       // orrepl with existsrepl. I might do this in the future. 
 
 %option expand { prf_expand } => 
-   ind : ssize_t, ident : identifier, occ : size_t 
+   fm : label, ident : identifier, occ : size_t 
 
 %option expandlocal { prf_expandlocal } => 
-   ind : ssize_t, name : std::string, occ : size_t
+   fm : label, var : size_t, occ : size_t
 
 %option normalize { prf_normalize } => ind : ssize_t
 

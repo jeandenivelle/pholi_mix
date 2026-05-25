@@ -13,12 +13,7 @@ Problems on April 11th 2026:
   The at( ) methods should use size_t. 
   Once we have a separate class, one can look into even nicer 
   types of indexing, like for example 'last universal formula'.
-  One could also start using the attached strings.  
-
-- Hiding the second last formula of a sequent, should permanetly delete it,
-  because it will be never unhidden again. 
-  I expect that this will make sequents a lot shorter. 
-  One could also consider using map instead of vector.
+  I fixed this with a separate label class on 2026.05.23.
 
 - Currently, local definitions are stored separately in a sequent.
   This is a bad design.
@@ -29,13 +24,16 @@ Problems on April 11th 2026:
   The only problems is that it should be done in the context itself. 
   (fixed this, 2026.05.21)
 
-- Flattening needs fixing. It should try both DNF and CNF,
+- Flattening has a problem. It is supposed to try both DNF and CNF,
   whichever succeeds, but it doesn't always notice when it succeeds.
   It checks that the result is not trivial (No quantifier, singleton
   propositional operator), but non-triviality does not detect all succesful 
-  simplifications. For example,
-  ( A & TRUE ) becomes A, which is still trivial.
-  One should use weight for detecting success.
+  simplifications. For example, 
+  ( ( A & B ) | FALSE ) gets simplified (by DNF) into ( A & B ),
+  which is still trivial. 
+  Another one would be ( A | B ) & PROP( t = t ). 
+  The CNF would be ( A | B ) which is simpler but still trivial. 
+  The conclusion is that one should use weights. 
 
 - The theorem lookup mechanism used by import, should be moved to
   logic::structural. I think that I fixed this on

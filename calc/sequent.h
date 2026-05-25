@@ -65,7 +65,7 @@ namespace calc
  
       logic::context ctxt;
 
-      label nextlabel = "form";
+      label nextlabel = label( "form" );
       indexedstack< label, seqform, label::hash, label::equal_to > stack;
 
       struct level
@@ -102,6 +102,7 @@ namespace calc
       size_t find( const label& lab ) 
          { return stack. find( lab ); }
             // Returns stack. size( ) if not found. 
+            // Otherwise a valid index into stack. 
  
       const seqform& formula( size_t ind ) const
          { return stack. at( ind ). second; } 

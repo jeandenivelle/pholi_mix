@@ -99,48 +99,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
    {
 
 #if 0
-   case prf_flatten: 
-      {
-         auto flat = prf. view_flatten( ); 
-         if( !seq. hasindex( flat. ind( )))
-            throw std::logic_error( "flatten: index out of range" );
-
-         // If it is UNF, we know that it is non-trivial. 
-         // Hence, we can only flatten into UNF.
-
-         if( seq. at( flat. ind( )). is_dnf( ))
-         {
-            auto f = lift( seq. at( flat. ind( )). get_dnf( ), 
-                           seq. liftdist( flat. ind( )));
-
-            std::cout << "f = " << f << "\n"; 
-            // I don't trust this part. What about A & ( true )?
-            // It will simplify into A, which is still trivial.
-            // I think one must register the complexity.
-
-            if( istrivial(f))
-            {
-               auto cnf = conjunction( { forall( f. at(0). body ) } );
-               cnf = flatten( std::move( cnf )); 
-               if( !istrivial( cnf ))
-               {
-                  seq. hide( flat. ind( )); 
-                  seq. append( std::move( cnf ));
-                  return;
-               } 
-            }
-            f = flatten( std::move(f) );
-            
-            seq. hide( flat. ind( ));
-            seq. append( std::move(f)); 
-            return;
-         }
-
-         if( seq. at( flat. ind( )). is_unf( ))
-            throw std::logic_error( "this case is not handled" );
-
-         throw std::logic_error( "unreachable" );
-      }
 
 #if 0
 #if 0
@@ -458,6 +416,61 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return; 
       }
 
+   case prf_flatten: 
+      {
+         auto flat = prf. view_flatten( ); 
+
+         size_t ind = seq. find( flat. fm( ));
+         if( ind == seq. stack. size( ))
+         {
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs );
+            seq. pretty( prnt );
+            prnt << "flatten: unknown formula label " << flat. fm( );
+            err. push( std::move( bld ));
+            return;  
+         }
+
+#if 1
+         // If it is UNF, we know that it is non-trivial. 
+         // Hence, we can only flatten into UNF.
+
+         if( seq. at( ind ). is_dnf( ))
+         {
+            auto f = lift( seq. at( ind ). get_dnf( ), 
+                           seq. liftdist( ind ));
+
+            std::cout << "f = " << f << "\n"; 
+            // I don't trust this part. What about A & ( true )?
+            // It will simplify into A, which is still trivial.
+            // I think one must register the complexity.
+
+            if( istrivial(f))
+            {
+               auto cnf = conjunction( { forall( f. at(0). body ) } );
+               cnf = flatten( std::move( cnf )); 
+               if( !istrivial( cnf ))
+               {
+                  seq. hide( ind ); 
+                  // seq. append( std::move( cnf ));
+                  return;
+               } 
+            }
+
+            f = flatten( std::move(f) );
+            
+            seq. hide( ind );
+            seq. append( std::move(f)); 
+            return;
+         }
+
+         if( seq. at( ind ). is_unf( ))
+            throw std::logic_error( "this case is not handled" );
+#endif
+
+         throw std::logic_error( "unreachable" );
+      }
+
 #if 0
    case prf_expand:
       {
@@ -496,38 +509,41 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return;
       }
 
+#endif
+
    case prf_expandlocal:
       {
          auto exp = prf. view_expandlocal( );
-         auto ind = exp. ind( );
-         auto name = exp. name( );
+         auto var = exp. var( );
+         std::cout << "var = " << var << "\n";
 
-         // We have an identifier, but we need a De Bruijn index:
-
-         size_t var = seq. ctxt. size( );
-         {  
-            auto p = seq. db. find( name );
-            if( p == seq. db. end( ))
-            {
-               throw std::logic_error( "did not find the variable" );
-            }
-
-            var = seq. ctxt. size( ) - ( p -> second ) - 1;
-         }
          if( !seq. ctxt. hasdefinition( var ))
          {
-            seq. ugly( std::cout );
-            std::cout << name << "\n";
-            std::cout << var << "\n"; 
-            throw std::logic_error( "variable does not have a definition" );
+            errorstack::builder bld; 
+            auto prnt = pretty_printer( bld, blfs );
+            prnt << "expandlocal: variable " << var;
+            prnt << " does not have a definition"; 
+            err. push( std::move( bld ));
+            return;
          }
 
          auto def = localexpander( var,  
                                    seq. ctxt. getdefinition( var ), 
                                    prf. view_expandlocal( ). occ( ));
-       
-         if( !seq. hasindex( ind ))
-            throw std::logic_error( "expandlocal: index out of range" );
+    
+         std::cout << def << "\n";
+  
+         auto ind = seq. find( exp. fm( ));
+ 
+         if( ind == seq. stack. size( )) 
+         {
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs );
+            // seq. pretty( prnt );
+            prnt << "unknown formula label " << exp. fm( ); 
+            err. push( std::move( bld )); 
+            return; 
+         }
 
          // Now we need to look at the type of formula at hand:
 
@@ -543,18 +559,15 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
          if( seq. at( ind ). is_unf( ))
          {
-
+            throw std::logic_error( "unf: unfinished" ); 
 
          }
-#if 0
-         seq. back( ). at( exp. ind( )) =
-            outermost( def, std::move( seq. back( ). at( exp. ind( ))), 0 );
-#endif
+
          seq. ugly( std::cout );
-         throw std::logic_error( "not finished epxand local" );
-         return;
+         throw std::logic_error( "should be unreachable" );
       }
 
+#if 0
    case prf_normalize:
       { 
          auto ind = prf. view_normalize( ). ind( );

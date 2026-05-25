@@ -17,7 +17,7 @@ namespace calc
       label( ) = delete;
       label( std::string_view str );
 
-      label( const char* c ) 
+      explicit label( const char* c ) 
          : label( std::string_view(c))
       { }
 

@@ -154,6 +154,25 @@ void tests::flatten( )
    auto O = type( type_obj );
    auto T = type( type_form );
 
+   {
+      auto fm = ( "aaaa"_unchecked && "bbbb"_unchecked )
+                          || logic::op_false;
+      fm = ( "aaaa"_unchecked || "bbbb"_unchecked ) && prop( 1_db == 1_db );
+
+      auto dnf = calc::disjunction{ calc::exists( {}, fm ) };
+      auto cnf = calc::conjunction{ calc::forall( {}, fm ) };
+      std::cout << dnf << "\n";
+      std::cout << cnf << "\n";
+
+      dnf = flatten( std::move( dnf ));
+      cnf = flatten( std::move( cnf )); 
+      std::cout << dnf << "\n";
+      std::cout << cnf << "\n";
+      std::cout << istrivial( dnf ) << "\n";
+      std::cout << istrivial( cnf ) << "\n";
+      return; 
+   }
+
    auto N2T = type( type_func, T, { } );
 
    auto O2T = type( type_func, T, { O } );
@@ -164,15 +183,15 @@ void tests::flatten( )
    term tm =  lazy_implies( "left"_unchecked, "right"_unchecked );
    tm = term( op_exists, tm, { { "x", O }, { "y", T }} );
 
-   auto cnf_pos = calc::cnf( calc::conjunction( { calc::forall( prop( tm )) } )); 
-   auto dnf_pos = calc::dnf( calc::disjunction( { calc::exists( ! ! prop( tm )) } ));
-   auto cnf_neg = calc::cnf( calc::conjunction( { calc::forall( ! prop( tm )) } ));
-   auto dnf_neg = calc::dnf( calc::disjunction( { calc::exists( ! prop( tm )) } ));
+   auto cnf_pos = calc::conjunction( { calc::forall( prop( tm )) } ); 
+   auto dnf_pos = calc::disjunction( { calc::exists( ! ! prop( tm )) } );
+   auto cnf_neg = calc::conjunction( { calc::forall( ! prop( tm )) } );
+   auto dnf_neg = calc::disjunction( { calc::exists( ! prop( tm )) } );
 
-   std::cout << cnf_pos << "\n";
-   std::cout << dnf_pos << "\n"; 
-   std::cout << cnf_neg << "\n";
-   std::cout << dnf_neg << "\n";
+   std::cout << "pos CNF: " << cnf_pos << "\n";
+   std::cout << "pos DNF: " << dnf_pos << "\n"; 
+   std::cout << "neg CNF: " << cnf_neg << "\n";
+   std::cout << "neg DNF: " << dnf_neg << "\n";
 
    cnf_pos = flatten( std::move( cnf_pos ));
    dnf_pos = flatten( std::move( dnf_pos ));
@@ -467,7 +486,10 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
            proofterm( prf_cut, "goal"_unchecked ),
            proofterm( prf_orrepl, label( "form1" ), 0,
            {
-              proofterm( prf_show, "this is the point" ) 
+              proofterm( prf_show, "expanding" ),
+              proofterm( prf_expand, label( "form2" ), identifier( ) + "goal", 0 ), 
+              proofterm( prf_flatten, label( "form3" )),
+              proofterm( prf_show, "AA" ) 
            }), 
          });
          prf = replace_debruijn( std::move( prf )); 

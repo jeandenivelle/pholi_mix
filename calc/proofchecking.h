@@ -48,7 +48,8 @@ namespace calc
       // True if blf (as theorem) is applicable on tps.
 
 
-   // A few nice subsumption functions:
+   // A few nice subsumption functions.
+   // I think that all templates must be moved somewhere else. 
 
    bool subsumes( const logic::term& tm1, const logic::term& tm2 );
       // For the moment just equality.
