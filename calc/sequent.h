@@ -103,6 +103,8 @@ namespace calc
          { return stack. find( lab ); }
             // Returns stack. size( ) if not found. 
             // Otherwise a valid index into stack. 
+            // Currently hiding is ignored. We could refuse to find
+            // hidden formulas.
  
       const seqform& formula( size_t ind ) const
          { return stack. at( ind ). second; } 
@@ -112,8 +114,9 @@ namespace calc
       const seqform& back( ) const 
          { return stack. back( ). second; }
 
-      void maketrivial( ssize_t ind );
-         // This is different from hiding, because it is permanent.
+      void maketrivial( size_t ind );
+         // Permantently replace the formula by the truth constant.
+         // We also hide it.
 
       size_t stacksize( ) const { return stack. size( ); }
 

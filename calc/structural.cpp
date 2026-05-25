@@ -142,9 +142,22 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
       {
          auto repl = prf. view_orrepl( );
          for( size_t i = 0; i != repl. size( ); ++ i )
-         {
             repl. update_sub( i, replace_debruijn( db, repl. extr_sub(i)) );
-         }
+
+         return prf;
+      }
+
+   case prf_existsrepl:
+      {
+         auto repl = prf. view_existsrepl( );
+         size_t ss = db. size( );
+         for( size_t i = 0; i != repl. eigen( ). size( ); ++ i )
+            db. push( repl. eigen( ). at(i), db. size( ));
+
+         for( size_t i = 0; i != repl. size( ); ++ i )
+            repl. update_sub( i, replace_debruijn( db, repl. extr_sub(i)) );
+      
+         db. restore( ss ); 
          return prf;
       }
 
@@ -157,14 +170,16 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
             auto s = db. find( id. at(0)); 
             if( s != db. size( ))
             {
-               return proofterm( prf_expandlocal, 
-                                 exp. fm( ), 
+               return proofterm( prf_expandlocal, exp. fm( ), 
                                  db. size( ) - db. at(s). second - 1,
                                  exp. occ( ));
             }
          }
          return prf;
       }
+
+   case prf_normalize:
+      return prf;
 
    case prf_fake: 
       {

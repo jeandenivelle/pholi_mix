@@ -16,6 +16,8 @@
 #include "calc/proofoperators.h"
 #include "calc/saturation.h"
 #include "calc/structural.h"
+#include "calc/weights.h"
+
 
 #include "natded/eval.h"
 
@@ -168,8 +170,8 @@ void tests::flatten( )
       cnf = flatten( std::move( cnf )); 
       std::cout << dnf << "\n";
       std::cout << cnf << "\n";
-      std::cout << istrivial( dnf ) << "\n";
-      std::cout << istrivial( cnf ) << "\n";
+      std::cout << weight( dnf ) << "\n";
+      std::cout << weight( cnf ) << "\n";
       return; 
    }
 
@@ -489,7 +491,17 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
               proofterm( prf_show, "expanding" ),
               proofterm( prf_expand, label( "form2" ), identifier( ) + "goal", 0 ), 
               proofterm( prf_flatten, label( "form3" )),
-              proofterm( prf_show, "AA" ) 
+              proofterm( prf_orrepl, label( "form4" ), 0,
+              {
+                 proofterm( prf_show, "HH" ),
+                 proofterm( prf_existsrepl, label( "form5" ), { "s", "P" },
+                 {
+                    proofterm( prf_expand, label( "form6" ), identifier( ) + "stricton", 0 ),
+                    proofterm( prf_normalize, label( "form7" )),
+                    proofterm( prf_show, "inside" )
+                 }),
+                 proofterm( prf_show, "AA" ) 
+              })
            }), 
          });
          prf = replace_debruijn( std::move( prf )); 

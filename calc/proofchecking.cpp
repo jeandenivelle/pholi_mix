@@ -16,6 +16,7 @@
 #include "flatten.h"
 #include "saturation.h"
 #include "calc/structural.h"
+#include "weights.h"
 
 #include "printing.h"
 
@@ -97,8 +98,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
    switch( prf. sel( ))
    {
-
-#if 0
 
 #if 0
 #if 0
@@ -228,152 +227,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       }
 #endif 
 
-   case prf_existsrepl:
-      {
-         auto repl = prf. view_existsrepl( ); 
-         ssize_t ind = repl. ind( ); 
-
-         if( !seq. hasindex( ind ))
-            throw std::logic_error( "existsrepl: index out of range" );
-
-         if( !seq. at( ind ). is_dnf( ))
-            throw std::logic_error( "existsrepl: formula is not in DNF" );
-
-         if( seq. at( ind ). get_dnf( ). size( ) != 1 )
-         {
-            throw std::logic_error( "existsrepl: formula not a singleton" ); 
-         }
-         enf< logic::term > mainform = seq. at( ind ). get_dnf( ). at(0); 
-
-         mainform = lift( std::move( mainform ), seq. liftdist( ind ));
-
-         size_t cc = seq. ctxt. size( );
-         size_t ff = seq. stack. size( );
-         size_t ll = seq. nrlevels( );
-
-         // Assume the existentially quantified variables of alt:
-
-         for( size_t v = 0; v != mainform. vars. size( ); ++ v )
-         {
-            if( v < repl. eigen( ). size( ) && 
-                repl. eigen( ). at(v). size( ) != 0 ) 
-            {
-               seq. ctxt_assume( repl. eigen( ). at(v), mainform. vars[v]. tp );
-            }
-            else
-               seq. ctxt_assume( "_", mainform. vars[v]. tp );
-         }
-
-         seq. hide( ind );
-
-         // Assume the body of alt (without the variables):
- 
-         seq. append( disjunction( { exists( mainform. body ) } ));
-
-         // Check the subproof:
-
-         for( size_t i = 0; i != repl. size( ); ++ i )
-         {
-            auto subproof = repl. extr_sub(i);
-            checkproof( blfs, subproof, seq, err );
-            repl. update_sub( i, std::move( subproof ));
-         }
-
-         if( ll != seq. nrlevels( ))
-            throw std::logic_error( "something went wrong with the levels" );
-
-         for( size_t ind = ff; ind != seq. stack. size( ); ++ ind )
-         {
-            if( seq. at( ind ). ctxtsize != seq. ctxt. size( ))
-               throw std::logic_error( "existsrepl: wrong context size" );
-
-            // Formulas that are not DNF, we make trivial:
-
-            if( seq. at( ind ). is_dnf( ))
-            {
-               auto& dnf = seq. at( ind ). get_dnf( );
-
-               // For each disjunct separately,
-               // we determine its free variables, and
-               // add existential quantifiers for them.
-
-               for( size_t i = 0; i != dnf. size( ); ++ i )
-               {
-                  // We need construct a substitution that normalizes
-                  // the free variables in concl. body. at(i).
-
-                  // we first collect the free variables of dnf. at(i) :
-
-                  logic::debruijn_counter vars;
-                  traverse( vars, seq. at( ind ). get_dnf( ). at(i), 0 );
- 
-                  // We don't care about all free variables, only about the 
-                  // ones that we assumed just now. 
-                  // We go through our assumptions, check if they occur
-                  // in vars. We create a normalizing subsitution for those. 
-
-                  auto norm = logic::normalizer( seq. ctxt. size( ) - cc );
-
-                  for( size_t v = 0; v + cc < seq. ctxt. size( ); ++ v )
-                  {
-                     if( vars. contains(v))
-                        norm. append(v);
-                  }
- 
-                  // apply norm to the body:
-
-                  dnf. at(i) = 
-                     outermost( norm, std::move( dnf. at(i)), 0 );
-
-                  std::vector< logic::vartype > quant;
-
-                  // These are the assumptions that we are about to drop:
-
-                  for( size_t v = seq. ctxt. size( ) - cc; v -- ; )
-                  {
-                     if( vars. contains(v))
-                        quant. push_back( { seq. ctxt. getname(v),
-                                         seq. ctxt. gettype(v) } );                          
-                  }
-
-                  for( auto& q : dnf. at(i). vars )
-                     quant. push_back( std::move(q));
-
-                  dnf. at(i). vars = std::move( quant );
-               }
-            }
-            else
-            {
-               seq. maketrivial( ind );
-               seq. hide( ind );
-            }
-
-            seq. at( ind ). ctxtsize = cc;
-               // We decrease the level. 
-         }
-
-#if 0
-#if 0
-            // This was used for testing.
-
-            concl. body = disjunction( 
-               {
-                  exists( logic::forall( {{ "A", logic::type( logic::type_form ) }}, apply( 5_db, { 3_db, 4_db } ))), 
-                  exists( {{ "X", logic::type( logic::type_form ) },
-                           { "Y", logic::type( logic::type_obj ) }},
-                          apply( "f"_unchecked, { 0_db, 1_db, 2_db, 5_db, 6_db, 7_db } ))
-               } );
-
-            std::cout << "concl = " << concl << "\n";
-            std::cout << "ss = " << ss << "\n";
-#endif
-#endif
-         seq. ctxt_restore( cc );
-         return;
-      }
-
-#endif
-
    case prf_cut:
       {
          auto cut = prf. view_cut( );
@@ -431,20 +284,39 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
             return;  
          }
 
-#if 1
          // If it is UNF, we know that it is non-trivial. 
          // Hence, we can only flatten into UNF.
 
          if( seq. at( ind ). is_dnf( ))
          {
-            auto f = lift( seq. at( ind ). get_dnf( ), 
-                           seq. liftdist( ind ));
+            auto f1 = lift( seq. at( ind ). get_dnf( ), 
+                            seq. liftdist( ind ));
 
-            std::cout << "f = " << f << "\n"; 
-            // I don't trust this part. What about A & ( true )?
+            auto f2 = flatten(f1);
+
+            if( !subsumes( f1, f2 ))
+            {
+               // Note that this is problematic. It relies on 
+               // weakness of subsumption. There should be some kind of 
+               // weight function based on offending operators.
+               // Equality will probably also work. 
+
+               seq. hide( ind );  
+               seq. append( std::move(f2) ); 
+               return;
+            }
+
+            // If f1 is trivial, it might be possible to tranform into
+            // CNF.
+
+            if( f1. size( ) == 1 && 
+                f1. at(0). vars. size( ) == 0 )
+            {
+               std::cout << "is trivial, try CNF\n"; 
+#if 0
             // It will simplify into A, which is still trivial.
             // I think one must register the complexity.
-
+#if 0
             if( istrivial(f))
             {
                auto cnf = conjunction( { forall( f. at(0). body ) } );
@@ -455,138 +327,25 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
                   // seq. append( std::move( cnf ));
                   return;
                } 
+#endif
+#endif 
             }
-
+#if 0
             f = flatten( std::move(f) );
             
             seq. hide( ind );
-            seq. append( std::move(f)); 
             return;
+#endif 
          }
 
          if( seq. at( ind ). is_unf( ))
             throw std::logic_error( "this case is not handled" );
-#endif
 
          throw std::logic_error( "unreachable" );
       }
 
-#if 0
-   case prf_expand:
-      {
-         auto exp = prf. view_expand( ); 
-         ssize_t ind = exp. ind( );
-   
-         expander def( exp. ident( ), exp. occ( ), blfs, err );
-            // We are using unchecked identifier exp. ident( ).
-            // The expander will look only at exact overloads. 
-            // This guarantees type safety.
-
-         if( !seq. hasindex( ind ))
-            throw std::logic_error( "expand: index out of range" );
-
-         if( seq. at( ind ). is_unf( ))
-         {
-            std::cout << "it is a UNF\n";
-         }
-
-         if( seq. at( ind ). is_dnf( ))
-         {
-            auto res = seq. at( ind ). get_dnf( );
-            res = lift( std::move( res ), seq. liftdist( ind )); 
-            res = outermost( def, std::move( res ), 0 );
-            seq. hide( ind );
-            seq. append( res );
-            return;
-         } 
- 
-#if 0
-         seq. back( ). at( exp. ind( )) =
-            outermost( def, std::move( seq. back( ). at( exp. ind( ))), 0 );
-
-#endif
-         throw std::logic_error( "expand unfinished" );
-         return;
-      }
-
-#endif
-
-   case prf_expandlocal:
-      {
-         auto exp = prf. view_expandlocal( );
-         auto var = exp. var( );
-         std::cout << "var = " << var << "\n";
-
-         if( !seq. ctxt. hasdefinition( var ))
-         {
-            errorstack::builder bld; 
-            auto prnt = pretty_printer( bld, blfs );
-            prnt << "expandlocal: variable " << var;
-            prnt << " does not have a definition"; 
-            err. push( std::move( bld ));
-            return;
-         }
-
-         auto def = localexpander( var,  
-                                   seq. ctxt. getdefinition( var ), 
-                                   prf. view_expandlocal( ). occ( ));
-    
-         std::cout << def << "\n";
-  
-         auto ind = seq. find( exp. fm( ));
- 
-         if( ind == seq. stack. size( )) 
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs );
-            // seq. pretty( prnt );
-            prnt << "unknown formula label " << exp. fm( ); 
-            err. push( std::move( bld )); 
-            return; 
-         }
-
-         // Now we need to look at the type of formula at hand:
-
-         if( seq. at( ind ). is_dnf( )) 
-         {
-            auto d = seq. at( ind ). get_dnf( );
-            d = lift( std::move(d), seq. liftdist( ind ));
-            std::cout << "after the lift " << d << "\n";
-            seq. hide( ind );
-            seq. append( outermost( def, std::move(d), 0 ));
-            return;
-         }
-
-         if( seq. at( ind ). is_unf( ))
-         {
-            throw std::logic_error( "unf: unfinished" ); 
-
-         }
-
-         seq. ugly( std::cout );
-         throw std::logic_error( "should be unreachable" );
-      }
 
 #if 0
-   case prf_normalize:
-      { 
-         auto ind = prf. view_normalize( ). ind( );
-
-         if( !seq. hasindex( ind ))
-            throw std::logic_error( "normalize: index out of range" );
-
-         if( seq. at( ind ). is_dnf( ))
-         {
-            auto d = seq. at( ind ). get_dnf( );
-            d = lift( std::move(d), seq. liftdist( ind ));
-            seq. hide( ind );
-            seq. append( normalize( blfs, std::move(d), 0 ));
-            return;
-         }
-
-         throw std::logic_error( "normalize not finished" );
-         return;
-      }
 
 #if 0
    case prf_copy:
@@ -734,6 +493,291 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          seq. ugly( std::cout );  
          return;
       }
+
+   case prf_existsrepl:
+      {
+         auto repl = prf. view_existsrepl( ); 
+         auto ind = seq. find( repl. exists( ));
+
+         if( ind == seq. stack. size( )) 
+         {
+            errorstack::builder bld;
+            bld << "existsrepl: Unknown label for existential ";
+            bld << repl. exists( );
+            err. push( std::move( bld ));
+            return;
+         }
+
+         if( !seq. at( ind ). is_dnf( ) ||
+              seq. at( ind ). get_dnf( ). size( ) != 1 )
+         {
+            errorstack::builder bld;
+            bld << "exists: " << repl. exists( ) << " : ";
+            bld << "formula not existential";
+            err. push( std::move( bld ));
+            return;
+         }
+
+         enf< logic::term > mainform = seq. at( ind ). get_dnf( ). at(0); 
+         mainform = lift( std::move( mainform ), seq. liftdist( ind ));
+
+         size_t cc = seq. ctxt. size( );
+         size_t ff = seq. stack. size( );
+         size_t ll = seq. nrlevels( );
+
+         // Assume the existentially quantified variables of alt:
+
+         if( mainform. vars. size( ) != repl. eigen( ). size( ))
+         {
+            errorstack::builder bld;
+            bld << "exists: " << repl. exists( ) << " : ";
+            bld << "number of eigenvariables is not right: ";
+            bld << "it is " << repl. eigen( ). size( );
+            bld << ", but it must be " << mainform. vars. size( );  
+            err. push( std::move( bld ));
+            return;
+         }
+
+         for( size_t v = 0; v != mainform. vars. size( ); ++ v )
+         {
+            if( repl. eigen( ). at(v). size( ) != 0 ) 
+            {
+               seq. ctxt. assume( repl. eigen( ). at(v), 
+                                  mainform. vars[v]. tp );
+            }
+            else
+               seq. ctxt. assume( "_", mainform. vars[v]. tp );
+         }
+
+         seq. hide( ind );
+
+         // Assume the body of alt (without the variables):
+ 
+         seq. append( disjunction( { exists( mainform. body ) } ));
+
+         {
+            auto prt = pretty_printer( std::cout, blfs );
+            seq. pretty( prt );
+         }
+
+         // Check the subproof:
+
+         for( size_t i = 0; i != repl. size( ); ++ i )
+         {
+            auto subproof = repl. extr_sub(i);
+            checkproof( blfs, seq, subproof, err, dependencies );
+            repl. update_sub( i, std::move( subproof ));
+         }
+
+         if( ll != seq. nrlevels( ))
+            throw std::logic_error( "something went wrong with the levels" );
+
+         for( size_t ind = ff; ind != seq. stack. size( ); ++ ind )
+         {
+            if( seq. at( ind ). ctxtsize != seq. ctxt. size( ))
+               throw std::logic_error( "existsrepl: wrong context size" );
+
+            // Formulas that are not DNF, we make trivial:
+
+            if( seq. at( ind ). is_dnf( ))
+            {
+               auto& dnf = seq. at( ind ). get_dnf( );
+
+               // For each disjunct separately,
+               // we determine its free variables, and
+               // add existential quantifiers for them.
+
+               for( size_t i = 0; i != dnf. size( ); ++ i )
+               {
+                  // We need construct a substitution that normalizes
+                  // the free variables in concl. body. at(i).
+
+                  // we first collect the free variables of dnf. at(i) :
+
+                  logic::debruijn_counter vars;
+                  traverse( vars, seq. at( ind ). get_dnf( ). at(i), 0 );
+ 
+                  // We don't care about all free variables, only about the 
+                  // ones that we assumed just now. 
+                  // We go through our assumptions, check if they occur
+                  // in vars. We create a normalizing subsitution for those. 
+
+                  auto norm = logic::normalizer( seq. ctxt. size( ) - cc );
+
+                  for( size_t v = 0; v + cc < seq. ctxt. size( ); ++ v )
+                  {
+                     if( vars. contains(v))
+                        norm. append(v);
+                  }
+ 
+                  // apply norm to the body:
+
+                  dnf. at(i) = 
+                     outermost( norm, std::move( dnf. at(i)), 0 );
+
+                  // We collect the quantification of the variables
+                  // that are still there.
+
+                  std::vector< logic::vartype > quant;
+
+                  // These are the assumptions that we are about to drop:
+
+                  for( size_t v = seq. ctxt. size( ) - cc; v -- ; )
+                  {
+                     if( vars. contains(v))
+                        quant. push_back( { seq. ctxt. getname(v),
+                                         seq. ctxt. gettype(v) } );                          
+                  }
+
+                  for( auto& q : dnf. at(i). vars )
+                     quant. push_back( std::move(q));
+
+                  dnf. at(i). vars = std::move( quant );
+               }
+            }
+            else
+            {
+               seq. maketrivial( ind );
+               seq. hide( ind );
+            }
+
+            seq. at( ind ). ctxtsize = cc;
+               // We decrease the level. 
+         }
+
+         {
+            auto prt = pretty_printer( std::cout, blfs );
+            seq. pretty( prt );
+         }
+
+         seq. ctxt. restore( cc );
+      }
+      return;
+
+   case prf_expand:
+      {
+         auto exp = prf. view_expand( ); 
+  
+         // The expander checks if exp. ident( ) has a definition
+         // for the types with which it is used.
+ 
+         expander def( exp. ident( ), exp. occ( ), blfs, err );
+            // We are using unchecked identifier exp. ident( ).
+            // The expander will look only at exact overloads. 
+            // This guarantees type safety.
+
+         std::cout << def << "\n";
+
+         auto ind = seq. find( exp. fm( ));
+         if( ind == seq. stack. size( ))
+         {
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs );
+            // seq. pretty( prnt );
+            prnt << "expand: unknown label " << exp. fm( );
+            err. push( std::move( bld ));
+            return;
+         }
+
+         if( seq. at( ind ). is_dnf( ))
+         {
+            auto res = seq. at( ind ). get_dnf( );
+            res = lift( std::move( res ), seq. liftdist( ind )); 
+            res = outermost( def, std::move( res ), 0 );
+            seq. hide( ind );
+            seq. append( res );
+            return;
+         } 
+
+         if( seq. at( ind ). is_unf( ))
+         {
+            std::cout << "it is a UNF\n";
+         }
+
+         throw std::logic_error( "should be unreachable: expand " );
+         return;
+      }
+
+   case prf_expandlocal:
+      {
+         auto exp = prf. view_expandlocal( );
+         auto var = exp. var( );
+
+         if( !seq. ctxt. hasdefinition( var ))
+         {
+            errorstack::builder bld; 
+            auto prnt = pretty_printer( bld, blfs );
+            prnt << "expandlocal: variable " << var;
+            prnt << " does not have a definition"; 
+            err. push( std::move( bld ));
+            return;
+         }
+
+         auto def = localexpander( var,  
+                                   seq. ctxt. getdefinition( var ), 
+                                   prf. view_expandlocal( ). occ( ));
+    
+         auto ind = seq. find( exp. fm( ));
+         if( ind == seq. stack. size( )) 
+         {
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs );
+            // seq. pretty( prnt );
+            prnt << "unknown formula label " << exp. fm( ); 
+            err. push( std::move( bld )); 
+            return; 
+         }
+
+         // Now we need to look at the type of formula at hand:
+
+         if( seq. at( ind ). is_dnf( )) 
+         {
+            auto d = seq. at( ind ). get_dnf( );
+            d = lift( std::move(d), seq. liftdist( ind ));
+            std::cout << "after the lift " << d << "\n";
+            seq. hide( ind );
+            seq. append( outermost( def, std::move(d), 0 ));
+            return;
+         }
+
+         if( seq. at( ind ). is_unf( ))
+         {
+            throw std::logic_error( "unf: unfinished" ); 
+
+         }
+
+         seq. ugly( std::cout );
+         throw std::logic_error( "should be unreachable" );
+      }
+
+   case prf_normalize:
+      { 
+         auto norm = prf. view_normalize( );
+
+         size_t ind = seq. find( norm. fm( ));
+         if( ind == seq. stack. size( ))
+         {
+            errorstack::builder bld;
+            auto prnt = pretty_printer( bld, blfs );
+            seq. pretty( prnt );
+            prnt << "normalize: unknown formula label " << norm. fm( );
+            err. push( std::move( bld ));
+            return;
+         }
+
+         if( seq. at( ind ). is_dnf( ))
+         {
+            auto d = seq. at( ind ). get_dnf( );
+            d = lift( std::move(d), seq. liftdist( ind ));
+            seq. hide( ind );
+            seq. append( normalize( blfs, std::move(d), 0 ));
+            return;
+         }
+
+         throw std::logic_error( "normalize not finished" );
+         return;
+      }
+
 #if 0
    case prf_deflocal: 
       {

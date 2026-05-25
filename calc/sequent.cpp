@@ -45,35 +45,18 @@ void calc::sequent::append( dnf< logic::term > d )
    stack. push( nextlabel ++, seqform( std::move(d), ctxt. size( )));
 }
 
-#if 0
-const calc::sequent::seqform& calc::sequent::at( ssize_t ind ) const 
-{
-   if( !hasindex( ind ))
-      throw std::range_error( "sequent: index out of range" );
-  
-   auto it = ind >= 0 ? ( stack. begin( ) + ind ) : ( stack. end( ) + ind );
-   return *it;
-}
-
-calc::sequent::seqform& calc::sequent::at( ssize_t ind ) 
-{     
-   if( !hasindex( ind ))
-      throw std::range_error( "sequent: index out of range" ); 
- 
-   auto it = ind >= 0 ? ( stack. begin( ) + ind ) : ( stack. end( ) + ind );
-   return *it;
-}           
 
 void
-calc::sequent::maketrivial( ssize_t ind )
+calc::sequent::maketrivial( size_t ind )
 {
-   size_t k = ( ind >= 0 ) ? ind : stack. size( ) + ind;
+   if( ind >= stack. size( ))
+      throw std::logic_error( "maketrivial: Not a valid index" );
+
    auto tr = exists( logic::term( logic::op_true ));
-   stack. at(k). fm = disjunction( { std::move( tr ) } ); 
-   stack. at(k). hidden = true;
+   stack. at( ind ). second. fm = disjunction( { std::move( tr ) } ); 
+   stack. at( ind ). second. hidden = true;
 }
 
-#endif
 
 void calc::sequent::hide( size_t ind ) 
 {

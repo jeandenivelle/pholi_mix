@@ -4,7 +4,6 @@
 #ifndef CALC_PROOFCHECKING_
 #define CALC_PROOFCHECKING_
 
-#include <string_view>
 #include <optional>
 
 #include "errorstack.h"
@@ -23,20 +22,6 @@ namespace calc
    };
 
    std::ostream& operator << ( std::ostream& out, bar b );
-
-   // Will be deleted soon:
-
-   template< typename T > 
-   bool istrivial( const cnf<T> & c )
-   {
-      return c. size( ) == 1 && c. at(0). vars. size( ) == 0; 
-   }
-
-   template< typename T >
-   bool istrivial( const dnf<T> & d )
-   {
-      return d. size( ) == 1 && d. at(0). vars. size( ) == 0; 
-   }
 
 
    std::optional< logic::type >

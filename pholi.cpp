@@ -16,6 +16,7 @@
 
 #include "calc/label.h"
 
+
 void
 includefile( logic::beliefstate& blfs, 
              filehasher& seen, const std::filesystem::path& file,
@@ -85,9 +86,6 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
-   tests::flatten( );
-   return 0;
-
    tests::saturate( );
 
    errorstack err;

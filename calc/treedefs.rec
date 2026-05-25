@@ -18,10 +18,9 @@
     disj : label, alt : size_t, [ sub : proofterm ] 
 
 %option existsrepl { prf_existsrepl } => 
-   ind : ssize_t, eigen : std::vector< std::string > , [ sub : proofterm ]
+   exists : label, eigen : std::vector< std::string > , [ sub : proofterm ]
       // Without explicit eigennames, you cannot refer to introduced 
-      // variables in proofs. In principle, one could combine
-      // orrepl with existsrepl. I might do this in the future. 
+      // variables in proofs. 
 
 %option expand { prf_expand } => 
    fm : label, ident : identifier, occ : size_t 
@@ -29,7 +28,7 @@
 %option expandlocal { prf_expandlocal } => 
    fm : label, var : size_t, occ : size_t
 
-%option normalize { prf_normalize } => ind : ssize_t
+%option normalize { prf_normalize } => fm : label
 
 %option forallintro { prf_forallintro } =>
    parent : proofterm, [ var : logic::vartype ]
