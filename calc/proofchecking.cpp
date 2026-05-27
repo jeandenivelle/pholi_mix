@@ -497,13 +497,13 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
    case prf_existsrepl:
       {
          auto repl = prf. view_existsrepl( ); 
-         auto ind = seq. find( repl. exists( ));
+         auto ind = seq. find( repl. fm( ));
 
          if( ind == seq. stack. size( )) 
          {
             errorstack::builder bld;
             bld << "existsrepl: Unknown label for existential ";
-            bld << repl. exists( );
+            bld << repl. fm( );
             err. push( std::move( bld ));
             return;
          }
@@ -512,7 +512,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
               seq. at( ind ). get_dnf( ). size( ) != 1 )
          {
             errorstack::builder bld;
-            bld << "exists: " << repl. exists( ) << " : ";
+            bld << "exists: " << repl. fm( ) << " : ";
             bld << "formula not existential";
             err. push( std::move( bld ));
             return;
@@ -530,7 +530,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          if( mainform. vars. size( ) != repl. eigen( ). size( ))
          {
             errorstack::builder bld;
-            bld << "exists: " << repl. exists( ) << " : ";
+            bld << "exists: " << repl. fm( ) << " : ";
             bld << "number of eigenvariables is not right: ";
             bld << "it is " << repl. eigen( ). size( );
             bld << ", but it must be " << mainform. vars. size( );  
@@ -779,75 +779,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       }
 
 #if 0
-   case prf_deflocal: 
-      {
-         auto def = prf. view_deflocal( );
-         auto val = def. extr_val( );
 
-         std::cout << "val = " << val << "\n";
-         auto tp = checktype( blfs, val, seq, err );
-
-         if( !tp. has_value( ))
-            throw std::logic_error( "def local, no type" );
-
-         def. update_val( val );
-
-         size_t cc = seq. ctxt. size( );
-         size_t ff = seq. stack. size( );
-         size_t ll = seq. nrlevels( );
-
-         seq. ctxt_define( def. name( ), val, tp. value( ));
-
-         for( size_t i = 0; i != def. size( ); ++ i )
-         {
-            auto sub = def. extr_sub(i); 
-            checkproof( blfs, sub, seq, err );
-            def. update_sub( i, std::move( sub ));
-         }
-
-         // We need to apply the substitution:
-
-         if( seq. ctxt. size( ) != cc + 1 )
-            throw std::logic_error( "something went wrong with size" );
-
-         if( !seq. ctxt. hasdefinition(0))
-            throw std::logic_error( "something went wrong with def" ); 
-
-         if( seq. nrlevels( ) != ll )
-            throw std::logic_error( "something went wrong with the levels" );
-
-         auto subst = logic::singlesubst( seq. ctxt. getdefinition(0));
-         std::cout << subst << "\n";
-
-         for( size_t i = ff; i != seq. stack. size( ); ++ i )
-         {
-            auto& f = seq. at(i);
-            {
-               if( !f. hidden )
-               {
-                  if( f. is_unf( ))
-                  {
-                     f. get_unf( ) = 
-                          outermost( subst, std::move( f. get_unf( )), 0 );
-                  }
-                  else
-                  {
-                     f. get_dnf( ) = 
-                          outermost( subst, std::move( f. get_dnf( )), 0 ); 
-                  }
-
-               }
-
-               if( f. ctxtsize != cc + 1 )
-                  throw std::logic_error( "wrong context size" );
-
-               -- f. ctxtsize; 
-            }
-         }
- 
-         seq. ctxt_restore( cc );
-         return; 
-      }
 #if 0
 #if 0
    case prf_forallintro:
@@ -986,6 +918,77 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return;  
       }
 
+   case prf_deflocal: 
+      {
+         auto def = prf. view_deflocal( );
+         auto val = def. extr_val( );
+
+         std::cout << "val = " << val << "\n";
+         auto tp = checktype( blfs, val, seq, err );
+
+         if( !tp. has_value( ))
+            throw std::logic_error( "def local, no type" );
+
+         def. update_val( val );
+
+         size_t cc = seq. ctxt. size( );
+         size_t ff = seq. stack. size( );
+         size_t ll = seq. nrlevels( );
+
+         seq. ctxt_define( def. name( ), val, tp. value( ));
+
+         for( size_t i = 0; i != def. size( ); ++ i )
+         {
+            auto sub = def. extr_sub(i); 
+            checkproof( blfs, sub, seq, err );
+            def. update_sub( i, std::move( sub ));
+         }
+
+         // We need to apply the substitution:
+
+         if( seq. ctxt. size( ) != cc + 1 )
+            throw std::logic_error( "something went wrong with size" );
+
+         if( !seq. ctxt. hasdefinition(0))
+            throw std::logic_error( "something went wrong with def" ); 
+
+         if( seq. nrlevels( ) != ll )
+            throw std::logic_error( "something went wrong with the levels" );
+
+         auto subst = logic::singlesubst( seq. ctxt. getdefinition(0));
+         std::cout << subst << "\n";
+
+         for( size_t i = ff; i != seq. stack. size( ); ++ i )
+         {
+            auto& f = seq. at(i);
+            {
+               if( !f. hidden )
+               {
+                  if( f. is_unf( ))
+                  {
+                     f. get_unf( ) = 
+                          outermost( subst, std::move( f. get_unf( )), 0 );
+                  }
+                  else
+                  {
+                     f. get_dnf( ) = 
+                          outermost( subst, std::move( f. get_dnf( )), 0 ); 
+                  }
+
+               }
+
+               if( f. ctxtsize != cc + 1 )
+                  throw std::logic_error( "wrong context size" );
+
+               -- f. ctxtsize; 
+            }
+         }
+ 
+         seq. ctxt_restore( cc );
+         return; 
+      }
+#endif
+
    case prf_import:
       {
          auto imp = prf. view_import( );
@@ -996,6 +999,8 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
          bool alltypescorrect = true;
 
+         // In the future, we will have const_iterator:
+
          for( size_t i = 0; i != imp. size( ); ++ i )
          {
             auto tp = imp. extr_tp(i);
@@ -1003,24 +1008,33 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
             if(b)
                types. push_back( tp );
             else
+            {
+               errorstack::builder bld;
+               auto prnt = pretty_printer( bld, blfs ); 
+               prnt << "Bad structural type: " << tp; 
+               err. push( std::move( bld ));  
+
                alltypescorrect = false;
+            }
 
             imp. update_tp( i, tp );
          }
 
          if( !alltypescorrect )
-            throw std::logic_error( "import : failed type checking" );
+            return; 
 
-         auto ex = checkandresolve( blfs, err, imp. ident( ), types );
-         if( !ex. has_value( ))
+         std::optional< logic::exact >
+         optex = findformula( blfs, err, imp. ident( ), types );
+
+         if( !optex. has_value( ))
             return;
 
-         const auto& fm = blfs. at( ex. value( )). view_form( ). fm( );
+         const auto& fm = blfs. at( optex. value( )). view_form( ). fm( );
 
          seq. append( disjunction( { exists( fm ) } ));
          return;  
       }
-
+#if 0 
    case prf_simplify:
       {
          saturation sat; 

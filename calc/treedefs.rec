@@ -18,7 +18,7 @@
     disj : label, alt : size_t, [ sub : proofterm ] 
 
 %option existsrepl { prf_existsrepl } => 
-   exists : label, eigen : std::vector< std::string > , [ sub : proofterm ]
+   fm : label, eigen : std::vector< std::string > , [ sub : proofterm ]
       // Without explicit eigennames, you cannot refer to introduced 
       // variables in proofs. 
 
@@ -34,7 +34,7 @@
    parent : proofterm, [ var : logic::vartype ]
 
 %option forallelim { prf_forallelim } => 
-   ind : ssize_t, [ value : logic::term ] 
+   fm : label, [ value : logic::term ] 
       // Add an instance of ind.
 
 %option deflocal { prf_deflocal } =>
@@ -43,6 +43,12 @@
 %option import { prf_import } =>
    ident : identifier, [ tp : logic::type ]
 
+%option importlocal { prf_importlocal } =>
+   var : size_t, [ tp : logic::type ]
+      // Exists because import could import a local variable,
+      // which we must reject. This rule will be always
+      // rejected.
+      
 %option simplify { prf_simplify } => 
 
 %option fake { prf_fake } => goal : logic::term

@@ -13,7 +13,7 @@ calc::findformula( const logic::beliefstate& blfs, errorstack& err,
    if( candidates. size( ) == 0 )
    {
       errorstack::builder bld;
-      bld << "Import: Identifier " << ident << " is not used as formula"; 
+      bld << "Import: Identifier " << ident << " does not occur as formula"; 
       err. push( std::move( bld ));
       return { };
    }
@@ -179,6 +179,33 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
       }
 
    case prf_normalize:
+      return prf;
+
+   case prf_import:
+      {
+         auto imp = prf. view_import( );
+         const auto& id = imp. ident( ); 
+         if( id. size( ) == 1 )
+         {
+            // Oh, so very useless! We do this only so that
+            // we can complain later.
+
+            auto s = db. find( id. at(0));
+            if( s != db. size( ))
+            {
+               auto res = proofterm( prf_importlocal, 
+                                 db. size( ) - db. at(s). second - 1, { } );
+
+               // This loop reveals that repeated fields must have
+               // const_iterators. Next version of TreeGen will have them.
+
+               for( size_t i = 0; i != imp. size( ); ++ i )
+                  res. view_importlocal( ). push_back( imp. tp(i));
+ 
+               return res; 
+            }
+         }                                 
+      }
       return prf;
 
    case prf_fake: 

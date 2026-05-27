@@ -378,6 +378,8 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
    auto O = logic::type( logic::type_obj );
    auto F = logic::type( logic::type_form );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
+   auto Net = logic::type( logic::type_unchecked, identifier( ) + "Net" );
+      // For generation of error messages.
 
    using namespace calc;
 
@@ -493,7 +495,6 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
               proofterm( prf_flatten, label( "form3" )),
               proofterm( prf_orrepl, label( "form4" ), 0,
               {
-                 proofterm( prf_show, "HH" ),
                  proofterm( prf_existsrepl, label( "form5" ), { "s", "P" },
                  {
                     proofterm( prf_expand, label( "form6" ), identifier( ) + "stricton", 0 ),
@@ -503,6 +504,8 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
                     {
                        proofterm( prf_import, identifier( ) + "gen_prop",
                                   { Nat, logic::type( logic::type_obj ) } ), 
+                       proofterm( prf_forallelim, label( "form11" ), 
+                                  { "x"_unchecked, "x"_unchecked } ),
                        proofterm( prf_show, "tiefer" )
                     }),
                     proofterm( prf_show, "inside" )
