@@ -27,7 +27,6 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
       out << "   (hidden)";
 }
 
-#if 0
 void calc::sequent::append( cnf< logic::term > c )
 {
    for( auto& u : c )
@@ -35,10 +34,9 @@ void calc::sequent::append( cnf< logic::term > c )
       if( u. vars. size( ) == 0 )
          append( disjunction( { exists( std::move( u. body )) } ));
       else
-         stack. push_back( seqform( std::move(u), ctxt. size( )));
+         stack. push( nextlabel ++, seqform( std::move(u), ctxt. size( )));
    }
 }
-#endif
 
 void calc::sequent::append( dnf< logic::term > d )
 {

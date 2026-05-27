@@ -54,6 +54,22 @@ namespace calc
       return subsumes( ex1. body, ex2. body );
    }
 
+   template< typename F >
+   bool subsumes( const forall<F> & forall1, const forall<F> & forall2 )
+   {
+      if( forall1. vars. size( ) != forall2. vars. size( ))
+         return false;
+
+      for( size_t i = 0; i != forall1. vars. size( ); ++ i )
+      {
+         if( !equal( forall1. vars. at(i). tp, forall2. vars. at(i). tp ))
+            return false;
+      }
+
+      return subsumes( forall1. body, forall2. body );
+   }
+
+
    template< typename F > 
    bool subsumes( const F& lit, const disjunction<F> & disj )
    {
@@ -64,6 +80,30 @@ namespace calc
       }
       return false;
    }
+
+   template< typename F >
+   bool subsumes( const conjunction<F> & conj, const F& lit )
+   {
+      for( const auto& c : conj )
+      {
+         if( subsumes( c, lit ))
+            return true;
+      }
+      return false;
+   }
+
+   template< typename F >
+   bool
+   subsumes( const conjunction<F> & conj1, const conjunction<F> & conj2 )
+   {
+      for( const auto& lit : conj2 )
+      {
+         if( !subsumes( conj1, lit ))
+            return false;
+      }
+      return true;
+   }
+
 
    template< typename F >
    bool 

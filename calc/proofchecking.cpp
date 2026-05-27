@@ -294,7 +294,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
             auto f2 = flatten(f1);
 
-            if( !subsumes( f1, f2 ))
+            if( f1. size( ) != f2. size( ) || !subsumes( f2, f1 ))
             {
                // Note that this is problematic. It relies on 
                // weakness of subsumption. There should be some kind of 
@@ -306,20 +306,27 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
                return;
             }
 
-            // If f1 is trivial, it might be possible to tranform into
-            // CNF.
+            // If f1 is trivial, it might be possible to transform into
+            // CNF. I believe this should be put in separate functions.
 
             if( f1. size( ) == 1 && 
                 f1. at(0). vars. size( ) == 0 )
             {
-               std::cout << "is trivial, try CNF\n"; 
+               auto cnf1 = conjunction( { forall( f1. at(0). body ) } );
+               auto cnf2 = flatten( cnf1 );
+
+               if( cnf1. size( ) != cnf2. size( ) || !subsumes( cnf2, cnf1 ))
+               {
+                  seq. hide( ind );
+                  seq. append( cnf2 ); 
+                  return;    
+               } 
 #if 0
             // It will simplify into A, which is still trivial.
             // I think one must register the complexity.
 #if 0
             if( istrivial(f))
             {
-               auto cnf = conjunction( { forall( f. at(0). body ) } );
                cnf = flatten( std::move( cnf )); 
                if( !istrivial( cnf ))
                {
@@ -779,8 +786,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       }
 
 #if 0
-
-#if 0
 #if 0
    case prf_forallintro:
       {
@@ -823,21 +828,39 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return res. value( ); 
       }
 #endif
-#endif
-
+#endif 
    case prf_forallelim:
       {
          auto elim = prf. view_forallelim( );
-         size_t ind = elim. ind( );
-
-         if( !seq. hasindex( ind ))
-            throw std::logic_error( "forallelim: index out of range" );
-
+         auto ind = seq. find( elim. fm( ));
+   
+         if( ind == seq. stack. size( ))  
+         {
+            errorstack::builder bld;
+            bld << "forallelim: Unknown label for universal ";
+            bld << elim. fm( );
+            err. push( std::move( bld ));
+            return;
+         }
+         
          if( !seq. at( ind ). is_unf( ))
-            throw std::logic_error( "forallelim: formula not UNF" );
+         {     
+            errorstack::builder bld;
+            bld << "forallelim " << elim. fm( ) << " : ";
+            bld << "formula is not universal";
+            err. push( std::move( bld ));
+            return;
+         }     
 
          if( seq. at( ind ). get_unf( ). vars. size( ) < elim. size( ))
-            throw std::runtime_error( "forallelim: Too many values" ); 
+         {
+            errorstack::builder bld;
+            bld << "forallelim " << elim. fm( ) << " : ";
+            bld << "There are " << elim. size( ) << " instances, ";
+            bld << "while the formula has only ";
+            bld << seq. at( ind ). get_unf( ). vars. size( ) << " variables";
+            return; 
+         }
 
          auto mainform = seq. at( ind ). get_unf( );
          mainform = lift( std::move( mainform ), seq. liftdist( ind ));
@@ -847,59 +870,40 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
          size_t cc = seq. ctxt. size( );
 
-         bool alltypescorrect = true;
-
+         size_t nrcorrecttypes = 0;
          for( size_t i = 0; i != elim. size( ); ++ i )
          {
             std::cout << "i = " << i << "\n";
-            auto inst = elim. extr_value(i);
+            auto inst = elim. extr_inst(i);
             auto tp = checktype( blfs, inst, seq, err );
 
             if( tp. has_value( ))
-               std::cout << "found type: " << tp. value( ) << "\n";
-            else
-               std::cout << "(no type)\n";
-
-            std::cout << "must be: " << mainform. vars[i]. tp << "\n";
-
-            if( ! tp. has_value( ) ||  
-                !equal( tp. value( ), mainform. vars[i]. tp ))
             {
-               alltypescorrect = false; 
-            }
-
-            elim. update_value( i, inst ); 
-            subst. append( std::move( inst ));
-
-#if 0
-            // I am keeping this because of the nice error message.
-
-            if( tp. has_value( )) 
-            {
-               if( logic::equal( tp. value( ), q. var(i). tp ))
+               if( equal( tp. value( ), mainform. vars[i]. tp ))
                {
-                  subst. push( std::move( tm ));
+                  subst. append( std::move( inst )); 
+                  ++ nrcorrecttypes;
                }
                else
                {
                   auto bld = errorstack::builder( ); 
-                  bld << "true type of instance ";
-                  printing::pretty( bld, seq, tm );
-                  bld << " is wrong\n"; 
-                  bld << "It is "; 
-                  printing::pretty( bld, seq, tp. value( ));
-                  bld << ", but must be ";
-                  printing::pretty( bld, seq, q. var(i). tp ); 
+                  auto prt = pretty_printer( bld, blfs );
+                  prt << "true type of instance " << inst << " is wrong\n";
+                  prt << "It is " << tp. value( ) << ", but it must be ";
+                  prt << mainform. vars. at(i). tp;
                   err. push( std::move( bld ));
                }
             }
-#endif
+            else
+               std::cout << "had no value\n";
          }
 
-         if( !alltypescorrect )
+         if( nrcorrecttypes != elim. size( ))
          {
-            seq. ugly( std::cout );
-            throw std::runtime_error( "we cannot do forallinst, types wrong" );
+            auto bld = errorstack::builder( );
+            bld << "unable to instantiate";
+            err. push( std::move( bld ));
+            return;
          }
 
          // We do not remove the outermost forall, because its 
@@ -913,11 +917,12 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
          // We append mainform as CNF. The append function will 
          // convert formula into a DNF is the quantification is empty.
-        
+      
+         seq. hide( ind );  
          seq. append( conjunction( { mainform } ));
          return;  
       }
-
+#if 0
    case prf_deflocal: 
       {
          auto def = prf. view_deflocal( );

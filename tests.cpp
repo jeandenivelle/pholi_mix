@@ -504,8 +504,9 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
                     {
                        proofterm( prf_import, identifier( ) + "gen_prop",
                                   { Nat, logic::type( logic::type_obj ) } ), 
-                       proofterm( prf_forallelim, label( "form11" ), 
-                                  { "x"_unchecked, "x"_unchecked } ),
+                       proofterm( prf_flatten, label( "form11" )),
+                       proofterm( prf_forallelim, label( "form12" ), 
+                                  { "s"_unchecked, "x"_unchecked } ),
                        proofterm( prf_show, "tiefer" )
                     }),
                     proofterm( prf_show, "inside" )

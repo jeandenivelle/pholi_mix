@@ -181,6 +181,14 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
    case prf_normalize:
       return prf;
 
+   case prf_forallelim:
+      {
+         auto elim = prf. view_forallelim( ); 
+         for( size_t i = 0; i != elim. size( ); ++ i )
+            elim. update_inst( i, replace_debruijn( db, elim. extr_inst(i)) ); 
+         return prf;
+      }
+
    case prf_import:
       {
          auto imp = prf. view_import( );

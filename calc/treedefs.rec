@@ -34,8 +34,8 @@
    parent : proofterm, [ var : logic::vartype ]
 
 %option forallelim { prf_forallelim } => 
-   fm : label, [ value : logic::term ] 
-      // Add an instance of ind.
+   fm : label, [ inst : logic::term ] 
+      // Append an instance of fm.
 
 %option deflocal { prf_deflocal } =>
    name : std::string, val : logic::term, [ sub : proofterm ]
