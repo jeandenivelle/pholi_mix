@@ -486,34 +486,41 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       {
          auto prf = proofterm( prf_fake, "FF"_unchecked );
          prf = chain( 
-         { prf, 
-           proofterm( prf_cut, "goal"_unchecked ),
-           proofterm( prf_orrepl, label( "form1" ), 0,
+         { proofterm( prf_cut, "goal"_unchecked ),
+           proofterm( prf_orrepl, label( "form" ), 0,
            {
               proofterm( prf_show, "expanding" ),
-              proofterm( prf_expand, label( "form2" ), identifier( ) + "goal", 0 ), 
-              proofterm( prf_flatten, label( "form3" )),
-              proofterm( prf_orrepl, label( "form4" ), 0,
+              proofterm( prf_expand, label( "form1" ), identifier( ) + "goal", 0 ), 
+              proofterm( prf_flatten, label( "form2" )),
+              proofterm( prf_show, "ORIG" ),
+              proofterm( prf_orrepl, label( "form3" ), 0,
               {
-                 proofterm( prf_existsrepl, label( "form5" ), { "s", "P" },
+                 proofterm( prf_existsrepl, label( "form4" ), { "s", "P" },
                  {
-                    proofterm( prf_expand, label( "form6" ), identifier( ) + "stricton", 0 ),
-                    proofterm( prf_normalize, label( "form7" )),
-                    proofterm( prf_flatten, label( "form8" )),
-                    proofterm( prf_existsrepl, label( "form9" ), { "x" },
+                    proofterm( prf_expand, label( "form5" ), identifier( ) + "stricton", 0 ),
+                    proofterm( prf_normalize, label( "form6" )),
+                    proofterm( prf_flatten, label( "form7" )),
+                    proofterm( prf_existsrepl, label( "form8" ), { "x" },
                     {
                        proofterm( prf_import, identifier( ) + "gen_prop",
                                   { Nat, logic::type( logic::type_obj ) } ), 
-                       proofterm( prf_flatten, label( "form11" )),
-                       proofterm( prf_forallelim, label( "form12" ), 
+                       proofterm( prf_flatten, label( "form10" )),
+                       proofterm( prf_forallelim, label( "form11" ), 
                                   { "s"_unchecked, "x"_unchecked } ),
-                       proofterm( prf_show, "tiefer" )
-                    }),
-                    proofterm( prf_show, "inside" )
+                       proofterm( prf_simplify ) 
+                    }) 
                  }),
-                 proofterm( prf_show, "AA" ) 
-              })
-           }), 
+              }),
+              proofterm( prf_nextlabel, label( "prop" )),
+
+              proofterm( prf_existsrepl, label( "form14" ), { "s", "P" },
+              { 
+                 proofterm( prf_flatten, label( "prop" )),
+                 proofterm( prf_flatten, label( "prop2" )),
+                 proofterm( prf_show, "tiefer" )
+              }),  
+              proofterm( prf_show, "XXXX" )
+           })  
          });
          prf = replace_debruijn( std::move( prf )); 
          checkproof( blfs, err, bl. value( ), prf ); 

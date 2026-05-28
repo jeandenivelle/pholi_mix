@@ -55,6 +55,8 @@
 
 %option show { prf_show } => comment : std::string
 
+%option nextlabel { prf_nextlabel } => lab : label
+
 %h_incl {
    #include "sequent.h"
 }

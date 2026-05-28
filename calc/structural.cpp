@@ -216,6 +216,9 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
       }
       return prf;
 
+   case prf_simplify:
+      return prf;
+
    case prf_fake: 
       {
          auto fk = prf. view_fake( );
@@ -225,6 +228,9 @@ calc::replace_debruijn( indexedstack< std::string, size_t > & db,
 
    case prf_show:
       return prf; 
+
+   case prf_nextlabel:
+      return prf;
 
    }
    std::cout << prf. sel( ) << "\n";

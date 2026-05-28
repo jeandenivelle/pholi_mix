@@ -321,9 +321,9 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
                   seq. append( cnf2 ); 
                   return;    
                } 
+
+               std::cout << "falling through\n";
 #if 0
-            // It will simplify into A, which is still trivial.
-            // I think one must register the complexity.
 #if 0
             if( istrivial(f))
             {
@@ -348,7 +348,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          if( seq. at( ind ). is_unf( ))
             throw std::logic_error( "this case is not handled" );
 
-         throw std::logic_error( "unreachable" );
+         throw std::logic_error( "flatten: unreachable" );
       }
 
 
@@ -1039,7 +1039,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          seq. append( disjunction( { exists( fm ) } ));
          return;  
       }
-#if 0 
    case prf_simplify:
       {
          saturation sat; 
@@ -1055,7 +1054,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          std::cout << "after saturation\n";
          std::cout << sat << "\n";
 
-         for( auto& rm : sat. removed_initials )
+         for( auto rm : sat. removed_initials )
             seq. hide( rm );
 
          for( auto& cls : sat. checked ) 
@@ -1068,7 +1067,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return;
       }
 
-#endif 
    case prf_fake:
       {
          auto trmp = prf. view_fake( ). extr_goal( );
@@ -1091,14 +1089,14 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          seq. append( disjunction( { exists( std::move( trmp )) } ));
          return;
       }
-#if 0
 
+#if 0
    case prf_nop:
       {
          return;   // Truly nothing was done. 
       }
-
 #endif
+
    case prf_show:
       {
          auto show = prf. view_show( ); 
@@ -1110,6 +1108,20 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          out << bar( 75 ) << "\n";
          return;
       } 
+
+   case prf_nextlabel:
+      {
+         auto lab = prf. view_nextlabel( ). lab( );
+         std::cout << "lab = " << lab << "\n";
+
+         auto ind = seq. find( lab ); 
+         if( ind != seq. stack. size( ))
+            throw std::logic_error( "already occurs" );
+               // Sequent must automatically find an available label.
+
+         seq. nextlabel = lab; 
+         return; 
+      }
    }
 
    std::cout << prf. sel( ) << "\n";
