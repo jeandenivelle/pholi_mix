@@ -8,7 +8,6 @@
 #include "logic/termoperators.h"
 
 #include "calc/proofterm.h"
-#include "calc/proofchecking.h"
 #include "calc/flatten.h"
 #include "calc/removelets.h"
 #include "calc/expander.h"
@@ -16,7 +15,7 @@
 #include "calc/proofoperators.h"
 #include "calc/saturation.h"
 #include "calc/structural.h"
-#include "calc/weights.h"
+#include "calc/proofchecker.h"
 
 
 #include "natded/eval.h"
@@ -170,8 +169,6 @@ void tests::flatten( )
       cnf = flatten( std::move( cnf )); 
       std::cout << dnf << "\n";
       std::cout << cnf << "\n";
-      std::cout << weight( dnf ) << "\n";
-      std::cout << weight( cnf ) << "\n";
       return; 
    }
 
@@ -478,7 +475,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
    }
 #endif
 
-   if constexpr( true )
+   if constexpr( false )
    {
       auto id = identifier( ) + "induction";
       auto bl = calc::findformula( blfs, err, id, { } ); 
@@ -663,7 +660,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 
 
 void 
-tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
+tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 {
    auto O = logic::type( logic::type_obj );
    auto T = logic::type( logic::type_form );
@@ -672,12 +669,12 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
    using namespace calc;
 
    auto id = identifier( ) + "just";
-   const auto& f = blfs. getformulas( id );
-   std::cout << f. size( ) << "\n";
-   if( f. size( ) != 1 )
-      throw std::runtime_error( "cannot continue" );
+   auto bl = calc::findformula( blfs, err, id, { } );
+   if( bl. has_value( ))
+   {
+      calc::proofchecker check( std::move( blfs ), std::move( err ));
+      check. setgoal( bl. value( ));
 
-   auto seq = sequent( );
 #if 0
    size_t nr = seq. ctxt. size( ); 
    seq. ctxt_define( "goal",
@@ -928,6 +925,9 @@ tests::bigproof( const logic::beliefstate& blfs, errorstack& err )
    std::cout << "FINAL STATE\n";
    seq. ugly( std::cout );
 #endif
+   }
+   else
+      std::cout << id << " not found\n";
 }
 
 

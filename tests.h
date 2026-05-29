@@ -21,7 +21,7 @@ namespace tests
       // I am also interested in performance.
 
    void smallproofs( const logic::beliefstate& blfs, errorstack& err );
-   void bigproof( const logic::beliefstate& blfs, errorstack& err );
+   void bigproof( logic::beliefstate& blfs, errorstack& err );
 
    void pretty( const logic::beliefstate& blfs );
 

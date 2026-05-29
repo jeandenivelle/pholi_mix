@@ -23,14 +23,21 @@ namespace calc
    struct sequent
    {
 
+      struct formlabel
+      {
+         uint64_t nr;
+
+      };
+
+#if 0
       struct seqform
       {
          std::variant< unf< logic::term >, dnf< logic::term >> fm; 
             // In case we are UNF, there must be at least one
             // quantified variable.
 
-         size_t ctxtsize;      // size of context at moment of creation. 
-         bool hidden;          // True if formula is hidden.
+         size_t ctxtsize;      // size of ctxt at moment of creation. 
+         bool hidden;          // True if the formula is hidden.
 
          seqform( unf< logic::term > u, size_t ctxtsize )
             : fm( std::move(u)),
@@ -62,36 +69,43 @@ namespace calc
          void print( std::ostream& out ) const; 
          void print( pretty_printer& out ) const; 
       };
- 
+
+#endif 
       logic::context ctxt;
+#if 0
+      label nextlabel = formlabel(100); 
+      indexedstack< formlabel, seqform > stack;
+      bool print = false; 
 
-      label nextlabel = label( "form" );
-      indexedstack< label, seqform, label::hash, label::equal_to > stack;
-
-      struct level
+      struct decision
       {
          size_t ctxtsize; 
          size_t stacksize; 
-            // Sizes of context and stack.
+            // Sizes of context and stack just before our creation. 
+
+         size_t parent;    // Must be DNF.
+         size_t choice;    
 
          std::vector< size_t > hidden;
             // Formulas that are hidden by us.
  
-         level( size_t ctxtsize, size_t stacksize )
+         decision( size_t ctxtsize, size_t stacksize,
+                   size_t parent, size_t choice )
             : ctxtsize( ctxtsize ),
-              stacksize( stacksize )
+              stacksize( stacksize ),
+              parent( parent ),
+              choice( choice ) 
          { }
  
       };
 
-      std::vector< level > levels;
+      std::vector< decision > decisions;
 
       sequent( ) noexcept = default;
       sequent( sequent&& ) noexcept = default;
       sequent& operator = ( sequent&& ) noexcept = default;
 
       void ugly( std::ostream& out ) const;  
-      void pretty( pretty_printer& out ) const;
 
       void append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 
@@ -120,27 +134,27 @@ namespace calc
 
       size_t stacksize( ) const { return stack. size( ); }
 
-      void appendlevel( ) 
-         { levels. push_back( level( ctxt. size( ), stack. size( ))); }
+      void decide( size_t parent, size_t choice ) 
+         { decisions. push_back( decisions( ctxt. size( ), stack. size( ))); }
 
       void poplevel( );  
           // Also unhide everything that was hidden at our level,
           // and restore the stack. We don't restore ctxt,
           // but we require that it was restored in advance.
  
-      const level& lastlevel( ) const 
-         { return levels. back( ); }
+      const decision& lastdecision( ) const 
+         { return decisions. back( ); }
 
-      size_t nrlevels( ) const { return levels. size( ); }
+      size_t nrdecisions( ) const { return decisions. size( ); }
 
       void hide( size_t );
-         // If we have a choice level, we register the hiding,
-         // so that it can be undone. 
+         // If we have a decision, we register the hiding,
+         // so that it can be undone when we undo the decision.
 
       size_t liftdist( size_t ) const;
          // The distance over which the formula at it must be lifted
          // in order to put it at the end of the context. 
-
+#endif
    };
 
 }

@@ -74,6 +74,8 @@ namespace
 
 }
 
+#if 0
+
 std::optional< logic::type >
 calc::checktype( const logic::beliefstate& blfs,
                  logic::term& tm, sequent& seq, errorstack& err )
@@ -1128,4 +1130,5 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
    throw std::logic_error( "dont know how to check this rule" );
 }
 
+#endif
 

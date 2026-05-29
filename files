@@ -48,7 +48,7 @@
    sequent.cpp
    proofterm.cpp
    printing.cpp
-   proofchecking.cpp
+   proofchecker.cpp
    saturation.cpp
    truthset.cpp
    structural.cpp

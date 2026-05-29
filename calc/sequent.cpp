@@ -2,6 +2,7 @@
 #include "sequent.h"
 #include "logic/pretty.h"
 
+#if 0
 void calc::sequent::seqform::print( std::ostream& out ) const
 {
    if( is_dnf( ))
@@ -166,4 +167,6 @@ calc::sequent::pretty( pretty_printer& out ) const
       out << '\n';
    }
 }
+
+#endif
 

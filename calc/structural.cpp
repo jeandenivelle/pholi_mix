@@ -77,6 +77,8 @@ calc::applicable( const logic::belief& blf,
       return false; 
 }
 
+#if 0
+
 void 
 calc::checkproof( const logic::beliefstate& blfs, errorstack& err,
                   logic::exact fname, proofterm prf )
@@ -249,4 +251,6 @@ calc::proofterm calc::replace_debruijn( proofterm prf )
 
    return prf;
 }
+
+#endif
 
