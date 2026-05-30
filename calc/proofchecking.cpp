@@ -74,7 +74,6 @@ namespace
 
 }
 
-#if 0
 
 std::optional< logic::type >
 calc::checktype( const logic::beliefstate& blfs,
@@ -91,6 +90,7 @@ calc::checktype( const logic::beliefstate& blfs,
 }
 
 
+#if 0
 void
 calc::checkproof( const logic::beliefstate& blfs, sequent& seq, 
                   proofterm& prf, errorstack& err,
@@ -129,8 +129,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
                throw std::runtime_error( "orexistselim: universal variables in conclusion" );
             }
 
-            // concl is now a forall without variables, 
-            // containing a disjunction:
 
 #if 0
             // This was used for testing.
@@ -228,35 +226,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return; 
       }
 #endif 
-
-   case prf_cut:
-      {
-         auto cut = prf. view_cut( );
-
-         auto fm = cut. extr_fm( );  
-
-         auto tp = checktype( blfs, fm, seq, err );
-         if( !tp. has_value( ))
-            return; 
-
-         if( tp. value( ). sel( ) != logic::type_form )
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs ); 
-            prnt << "Type of cut formula is not F, instead it is ";
-            prnt << tp. value( );
-            err. push( std::move( bld ));
-            return;
-         }
-
-         auto f1 = logic::term( logic::op_not, 
-                      logic::term( logic::op_prop, fm ));
-         auto f2 = logic::term( logic::op_not, fm );
-
-         seq. append( 
-            disjunction{ exists(f1), exists(f2), exists(fm) } );
-         return;
-      }
 
    case prf_chain:
       {
@@ -400,56 +369,11 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
    case prf_orrepl:
       {
-         auto repl = prf. view_orrepl( );
-
-         size_t ind = seq. find( repl. disj( ));
-         if( ind == seq. stack. size( ))
-         {
-            errorstack::builder bld;
-            bld << "orrepl: Unknown label for disjunction " << repl. disj( );
-            err. push( std::move( bld ));
-            return; 
-         }
-
-         if( !seq. formula( ind ). is_dnf( ))
-         { 
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs ); 
-            prnt << "orrepl: Formula not disjunction " << seq. formula( ind );
-            err. push( std::move( bld ));
-            return;
-         }
-
-         size_t alt = repl. alt( );
-         if( alt >= seq. formula( ind ). get_dnf( ). size( ))
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs ); 
-            prnt << "orrepl: Alternative does not exist "; seq. formula( ind );
-            prnt << " ( " << alt << " )";
-            err. push( std::move( bld ));
-            return;
-         }
-
-         // Now we are certain that the rule can be applied.
-
          // Take the disjunction, and lift it:
 
-         auto disj = seq. formula( ind ). get_dnf( );
-         disj = lift( std::move( disj ), seq. liftdist( ind ));
-         std::cout << "lifted disjunction = " << disj << "\n";
-
-         auto chosen = std::move( disj. at( alt ));
-         std::cout << "chosen: " << chosen << "\n"; 
-
-         size_t lev = seq. nrlevels( ); 
          seq. appendlevel( );
 
          seq. append( disjunction( { std::move( chosen ) } ));
-
-         seq. hide( ind );
-            // We can hide the parent disjunction, since it is 
-            // subsumed by chosen.
 
          for( size_t i = 0; i != repl. size( ); ++ i )
          {
@@ -505,27 +429,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
    case prf_existsrepl:
       {
-         auto repl = prf. view_existsrepl( ); 
-         auto ind = seq. find( repl. fm( ));
-
-         if( ind == seq. stack. size( )) 
-         {
-            errorstack::builder bld;
-            bld << "existsrepl: Unknown label for existential ";
-            bld << repl. fm( );
-            err. push( std::move( bld ));
-            return;
-         }
-
-         if( !seq. at( ind ). is_dnf( ) ||
-              seq. at( ind ). get_dnf( ). size( ) != 1 )
-         {
-            errorstack::builder bld;
-            bld << "exists: " << repl. fm( ) << " : ";
-            bld << "formula not existential";
-            err. push( std::move( bld ));
-            return;
-         }
 
          enf< logic::term > mainform = seq. at( ind ). get_dnf( ). at(0); 
          mainform = lift( std::move( mainform ), seq. liftdist( ind ));
@@ -534,42 +437,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          size_t ff = seq. stack. size( );
          size_t ll = seq. nrlevels( );
 
-         // Assume the existentially quantified variables of alt:
-
-         if( mainform. vars. size( ) != repl. eigen( ). size( ))
-         {
-            errorstack::builder bld;
-            bld << "exists: " << repl. fm( ) << " : ";
-            bld << "number of eigenvariables is not right: ";
-            bld << "it is " << repl. eigen( ). size( );
-            bld << ", but it must be " << mainform. vars. size( );  
-            err. push( std::move( bld ));
-            return;
-         }
-
-         for( size_t v = 0; v != mainform. vars. size( ); ++ v )
-         {
-            if( repl. eigen( ). at(v). size( ) != 0 ) 
-            {
-               seq. ctxt. assume( repl. eigen( ). at(v), 
-                                  mainform. vars[v]. tp );
-            }
-            else
-               seq. ctxt. assume( "_", mainform. vars[v]. tp );
-         }
-
-         seq. hide( ind );
-
-         // Assume the body of alt (without the variables):
- 
-         seq. append( disjunction( { exists( mainform. body ) } ));
-
-         {
-            auto prt = pretty_printer( std::cout, blfs );
-            seq. pretty( prt );
-         }
-
-         // Check the subproof:
 
          for( size_t i = 0; i != repl. size( ); ++ i )
          {
@@ -1091,13 +958,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          seq. append( disjunction( { exists( std::move( trmp )) } ));
          return;
       }
-
-#if 0
-   case prf_nop:
-      {
-         return;   // Truly nothing was done. 
-      }
-#endif
 
    case prf_show:
       {

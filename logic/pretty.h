@@ -114,10 +114,9 @@ namespace pretty
    void print( std::ostream& out, const beliefstate& blfs,
                context& ctxt, const term& t );
 
-   uniquenamestack getnames( const logic::context& ctxt, size_t ss );
+   uniquenamestack getnames( const context& ctxt, size_t ss );
 
-   void print( std::ostream& out, 
-               uniquenamestack& names, const logic::belief& );
+   void print( std::ostream& out, uniquenamestack& names, const belief& );
 
    uniquenamestack 
    print( std::ostream& out, const beliefstate& blfs, const context& cxt ); 

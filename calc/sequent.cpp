@@ -1,8 +1,6 @@
 
 #include "sequent.h"
-#include "logic/pretty.h"
 
-#if 0
 void calc::sequent::seqform::print( std::ostream& out ) const
 {
    if( is_dnf( ))
@@ -12,8 +10,9 @@ void calc::sequent::seqform::print( std::ostream& out ) const
       out << get_unf( );
 
    out << " / " << ctxtsize;
-   if( hidden ) out << "   (hidden)";
+   if( hidden ) out << "      (hidden)";
 }
+
 
 void calc::sequent::seqform::print( pretty_printer& out ) const
 {
@@ -28,6 +27,8 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
       out << "   (hidden)";
 }
 
+#if 0
+
 void calc::sequent::append( cnf< logic::term > c )
 {
    for( auto& u : c )
@@ -39,11 +40,14 @@ void calc::sequent::append( cnf< logic::term > c )
    }
 }
 
+#endif
+
 void calc::sequent::append( dnf< logic::term > d )
 {
    stack. push( nextlabel ++, seqform( std::move(d), ctxt. size( )));
 }
 
+#if 0
 
 void
 calc::sequent::maketrivial( size_t ind )
@@ -56,16 +60,19 @@ calc::sequent::maketrivial( size_t ind )
    stack. at( ind ). second. hidden = true;
 }
 
+#endif
 
 void calc::sequent::hide( size_t ind ) 
 {
    if( !stack. at( ind ). second. hidden )
    {
       stack. at( ind ). second. hidden = true;
-      if( levels. size( ) > 0 )
-         levels. back( ). hidden. push_back( ind ); 
+      if( decisions. size( ) > 0 )
+         decisions. back( ). hidden. push_back( ind ); 
    }
 }
+
+#if 0
 
 void calc::sequent::poplevel( )
 {
@@ -83,6 +90,7 @@ void calc::sequent::poplevel( )
    levels. pop_back( );  
 }
 
+#endif
 
 size_t calc::sequent::liftdist( size_t ind ) const
 {
@@ -99,32 +107,21 @@ calc::sequent::segment& calc::sequent::back( )
    return seg. back( );
 }
 
-#if 0
-
-logic::exact
-calc::sequent::getexactname( size_t i ) const
-{
-   if( i >= size( )) throw std::logic_error( "sequent::getexactname" ); 
-   switch( steps[i]. sel( ))
-   {
-   case seq_belief:
-      return steps[i]. view_belief( ). name( ); 
-
-
-   }
-   std::cout << steps[i]. sel( ) << "\n";
-   throw std::logic_error( "cannot get exact name" );
-}
-
 #endif
 
-#endif
-
-void calc::sequent::ugly( std::ostream& out ) const
+void calc::sequent::print( std::ostream& out ) const
 {
    out << "Sequent:\n";
    out << ctxt;
    out << "\n";
+
+   out << "Decisions;\n";
+   for( const auto& dec : decisions )
+   {
+      out << "   ";
+      dec. print( out ); 
+      out << "\n";
+   }
 
    out << "Stack:\n";
    for( size_t i = 0; i != stack. size( ); ++ i )
@@ -135,6 +132,7 @@ void calc::sequent::ugly( std::ostream& out ) const
    out << "\n";
 }
 
+#if 0
 
 void 
 calc::sequent::pretty( pretty_printer& out ) const

@@ -23,15 +23,9 @@ namespace calc
 
    std::ostream& operator << ( std::ostream& out, bar b );
 
-
    std::optional< logic::type >
    checktype( const logic::beliefstate& blfs,
               logic::term& tm, sequent& seq, errorstack& err );
-
-   bool applicable( const logic::belief& blf, 
-                    const std::vector< logic::type > & tps );
-      // True if blf (as theorem) is applicable on tps.
-
 
    // A few nice subsumption functions.
    // I think that all templates must be moved somewhere else. 

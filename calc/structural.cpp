@@ -115,6 +115,8 @@ calc::proofterm
 calc::replace_debruijn( indexedstack< std::string, size_t > & db, 
                         proofterm prf )
 {
+   throw std::logic_error( "this function will probably disappear again" );
+
    using namespace calc;
 
    switch( prf. sel( ))

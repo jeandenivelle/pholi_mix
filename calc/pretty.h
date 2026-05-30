@@ -23,6 +23,16 @@ namespace calc
          : out( out ),
            blfs( blfs ) 
       { }  
+
+      pretty_printer( std::ostream& out,
+                       const logic::beliefstate& blfs,
+                       logic::context& ctxt )
+         : out( out ),
+           blfs( blfs ),
+           names( logic::pretty::getnames( ctxt, ctxt. size( )) ) 
+      { }  
+
+
    };
 
    // Default is to print into print. out:

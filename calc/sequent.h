@@ -23,13 +23,6 @@ namespace calc
    struct sequent
    {
 
-      struct formlabel
-      {
-         uint64_t nr;
-
-      };
-
-#if 0
       struct seqform
       {
          std::variant< unf< logic::term >, dnf< logic::term >> fm; 
@@ -70,12 +63,9 @@ namespace calc
          void print( pretty_printer& out ) const; 
       };
 
-#endif 
       logic::context ctxt;
-#if 0
-      label nextlabel = formlabel(100); 
-      indexedstack< formlabel, seqform > stack;
-      bool print = false; 
+      label nextlabel = label( "form" );
+      indexedstack< label, seqform, label::hash, label::equal_to > stack;
 
       struct decision
       {
@@ -96,7 +86,13 @@ namespace calc
               parent( parent ),
               choice( choice ) 
          { }
- 
+
+         void print( std::ostream& out ) const
+         { 
+            out << ctxtsize << ',' << stacksize << " / ";
+            out << parent << '[' << choice << ']';
+         }
+
       };
 
       std::vector< decision > decisions;
@@ -105,7 +101,7 @@ namespace calc
       sequent( sequent&& ) noexcept = default;
       sequent& operator = ( sequent&& ) noexcept = default;
 
-      void ugly( std::ostream& out ) const;  
+      void print( std::ostream& out ) const;
 
       void append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 
@@ -120,7 +116,7 @@ namespace calc
             // Currently hiding is ignored. We could refuse to find
             // hidden formulas.
  
-      const seqform& formula( size_t ind ) const
+      const seqform& at( size_t ind ) const
          { return stack. at( ind ). second; } 
       seqform& at( size_t ind )
          { return stack. at( ind ). second; } 
@@ -134,11 +130,12 @@ namespace calc
 
       size_t stacksize( ) const { return stack. size( ); }
 
-      void decide( size_t parent, size_t choice ) 
-         { decisions. push_back( decisions( ctxt. size( ), stack. size( ))); }
+      void pushdecision( size_t parent, size_t choice ) 
+         { decisions. push_back( decision( ctxt. size( ), stack. size( ), 
+                                 parent , choice )); }
 
-      void poplevel( );  
-          // Also unhide everything that was hidden at our level,
+      void popdecision( );  
+          // Also unhide everything that was hidden after our decision.
           // and restore the stack. We don't restore ctxt,
           // but we require that it was restored in advance.
  
@@ -154,8 +151,15 @@ namespace calc
       size_t liftdist( size_t ) const;
          // The distance over which the formula at it must be lifted
          // in order to put it at the end of the context. 
-#endif
+
    };
+
+   inline pretty_printer& operator << ( pretty_printer& prnt,
+                                        const sequent::seqform& fm )
+   {
+      fm. print( prnt ); 
+      return prnt;
+   }
 
 }
 

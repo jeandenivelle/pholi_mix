@@ -17,7 +17,6 @@
 #include "calc/structural.h"
 #include "calc/proofchecker.h"
 
-
 #include "natded/eval.h"
 
 #include "parsing/parser.h"
@@ -672,17 +671,15 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
    auto bl = calc::findformula( blfs, err, id, { } );
    if( bl. has_value( ))
    {
-      calc::proofchecker check( std::move( blfs ), std::move( err ));
+      calc::proofchecker check( blfs, err );
       check. setgoal( bl. value( ));
+      auto ct = check. replacedebruijn( "goal"_unchecked );
+      auto lab = check. cut( ct );
+      lab = check. orexists( lab. value( ), 1 ); 
+      check. expand( lab. value( ), 0, 0 );
+      check. seq. print( std::cout );
 
 #if 0
-   size_t nr = seq. ctxt. size( ); 
-   seq. ctxt_define( "goal",
-                     blfs. at( f. front( )). view_form( ). fm( ),
-                     logic::type( logic::type_form ));
-
-   seq. ugly( std::cout );
-
    std::cout << "start of a big proof --------------------------\n";
 
    logic::term indhyp = logic::term( logic::op_false );  

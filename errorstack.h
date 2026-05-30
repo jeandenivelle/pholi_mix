@@ -114,7 +114,7 @@ public:
               error::seriousness ser = error::serious )
    {
       sub. push_back( vect. size( ));
-      vect. emplace_back( std::move(meeh). str( ), ser );
+      vect. emplace_back( std::move( meeh ). str( ), ser );
    }
 
    void addheader( size_t start, const std::string& header )
