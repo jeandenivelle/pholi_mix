@@ -13,7 +13,6 @@
 #include "projection.h"
 #include "outermost.h"
 #include "traverse.h"
-#include "flatten.h"
 #include "saturation.h"
 #include "calc/structural.h"
 #include "weights.h"
@@ -240,91 +239,8 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          return; 
       }
 
-   case prf_flatten: 
-      {
-         auto flat = prf. view_flatten( ); 
-
-         size_t ind = seq. find( flat. fm( ));
-         if( ind == seq. stack. size( ))
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs );
-            seq. pretty( prnt );
-            prnt << "flatten: unknown formula label " << flat. fm( );
-            err. push( std::move( bld ));
-            return;  
-         }
-
-         // If it is UNF, we know that it is non-trivial. 
-         // Hence, we can only flatten into UNF.
-
-         if( seq. at( ind ). is_dnf( ))
-         {
-            auto f1 = lift( seq. at( ind ). get_dnf( ), 
-                            seq. liftdist( ind ));
-
-            auto f2 = flatten(f1);
-
-            if( f1. size( ) != f2. size( ) || !subsumes( f2, f1 ))
-            {
-               // Note that this is problematic. It relies on 
-               // weakness of subsumption. There should be some kind of 
-               // weight function based on offending operators.
-               // Equality will probably also work. 
-
-               seq. hide( ind );  
-               seq. append( std::move(f2) ); 
-               return;
-            }
-
-            // If f1 is trivial, it might be possible to transform into
-            // CNF. I believe this should be put in separate functions.
-
-            if( f1. size( ) == 1 && 
-                f1. at(0). vars. size( ) == 0 )
-            {
-               auto cnf1 = conjunction( { forall( f1. at(0). body ) } );
-               auto cnf2 = flatten( cnf1 );
-
-               if( cnf1. size( ) != cnf2. size( ) || !subsumes( cnf2, cnf1 ))
-               {
-                  seq. hide( ind );
-                  seq. append( cnf2 ); 
-                  return;    
-               } 
-
-               std::cout << "falling through\n";
-#if 0
-#if 0
-            if( istrivial(f))
-            {
-               cnf = flatten( std::move( cnf )); 
-               if( !istrivial( cnf ))
-               {
-                  seq. hide( ind ); 
-                  // seq. append( std::move( cnf ));
-                  return;
-               } 
-#endif
-#endif 
-            }
-#if 0
-            f = flatten( std::move(f) );
-            
-            seq. hide( ind );
-            return;
-#endif 
-         }
-
-         if( seq. at( ind ). is_unf( ))
-            throw std::logic_error( "this case is not handled" );
-
-         throw std::logic_error( "flatten: unreachable" );
-      }
-
 
 #if 0
-
 #if 0
    case prf_copy:
       {
@@ -578,31 +494,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       {
          auto exp = prf. view_expandlocal( );
          auto var = exp. var( );
-
-         if( !seq. ctxt. hasdefinition( var ))
-         {
-            errorstack::builder bld; 
-            auto prnt = pretty_printer( bld, blfs );
-            prnt << "expandlocal: variable " << var;
-            prnt << " does not have a definition"; 
-            err. push( std::move( bld ));
-            return;
-         }
-
-         auto def = localexpander( var,  
-                                   seq. ctxt. getdefinition( var ), 
-                                   prf. view_expandlocal( ). occ( ));
-    
-         auto ind = seq. find( exp. fm( ));
-         if( ind == seq. stack. size( )) 
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs );
-            // seq. pretty( prnt );
-            prnt << "unknown formula label " << exp. fm( ); 
-            err. push( std::move( bld )); 
-            return; 
-         }
 
          // Now we need to look at the type of formula at hand:
 

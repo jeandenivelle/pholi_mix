@@ -1,4 +1,10 @@
 
+// Written by Hans de Nivelle, May/June 2026.
+// This should become the trusted core.
+
+#ifndef CALC_PROOFCHECKER_
+#define CALC_PROOFCHECKER_
+
 #include <optional>
 
 #include "logic/beliefstate.h"
@@ -28,6 +34,8 @@ namespace calc
 
       void setgoal( logic::exact fname ); 
 
+      // The functions that follow return a label if they succeed.
+
       std::optional< label > cut( logic::term fm );
 
       std::optional< label >  
@@ -36,6 +44,8 @@ namespace calc
 
       std::optional< label > expand( label fm, size_t var, size_t occ );
          // var must be a De Bruijn index. 
+
+      std::optional< label > flatten( label fm );
 
       logic::term replacedebruijn( logic::term tm );
 
@@ -46,6 +56,7 @@ namespace calc
                    const logic::term& val, const logic::type& tp );
    }; 
 
-};
+} 
 
+#endif
 

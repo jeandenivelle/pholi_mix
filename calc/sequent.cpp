@@ -27,8 +27,6 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
       out << "   (hidden)";
 }
 
-#if 0
-
 void calc::sequent::append( cnf< logic::term > c )
 {
    for( auto& u : c )
@@ -40,11 +38,20 @@ void calc::sequent::append( cnf< logic::term > c )
    }
 }
 
-#endif
-
 void calc::sequent::append( dnf< logic::term > d )
 {
    stack. push( nextlabel ++, seqform( std::move(d), ctxt. size( )));
+}
+
+size_t calc::sequent::find( const label& lab ) const
+{
+   auto s = stack. find( lab );
+   if( s != stack. size( ))
+   {
+      if( stack. at(s). second. hidden )
+         return stack. size( );
+   }
+   return s;
 }
 
 #if 0
@@ -132,10 +139,9 @@ void calc::sequent::print( std::ostream& out ) const
    out << "\n";
 }
 
-#if 0
 
 void 
-calc::sequent::pretty( pretty_printer& out ) const
+calc::sequent::print( pretty_printer& out ) const
 {
    out << "Sequent:\n";
 
@@ -166,5 +172,4 @@ calc::sequent::pretty( pretty_printer& out ) const
    }
 }
 
-#endif
 

@@ -102,6 +102,7 @@ namespace calc
       sequent& operator = ( sequent&& ) noexcept = default;
 
       void print( std::ostream& out ) const;
+      void print( pretty_printer& prt ) const;
 
       void append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 
@@ -109,12 +110,9 @@ namespace calc
 
       void append( dnf< logic::term > d );
      
-      size_t find( const label& lab ) 
-         { return stack. find( lab ); }
-            // Returns stack. size( ) if not found. 
-            // Otherwise a valid index into stack. 
-            // Currently hiding is ignored. We could refuse to find
-            // hidden formulas.
+      size_t find( const label& lab ) const; 
+            // Returns stack. size( ) if not found, 
+            // lab is hidden.
  
       const seqform& at( size_t ind ) const
          { return stack. at( ind ). second; } 

@@ -54,7 +54,7 @@ public:
          pop( );
    }
 
-   size_t find( const K& k )
+   size_t find( const K& k ) const
    {
       auto p = index. find(k);
       if( p != index. end( ))

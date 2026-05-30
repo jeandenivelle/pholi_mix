@@ -676,7 +676,8 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       auto ct = check. replacedebruijn( "goal"_unchecked );
       auto lab = check. cut( ct );
       lab = check. orexists( lab. value( ), 1 ); 
-      check. expand( lab. value( ), 0, 0 );
+      lab = check. expand( lab. value( ), 0, 0 );
+      check. flatten( lab. value( )); 
       check. seq. print( std::cout );
 
 #if 0
@@ -710,9 +711,9 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 
    auto proof = chain( 
       { proofterm( prf_cut, "goal"_unchecked ),
-        proofterm( prf_orrepl, -1, 1, 
+        proofterm( prf_orrepl, -1, 1,       
         { proofterm( prf_expandlocal, -1, "goal", 0 ),
-          proofterm( prf_flatten, -1 ),
+          proofterm( prf_flatten, -1 ),   X
           proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" }, 
           { 
              proofterm( prf_flatten, -1 ),
