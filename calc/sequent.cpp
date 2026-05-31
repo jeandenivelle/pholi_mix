@@ -118,7 +118,7 @@ calc::sequent::segment& calc::sequent::back( )
 
 void calc::sequent::print( std::ostream& out ) const
 {
-   out << "Sequent:\n";
+   out << "Sequent\n";
    out << ctxt;
    out << "\n";
 
@@ -139,37 +139,53 @@ void calc::sequent::print( std::ostream& out ) const
    out << "\n";
 }
 
+namespace calc
+{
+   namespace  
+   {
+      void print_ctxt( pretty_printer& pret, 
+                       const logic:: context& ctxt, size_t nr )
+      {
+         while( pret. names. size( ) < nr )
+         {
+            size_t var = ctxt. size( ) - pret. names. size( ) - 1;
+            pret << "   " << pret. names. extend( ctxt. getname( var ));
+            pret << " : " << ctxt. gettype( var ); 
+            if( ctxt. hasdefinition( var ))
+            {
+               // Perhaps one should change the printing order:
+
+               pret. names. restore( pret. names. size( ) - 1 );
+               pret << " := " << ctxt. getdefinition( var );
+               pret. names. extend( ctxt. getname( var ));
+            }
+            pret << '\n';
+         }
+      } 
+   }
+}
+
 
 void 
-calc::sequent::print( pretty_printer& out ) const
+calc::sequent::print( pretty_printer& pret ) const
 {
-   out << "Sequent:\n";
+   pret << "Sequent:\n";
 
-   size_t db = 0;
+   if( pret. names. size( ) != 0 )
+      throw std::logic_error( "sequent: pretty-print, names not empty" );
 
    for( size_t ind = 0; ind != stack. size( ); ++ ind )
    { 
-      while( db < stack. at( ind ). second. ctxtsize )
-      {
-         size_t ind = ctxt. size( ) - db - 1;
-         out << "   " << out. names. extend( ctxt. getname( ind ));
-         out << " : " << ctxt. gettype( ind ); 
-         if( ctxt. hasdefinition( ind ))
-         {
-            // Perhaps one should change the printing order:
-            out. names. restore( out. names. size( ) - 1 );
-            out << " := " << ctxt. getdefinition( ind );
-            out. names. extend( ctxt. getname( ind ));
-         }
-         out << '\n';
-         ++ db;
-      }
-
-      out << "      " << stack. at( ind ). first;
-      out << "   : ";
-      stack. at( ind ). second. print( out ); 
-      out << '\n';
+      print_ctxt( pret, ctxt, stack. at( ind ). second. ctxtsize );
+      
+      pret << "      " << stack. at( ind ). first;
+      pret << "   : ";
+      stack. at( ind ). second. print( pret ); 
+      pret << '\n';
    }
+
+   print_ctxt( pret, ctxt, ctxt. size( ));
+   pret. names. restore(0); 
 }
 
 

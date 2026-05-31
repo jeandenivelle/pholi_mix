@@ -137,9 +137,6 @@ namespace calc
           // and restore the stack. We don't restore ctxt,
           // but we require that it was restored in advance.
  
-      const decision& lastdecision( ) const 
-         { return decisions. back( ); }
-
       size_t nrdecisions( ) const { return decisions. size( ); }
 
       void hide( size_t );

@@ -684,61 +684,65 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       lab = check. expand( label( "form7" ), identifier( ) + "minhomrel", 0 ); 
       lab = check. expand( lab. value( ), identifier( ) + "minimal", 0 );
       lab = check. normalize( lab. value( ));
+      lab = check. flatten( lab. value( )); 
 
+      logic::term indhyp = logic::term( logic::op_false );  
+      // Called Q in the report:
+      {
+         using namespace logic;
+         auto disj1 = 
+            "x1"_unchecked == apply( "0"_unchecked, { "n1"_unchecked } ) &&
+            "x2"_unchecked == apply( "0"_unchecked, { "n2"_unchecked } );
 
-   logic::term indhyp = logic::term( logic::op_false );  
-      // Called Q in the paper. 
-   {
-      using namespace logic;
-      auto disj1 = 
-         "x1"_unchecked == apply( "0"_unchecked, { "n1"_unchecked } ) &&
-         "x2"_unchecked == apply( "0"_unchecked, { "n2"_unchecked } );
+         // Left and right of the lazy-and inside the exists:
 
-      // Left and right of the lazy-and inside the exists:
+         auto la1 =
+            apply( "gen"_unchecked, { "n1"_unchecked, "y1"_unchecked } ) && 
+            apply( "gen"_unchecked, { "n2"_unchecked, "y2"_unchecked } );
 
-      auto la1 =
-         apply( "gen"_unchecked, { "n1"_unchecked, "y1"_unchecked } ) && 
-         apply( "gen"_unchecked, { "n2"_unchecked, "y2"_unchecked } );
+         auto la2 = 
+            apply( "minhomrel"_unchecked, 
+              { "n1"_unchecked, "n2"_unchecked, "y1"_unchecked, "y2"_unchecked } ) &&
+                "x1"_unchecked == apply( "succ"_unchecked, { "n1"_unchecked, "y1"_unchecked } ) &&
+                "x2"_unchecked == apply( "succ"_unchecked, { "n2"_unchecked, "y2"_unchecked } );
 
-      auto la2 = 
-         apply( "minhomrel"_unchecked, { "n1"_unchecked, "n2"_unchecked, "y1"_unchecked, "y2"_unchecked } ) &&
-         "x1"_unchecked == apply( "succ"_unchecked, { "n1"_unchecked, "y1"_unchecked } ) &&
-         "x2"_unchecked == apply( "succ"_unchecked, { "n2"_unchecked, "y2"_unchecked } );
+         auto disj2 = logic::exists( { { "y1", O }, { "y2", O }}, lazy_and( la1, la2 ));
 
-      auto disj2 = logic::exists( { { "y1", O }, { "y2", O }}, lazy_and( la1, la2 ));
-
-      indhyp = disj1 || disj2; 
-      indhyp = lambda( {{ "x1", O }, { "x2", O }}, indhyp );
-      indhyp = lambda( {{ "n1", Nat }, { "n2", Nat }}, indhyp );
-   }
+         indhyp = disj1 || disj2; 
+         indhyp = lambda( {{ "x1", O }, { "x2", O }}, indhyp );
+         indhyp = lambda( {{ "n1", Nat }, { "n2", Nat }}, indhyp );
+      }
       indhyp = check. replacedebruijn( indhyp ); 
       check. deflocal( "Q", indhyp );
+      auto val = check. replacedebruijn( 
+                apply( "Q"_unchecked, { "s1"_unchecked, "s2"_unchecked } ));
+
+      lab = check. instantiate( lab. value( ), { val } );
+      lab = check. flatten( lab. value( ));
+      lab = check. orexists( lab. value( ), 1 );
+      check. show( "!homrel( s1, s2, Q( s1, s2 )", std::cout );
+
+      lab = check. expand( lab. value( ), identifier( ) + "homrel", 0 );
+      lab = check. normalize( lab. value( ));
+      lab = check. flatten( lab. value( ));
+      lab = check. orexists( lab. value( ), 0 );
+
+      lab = check. expand( lab. value( ),
+                           check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
+      lab = check. normalize( lab. value( ));
+      lab = check. flatten( lab. value( ));
+      lab = check. flatten( lab. value( ));  
+      check. simplify( );
+      //                proofterm( prf_flatten, -2 ),
+
+      lab = check. resolve( );  
       check. show( "this is the point", std::cout );
 #if 0
 
    auto proof = chain( 
       { 
-             proofterm( prf_deflocal, "Q", indhyp, 
              {
-                proofterm( prf_flatten, -1 ),
-                proofterm( prf_forallelim, -1,
-                   { apply( "Q"_unchecked, { "s1"_unchecked, "s2"_unchecked } ) } ),
-                proofterm( prf_flatten, -1 ),
-                proofterm( prf_orrepl, -1, 1, 
                 { 
-                   proofterm( prf_expand, -1, identifier( ) + "homrel", 0 ),
-                   proofterm( prf_normalize, -1 ),
-                   proofterm( prf_flatten, -1 ),
-
-                   proofterm( prf_orrepl, -1, 0, 
-                   {
-                      proofterm( prf_expandlocal, -1, "Q", 0 ),
-                      proofterm( prf_normalize, -1 ),
-                      proofterm( prf_flatten, -1 ), 
-                      proofterm( prf_hide, -1 ), 
-                      proofterm( prf_flatten, -2 ), 
-                      proofterm( prf_simplify ), 
-                   }),
                    proofterm( prf_existsrepl, -1, std::vector<std::string> { "y1", "y2" },
                    { 
                       proofterm( prf_flatten, -1 ),

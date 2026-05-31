@@ -64,6 +64,17 @@ namespace calc
 
       bool deflocal( std::string_view name, logic::term val );
 
+      std::optional< label > 
+      instantiate( label fm, const std::vector< logic::term > & values );
+
+      std::optional< label > simplify( );
+         // We always simplify everything. The return value
+         // is empty if no simplification was possible. 
+
+      size_t nrdecisions( ) const { return seq. decisions. size( ); }
+
+      std::optional< label > resolve( );
+
       logic::term replacedebruijn( logic::term tm );
 
       void show( std::string_view label, 
@@ -71,6 +82,8 @@ namespace calc
 
    private: 
       std::optional< logic::type > checktype( logic::term& tm );
+
+      void assume( const std::string& name, const logic::type& tp );
 
       void define( const std::string& name, 
                    const logic::term& val, const logic::type& tp );

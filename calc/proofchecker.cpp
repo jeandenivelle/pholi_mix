@@ -6,6 +6,7 @@
 #include "localexpander.h"
 #include "flatten.h"
 #include "subsumption.h"
+#include "saturation.h"
 
 #include "logic/structural.h"
 #include "logic/replacements.h"
@@ -178,9 +179,9 @@ calc::proofchecker::orexists( label fm, size_t choice,
    for( size_t v = 0; v != ex. vars. size( ); ++ v )
    {
       if( v < eigen. size( ))
-         seq. ctxt. assume( eigen. at(v), ex. vars. at(v). tp );
+         assume( eigen. at(v), ex. vars. at(v). tp );
       else 
-         seq. ctxt. assume( ex. vars. at(v). pref, ex. vars. at(v). tp );
+         assume( ex. vars. at(v). pref, ex. vars. at(v). tp );
    }
 
    auto lab = seq. nextlabel; 
@@ -228,7 +229,6 @@ calc::proofchecker::expand( label fm, const identifier& ident, size_t occ )
    {
       std::cout << "it is a UNF\n";
    }
-
 
 }
 
@@ -321,7 +321,7 @@ calc::proofchecker::flatten( label fm )
          seq. hide( ind );
          auto lab = seq. nextlabel;
          seq. append( std::move(f2) );
-         return lab;  // The returns are incorrect.
+         return lab; 
       }
 
       // If f1 is trivial, it may still be possible to transform into
@@ -332,11 +332,14 @@ calc::proofchecker::flatten( label fm )
          auto cnf1 = conjunction( { forall( f1. at(0). body ) } );
          auto cnf2 = calc::flatten( cnf1 );
 
+         std::cout << "cnf1 = " << cnf1 << "\n";
+         std::cout << "cnf2 = " << cnf2 << "\n";
          if( cnf1. size( ) != cnf2. size( ) || !subsumes( cnf2, cnf1 ))
          {
-            seq. hide( ind );
+            seq. hide( ind ); 
+            auto lab = seq. nextlabel; 
             seq. append( cnf2 );
-            return { };
+            return lab;
          }
       }
    }
@@ -390,6 +393,164 @@ calc::proofchecker::deflocal( std::string_view name, logic::term val )
 }
 
 
+std::optional< calc::label > 
+calc::proofchecker::instantiate( label fm,
+                                 const std::vector< logic::term > & values )
+{
+   size_t ind = seq. find( fm );
+   if( ind == seq. stack. size( ))   
+   {
+      errorstack::builder bld;
+      bld << "instantiate: Unknown label for universal " << fm; 
+      err. push( std::move( bld ));
+      return { };
+   }
+    
+   if( !seq. at( ind ). is_unf( ))
+   {     
+      errorstack::builder bld;
+      auto prnt = pretty_printer( bld, blfs );
+      bld << "instantiate, formula is not universal: " << seq. at( ind );
+      err. push( std::move( bld ));
+      return { };
+   }
+
+   if( seq. at( ind ). get_unf( ). vars. size( ) < values. size( ))
+   {
+      errorstack::builder bld;
+      bld << "forallelim " << fm << " : ";
+      bld << "There are " << values. size( ) << " instances, ";
+      bld << "while the formula has only ";
+      bld << seq. at( ind ). get_unf( ). vars. size( ) << " variables";
+      return { };
+   }
+
+   auto mainform = seq. at( ind ). get_unf( );
+   mainform = lift( std::move( mainform ), seq. liftdist( ind ));
+
+   logic::fullsubst subst;
+
+   size_t nrcorrecttypes = 0;
+   for( size_t i = 0; i != values. size( ); ++ i )
+   {
+      std::cout << "i = " << i << "\n";
+      auto inst = values. at(i);
+      auto tp = checktype( inst );
+
+      if( tp. has_value( ))
+      {
+         if( equal( tp. value( ), mainform. vars[i]. tp ))
+         {
+            subst. append( std::move( inst ));
+            ++ nrcorrecttypes;
+         }
+         else
+         {
+            auto bld = errorstack::builder( );
+            auto prt = pretty_printer( bld, blfs );
+            prt << "true type of instance " << inst << " is wrong\n";
+            prt << "It is " << tp. value( ) << ", but it must be ";
+            prt << mainform. vars. at(i). tp;
+            err. push( std::move( bld ));
+         }
+      }
+      else
+         std::cout << "had no value\n";
+   }
+
+   if( nrcorrecttypes != values. size( ))
+   {
+      auto bld = errorstack::builder( );
+      bld << "unable to instantiate";
+      err. push( std::move( bld ));
+      return { };
+   }
+
+   // We do not remove the outermost forall, because its
+   // presence is required by the data structure.
+   // It is allowed that some variables remain.
+
+   mainform. vars. erase( mainform. vars. begin( ),
+                          mainform. vars. begin( ) + values. size( ));
+
+   mainform = outermost( subst, std::move( mainform ), 0 );
+
+   // We append mainform as CNF. The append function will
+   // convert formula into a DNF is the quantification is empty.
+
+   seq. hide( ind );
+   auto lab = seq. nextlabel; 
+   seq. append( conjunction( { mainform } ));
+   return lab;
+
+}
+
+
+std::optional< calc::label > calc::proofchecker::simplify( )
+{
+   saturation sat; 
+
+   for( size_t i = 0; i != seq. stack. size( ); ++ i )
+   {
+      const auto& fm = seq. at(i);
+      if( !fm. hidden && fm. is_dnf( ))
+         sat. initial( lift( fm. get_dnf( ), seq. liftdist(i)), i );
+   }
+
+   sat. saturate( );
+   std::cout << "after saturation\n";
+   std::cout << sat << "\n";
+
+   for( auto rm : sat. removed_initials )
+      seq. hide( rm );
+
+   auto res = seq. nextlabel; 
+   for( auto& cls : sat. checked )
+   {
+      // We don't add initial ones, because they are already there.
+
+      if( !cls. seqind )
+         seq. append( make_dnf( cls. disj ));
+   }
+
+   if( res != seq. nextlabel )
+      return res;
+   else
+      return { };
+
+}
+
+
+std::optional< calc::label > calc::proofchecker::resolve( )
+{  
+   if( seq. decisions. size( ) == 0 )
+      throw std::logic_error( "resolve: no decision" ); 
+
+   std::cout << seq. decisions. back( ) << "\n";
+
+   return { };
+}
+
+void 
+calc::proofchecker::show( std::string_view label, std::ostream& out ) const
+{
+   auto prt = pretty_printer( std::cout, blfs );
+   prt << bar( 75 ) << "\n";
+   prt << "proof state " << label << " :\n";
+   seq. print( prt );   
+   prt << bar( 75 ) << "\n";
+}
+
+
+void
+calc::proofchecker::assume( const std::string& name,
+                            const logic::type& tp )
+{
+   seq. ctxt. assume( name, tp );
+   db. push( name, db. size( ));
+}
+
+
 void 
 calc::proofchecker::define( const std::string& name, 
                             const logic::term& val, 
@@ -398,6 +559,7 @@ calc::proofchecker::define( const std::string& name,
    seq. ctxt. define( name, val, tp );
    db. push( name, db. size( ));
 }
+
 
 std::optional< logic::type >
 calc::proofchecker::checktype( logic::term& tm ) 
@@ -412,16 +574,6 @@ calc::proofchecker::checktype( logic::term& tm )
    return tp; 
 }
 
-
-void 
-calc::proofchecker::show( std::string_view label, std::ostream& out ) const
-{
-   auto prt = pretty_printer( std::cout, blfs );
-   prt << bar( 75 ) << "\n";
-   prt << "proof state " << label << " :\n";
-   seq. print( prt );   
-   prt << bar( 75 ) << "\n";
-}
 
 logic::term calc::proofchecker::replacedebruijn( logic::term tm )
 {

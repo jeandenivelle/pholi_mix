@@ -16,8 +16,6 @@
 #include "calc/structural.h"
 #include "weights.h"
 
-#include "printing.h"
-
 #include "logic/termoperators.h"
 
 namespace
@@ -88,16 +86,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
    {
 
 #if 0
-#if 0
-            // Was part of testing. Should be completely removed later:
-
-            seq. ctxt_assume( "hhhh", logic::type( logic::type_form ));
-            seq. ctxt_assume( "ssss", logic::type( logic::type_obj ));
-
-            seq. ugly( std::cout );  
-            std::cout << "\n";
-#endif
-
             // We use the last formula. If there are no formulas, 
             // it is an error:
 
@@ -213,51 +201,8 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       }
 #endif 
 
-   case prf_chain:
-      {
-         auto ch = prf. view_chain( );
-
-         for( size_t i = 0; i != ch. size( ); ++ i )
-         {
-            auto prf = ch. extr_sub(i);
-            checkproof( blfs, seq, prf, err, dependencies );
-         } 
-
-         return; 
-      }
-
 
 #if 0
-#if 0
-   case prf_copy:
-      {
-         auto copy = prf. view_copy( );
-
-         // This is not terribly efficient, but I think
-         // that the number of segments in a proof is logarithmic in its
-         // size.
-
-         for( size_t seg = 0; seg != seq. size( ); ++ seg )
-         {
-            if( seq. at( seg ). name == copy. segname( ))
-            { 
-               if( !seq. at( seg ). inrange( copy. ind( )))
-                  throw std::logic_error( "copy: wrong index" );
-
-               auto fm = seq. at( seg ). at( copy. ind( ));
-                  // Copy, not move!
-
-               seq. back( ). push( lift( std::move( fm ),
-                                      seq. ctxt. size( ) -
-                                      seq. at( seg ). contextsize ));
-
-               return;  // succesful return. 
-            }
-         }
-         throw std::logic_error( " not found " );
-      }
-
-#endif
    case prf_hide: 
       {
          auto hd = prf. view_hide( );
@@ -476,99 +421,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       }
 #endif
 #endif 
-   case prf_forallelim:
-      {
-         auto elim = prf. view_forallelim( );
-         auto ind = seq. find( elim. fm( ));
-   
-         if( ind == seq. stack. size( ))  
-         {
-            errorstack::builder bld;
-            bld << "forallelim: Unknown label for universal ";
-            bld << elim. fm( );
-            err. push( std::move( bld ));
-            return;
-         }
-         
-         if( !seq. at( ind ). is_unf( ))
-         {     
-            errorstack::builder bld;
-            bld << "forallelim " << elim. fm( ) << " : ";
-            bld << "formula is not universal";
-            err. push( std::move( bld ));
-            return;
-         }     
 
-         if( seq. at( ind ). get_unf( ). vars. size( ) < elim. size( ))
-         {
-            errorstack::builder bld;
-            bld << "forallelim " << elim. fm( ) << " : ";
-            bld << "There are " << elim. size( ) << " instances, ";
-            bld << "while the formula has only ";
-            bld << seq. at( ind ). get_unf( ). vars. size( ) << " variables";
-            return; 
-         }
-
-         auto mainform = seq. at( ind ). get_unf( );
-         mainform = lift( std::move( mainform ), seq. liftdist( ind ));
-         
-         size_t errstart = err. size( );
-         logic::fullsubst subst;
-
-         size_t cc = seq. ctxt. size( );
-
-         size_t nrcorrecttypes = 0;
-         for( size_t i = 0; i != elim. size( ); ++ i )
-         {
-            std::cout << "i = " << i << "\n";
-            auto inst = elim. extr_inst(i);
-            auto tp = checktype( blfs, inst, seq, err );
-
-            if( tp. has_value( ))
-            {
-               if( equal( tp. value( ), mainform. vars[i]. tp ))
-               {
-                  subst. append( std::move( inst )); 
-                  ++ nrcorrecttypes;
-               }
-               else
-               {
-                  auto bld = errorstack::builder( ); 
-                  auto prt = pretty_printer( bld, blfs );
-                  prt << "true type of instance " << inst << " is wrong\n";
-                  prt << "It is " << tp. value( ) << ", but it must be ";
-                  prt << mainform. vars. at(i). tp;
-                  err. push( std::move( bld ));
-               }
-            }
-            else
-               std::cout << "had no value\n";
-         }
-
-         if( nrcorrecttypes != elim. size( ))
-         {
-            auto bld = errorstack::builder( );
-            bld << "unable to instantiate";
-            err. push( std::move( bld ));
-            return;
-         }
-
-         // We do not remove the outermost forall, because its 
-         // presence is required by the data structure. 
-         // We remove the variables It is allowed that some variables remain. 
-
-         mainform. vars. erase( mainform. vars. begin( ),
-                                mainform. vars. begin( ) + elim. size( ));
-
-         mainform = outermost( subst, std::move( mainform ), 0 ); 
-
-         // We append mainform as CNF. The append function will 
-         // convert formula into a DNF is the quantification is empty.
-      
-         seq. hide( ind );  
-         seq. append( conjunction( { mainform } ));
-         return;  
-      }
 #if 0
    case prf_deflocal: 
       {
@@ -670,33 +523,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
          seq. append( disjunction( { exists( fm ) } ));
          return;  
-      }
-   case prf_simplify:
-      {
-         saturation sat; 
-
-         for( size_t i = 0; i != seq. stack. size( ); ++ i )
-         {
-            const auto& fm = seq. at(i);
-            if( !fm. hidden && fm. is_dnf( )) 
-               sat. initial( lift( fm. get_dnf( ), seq. liftdist(i)), i );
-         }
-     
-         sat. saturate( );
-         std::cout << "after saturation\n";
-         std::cout << sat << "\n";
-
-         for( auto rm : sat. removed_initials )
-            seq. hide( rm );
-
-         for( auto& cls : sat. checked ) 
-         {
-            // We don't add initial ones, because they are already there.
-
-            if( !cls. seqind )
-               seq. append( make_dnf( cls. disj ));
-         } 
-         return;
       }
 
    case prf_fake:

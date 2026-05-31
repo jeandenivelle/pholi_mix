@@ -32,8 +32,8 @@
    context.cpp
    structural.cpp
    uniquenamestack.cpp
-   printing.cpp
    pretty.cpp
+   printing.cpp
 
 %dir Source/calc
 %sources
@@ -47,7 +47,6 @@
    label.cpp
    sequent.cpp
    proofterm.cpp
-   printing.cpp
    proofchecker.cpp
    saturation.cpp
    truthset.cpp
