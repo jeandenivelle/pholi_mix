@@ -26,7 +26,7 @@ namespace calc
 
       pretty_printer( std::ostream& out,
                        const logic::beliefstate& blfs,
-                       logic::context& ctxt )
+                       const logic::context& ctxt )
          : out( out ),
            blfs( blfs ),
            names( logic::pretty::getnames( ctxt, ctxt. size( )) ) 

@@ -13,15 +13,6 @@
 namespace calc
 {
 
-   struct bar
-   {
-      size_t len;
-      bar( size_t len = 70 )
-         : len( len )
-      { }
-   };
-
-   std::ostream& operator << ( std::ostream& out, bar b );
 
    std::optional< logic::type >
    checktype( const logic::beliefstate& blfs,

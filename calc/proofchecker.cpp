@@ -2,6 +2,7 @@
 #include "proofchecker.h"
 
 #include "outermost.h"
+#include "expander.h"
 #include "localexpander.h"
 #include "flatten.h"
 #include "subsumption.h"
@@ -12,6 +13,14 @@
 #include "logic/structural.h"
 
 #include "projection.h"
+
+std::ostream& calc::operator << ( std::ostream& out, bar b )
+{
+   for( size_t i = 0; i != b. len; ++ i )
+      out << '-';
+   return out;
+}
+
 
 namespace
 {
@@ -150,18 +159,15 @@ calc::proofchecker::orexists( label fm, size_t choice,
    enf< logic::term > ex = std::move( mainform. at( choice ));
    std::cout << "ex: " << ex << "\n";
   
-   size_t cc = seq. ctxt. size( );
-   size_t ss = seq. stack. size( );
-
    // Assume the existentially quantified variables of alt:
 
-   if( ex. vars. size( ) != eigen. size( ))
+   if( eigen. size( ) > ex. vars. size( ))
    {
       errorstack::builder bld;
       bld << "exists " << fm << " : ";
-      bld << "number of eigenvariables is not right: ";
+      bld << "there are too many eigenvariables: ";
       bld << "it is " << eigen. size( );
-      bld << ", but it must be " << ex. vars. size( );
+      bld << ", but the formula has only " << ex. vars. size( ) << "variables";
       err. push( std::move( bld ));
       return { };
    }
@@ -171,16 +177,61 @@ calc::proofchecker::orexists( label fm, size_t choice,
 
    for( size_t v = 0; v != ex. vars. size( ); ++ v )
    {
-      if( eigen. at(v). size( ) != 0 )
-         seq. ctxt. assume( eigen. at(v), ex. vars[v]. tp );
+      if( v < eigen. size( ))
+         seq. ctxt. assume( eigen. at(v), ex. vars. at(v). tp );
       else 
-         seq. ctxt. assume( "_", ex. vars[v]. tp );
+         seq. ctxt. assume( ex. vars. at(v). pref, ex. vars. at(v). tp );
    }
 
    auto lab = seq. nextlabel; 
-   seq. append( disjunction( { std::move( ex ) } ));
+   seq. append( disjunction( { exists( std::move( ex. body )) } ));
    return lab; 
 }
+
+std::optional< calc::label >
+calc::proofchecker::expand( label fm, const identifier& ident, size_t occ )
+{
+   auto ind = seq. find( fm );
+   if( ind == seq. stack. size( ))
+   {
+      errorstack::builder bld;
+      bld << "expand: unknown label " << ident;
+      err. push( std::move( bld ));
+      return { };
+   }
+
+   // The expander will check if ident has a definition
+   // for the types with which it is used. We don't need
+   // to do anything.
+
+   expander def( ident, occ, blfs, err );
+      // We are using unchecked identifier exp. ident( ).
+      // The expander will look only at exact overloads.
+      // This guarantees type safety.
+
+   std::cout << def << "\n";
+
+   // I see a recurring pattern here, that needs to become a template:
+
+   if( seq. at( ind ). is_dnf( ))
+   {
+      auto res = seq. at( ind ). get_dnf( );
+      res = lift( std::move( res ), seq. liftdist( ind ));
+      res = outermost( def, std::move( res ), 0 );
+      seq. hide( ind );
+      auto lab = seq. nextlabel;
+      seq. append( res );
+      return lab;
+   }
+
+   if( seq. at( ind ). is_unf( ))
+   {
+      std::cout << "it is a UNF\n";
+   }
+
+
+}
+
 
 std::optional< calc::label >
 calc::proofchecker::expand( label fm, size_t var, size_t occ ) 
@@ -204,7 +255,6 @@ calc::proofchecker::expand( label fm, size_t var, size_t occ )
    {
       errorstack::builder bld;
       auto prnt = pretty_printer( bld, blfs );
-      // seq. pretty( prnt );
       prnt << "unknown formula " << fm;
       err. push( std::move( bld ));
       return { };
@@ -230,14 +280,16 @@ calc::proofchecker::expand( label fm, size_t var, size_t occ )
 
    }
 
-    seq. print( std::cout );
-    throw std::logic_error( "should be unreachable" );
+   seq. print( std::cout );
+   throw std::logic_error( "should be unreachable" );
 }
 
 
 std::optional< calc::label > 
 calc::proofchecker::flatten( label fm )
 {
+   // This repeated pattern needs to become a function:
+
    size_t ind = seq. find( fm );
    if( ind == seq. stack. size( ))
    {
@@ -267,8 +319,9 @@ calc::proofchecker::flatten( label fm )
          // Equality will probably also work.
 
          seq. hide( ind );
+         auto lab = seq. nextlabel;
          seq. append( std::move(f2) );
-         return { };  // The returns are incorrect.
+         return lab;  // The returns are incorrect.
       }
 
       // If f1 is trivial, it may still be possible to transform into
@@ -294,6 +347,49 @@ calc::proofchecker::flatten( label fm )
    throw std::logic_error( "flatten: unreachable" );
 }
 
+
+std::optional< calc::label > calc::proofchecker::normalize( label fm )
+{
+   size_t ind = seq. find( fm );
+   if( ind == seq. stack. size( ))
+   {        
+      errorstack::builder bld;
+      auto prnt = pretty_printer( bld, blfs );
+      prnt << "normalize: unknown formula label " << fm;
+      err. push( std::move( bld )); 
+      return { };
+   }
+
+   // This is a repeating pattern that needs to be made into a function:
+
+   if( seq. at( ind ). is_dnf( ))
+   {        
+      auto d = seq. at( ind ). get_dnf( );
+      d = lift( std::move(d), seq. liftdist( ind ));
+      seq. hide( ind );
+      auto lab = seq. nextlabel;
+      seq. append( ::normalize( blfs, std::move(d), 0 ));
+      return lab;
+   }
+
+   throw std::logic_error( "normalize not finished" );
+   return { };
+}
+
+bool 
+calc::proofchecker::deflocal( std::string_view name, logic::term val )
+{
+   std::cout << "val = " << val << "\n";
+   auto tp = checktype( val );
+
+   if( !tp. has_value( ))
+      throw std::logic_error( "def local, no type" );
+
+   define( std::string( name ), val, tp. value( ));
+   return true;
+}
+
+
 void 
 calc::proofchecker::define( const std::string& name, 
                             const logic::term& val, 
@@ -317,8 +413,23 @@ calc::proofchecker::checktype( logic::term& tm )
 }
 
 
+void 
+calc::proofchecker::show( std::string_view label, std::ostream& out ) const
+{
+   auto prt = pretty_printer( std::cout, blfs );
+   prt << bar( 75 ) << "\n";
+   prt << "proof state " << label << " :\n";
+   seq. print( prt );   
+   prt << bar( 75 ) << "\n";
+}
+
 logic::term calc::proofchecker::replacedebruijn( logic::term tm )
 {
+   std::cout << db. size( ) << " " << seq. ctxt. size( ) << "\n";
+
+   if( db. size( ) != seq. ctxt. size( ))
+      throw std::logic_error( "replacedebruijn: Sizes differ" );
+
    return logic::replace_debruijn( db, tm );
 }
 

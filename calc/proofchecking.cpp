@@ -8,7 +8,6 @@
 #include "logic/cmp.h"
 #include "logic/counters.h"
 
-#include "expander.h"
 #include "localexpander.h"
 #include "projection.h"
 #include "outermost.h"
@@ -20,18 +19,6 @@
 #include "printing.h"
 
 #include "logic/termoperators.h"
-
-std::ostream& calc::operator << ( std::ostream& out, bar b ) 
-{
-   for( size_t i = 0; i != b. len; ++ i )
-      out << '-';
-   return out;
-}
-
-bool calc::subsumes( const logic::term& tm1, const logic::term& tm2 )
-{
-   return equal( tm1, tm2 );
-}
 
 namespace
 {
@@ -353,7 +340,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          size_t ff = seq. stack. size( );
          size_t ll = seq. nrlevels( );
 
-
          for( size_t i = 0; i != repl. size( ); ++ i )
          {
             auto subproof = repl. extr_sub(i);
@@ -445,105 +431,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          seq. ctxt. restore( cc );
       }
       return;
-
-   case prf_expand:
-      {
-         auto exp = prf. view_expand( ); 
-  
-         // The expander checks if exp. ident( ) has a definition
-         // for the types with which it is used.
- 
-         expander def( exp. ident( ), exp. occ( ), blfs, err );
-            // We are using unchecked identifier exp. ident( ).
-            // The expander will look only at exact overloads. 
-            // This guarantees type safety.
-
-         std::cout << def << "\n";
-
-         auto ind = seq. find( exp. fm( ));
-         if( ind == seq. stack. size( ))
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs );
-            // seq. pretty( prnt );
-            prnt << "expand: unknown label " << exp. fm( );
-            err. push( std::move( bld ));
-            return;
-         }
-
-         if( seq. at( ind ). is_dnf( ))
-         {
-            auto res = seq. at( ind ). get_dnf( );
-            res = lift( std::move( res ), seq. liftdist( ind )); 
-            res = outermost( def, std::move( res ), 0 );
-            seq. hide( ind );
-            seq. append( res );
-            return;
-         } 
-
-         if( seq. at( ind ). is_unf( ))
-         {
-            std::cout << "it is a UNF\n";
-         }
-
-         throw std::logic_error( "should be unreachable: expand " );
-         return;
-      }
-
-   case prf_expandlocal:
-      {
-         auto exp = prf. view_expandlocal( );
-         auto var = exp. var( );
-
-         // Now we need to look at the type of formula at hand:
-
-         if( seq. at( ind ). is_dnf( )) 
-         {
-            auto d = seq. at( ind ). get_dnf( );
-            d = lift( std::move(d), seq. liftdist( ind ));
-            std::cout << "after the lift " << d << "\n";
-            seq. hide( ind );
-            seq. append( outermost( def, std::move(d), 0 ));
-            return;
-         }
-
-         if( seq. at( ind ). is_unf( ))
-         {
-            throw std::logic_error( "unf: unfinished" ); 
-
-         }
-
-         seq. ugly( std::cout );
-         throw std::logic_error( "should be unreachable" );
-      }
-
-   case prf_normalize:
-      { 
-         auto norm = prf. view_normalize( );
-
-         size_t ind = seq. find( norm. fm( ));
-         if( ind == seq. stack. size( ))
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs );
-            seq. pretty( prnt );
-            prnt << "normalize: unknown formula label " << norm. fm( );
-            err. push( std::move( bld ));
-            return;
-         }
-
-         if( seq. at( ind ). is_dnf( ))
-         {
-            auto d = seq. at( ind ). get_dnf( );
-            d = lift( std::move(d), seq. liftdist( ind ));
-            seq. hide( ind );
-            seq. append( normalize( blfs, std::move(d), 0 ));
-            return;
-         }
-
-         throw std::logic_error( "normalize not finished" );
-         return;
-      }
 
 #if 0
 #if 0
@@ -685,21 +572,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 #if 0
    case prf_deflocal: 
       {
-         auto def = prf. view_deflocal( );
-         auto val = def. extr_val( );
-
-         std::cout << "val = " << val << "\n";
-         auto tp = checktype( blfs, val, seq, err );
-
-         if( !tp. has_value( ))
-            throw std::logic_error( "def local, no type" );
-
-         def. update_val( val );
-
-         size_t cc = seq. ctxt. size( );
-         size_t ff = seq. stack. size( );
-         size_t ll = seq. nrlevels( );
-
          seq. ctxt_define( def. name( ), val, tp. value( ));
 
          for( size_t i = 0; i != def. size( ); ++ i )
@@ -709,7 +581,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
             def. update_sub( i, std::move( sub ));
          }
 
-         // We need to apply the substitution:
+         // Next we need to apply the substitution:
 
          if( seq. ctxt. size( ) != cc + 1 )
             throw std::logic_error( "something went wrong with size" );
@@ -849,18 +721,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
          seq. append( disjunction( { exists( std::move( trmp )) } ));
          return;
       }
-
-   case prf_show:
-      {
-         auto show = prf. view_show( ); 
-
-         auto out = pretty_printer( std::cout, blfs );
-         out << bar( 75 ) << "\n";
-         out << "proof state " << show. comment( ) << ":\n";
-         seq. pretty( out );
-         out << bar( 75 ) << "\n";
-         return;
-      } 
 
    case prf_nextlabel:
       {

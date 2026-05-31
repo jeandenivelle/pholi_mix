@@ -14,6 +14,16 @@
 namespace calc
 {
 
+   struct bar
+   {
+      size_t len;
+      bar( size_t len = 70 )
+         : len( len )
+      { }
+   };
+
+   std::ostream& operator << ( std::ostream& out, bar b );
+
    struct proofchecker
    {
       const logic::beliefstate& blfs; 
@@ -23,13 +33,10 @@ namespace calc
       indexedstack< std::string, size_t > db;
       uint64_t nrfakes;  
 
-      std::ostream* show; 
-
       explicit proofchecker( const logic::beliefstate& blfs,
                              errorstack& err )
          : blfs( blfs ), err( err ),
-           nrfakes(0),
-           show( nullptr ) 
+           nrfakes(0) 
       { }
 
       void setgoal( logic::exact fname ); 
@@ -38,16 +45,29 @@ namespace calc
 
       std::optional< label > cut( logic::term fm );
 
+      // If you want to parse expressions, you must set the
+      // names of the eigenvariables.
+
       std::optional< label >  
       orexists( label fm, size_t choice,
                 const std::vector< std::string > & eigen = { } );
 
-      std::optional< label > expand( label fm, size_t var, size_t occ );
+      std::optional< label > 
+      expand( label fm, const identifier& ident, size_t occ ); 
+
+      std::optional< label > 
+      expand( label fm, size_t var, size_t occ );
          // var must be a De Bruijn index. 
 
       std::optional< label > flatten( label fm );
+      std::optional< label > normalize( label fm );
+
+      bool deflocal( std::string_view name, logic::term val );
 
       logic::term replacedebruijn( logic::term tm );
+
+      void show( std::string_view label, 
+                 std::ostream& out = std::cout ) const;
 
    private: 
       std::optional< logic::type > checktype( logic::term& tm );

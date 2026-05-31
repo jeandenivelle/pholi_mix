@@ -677,11 +677,14 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       auto lab = check. cut( ct );
       lab = check. orexists( lab. value( ), 1 ); 
       lab = check. expand( lab. value( ), 0, 0 );
-      check. flatten( lab. value( )); 
-      check. seq. print( std::cout );
+      lab = check. flatten( lab. value( )); 
+      lab = check. orexists( lab. value( ), 0, { "s1", "s2", "x1", "x2" } );
+      lab = check. flatten( lab. value( )); 
+     
+      lab = check. expand( label( "form7" ), identifier( ) + "minhomrel", 0 ); 
+      lab = check. expand( lab. value( ), identifier( ) + "minimal", 0 );
+      lab = check. normalize( lab. value( ));
 
-#if 0
-   std::cout << "start of a big proof --------------------------\n";
 
    logic::term indhyp = logic::term( logic::op_false );  
       // Called Q in the paper. 
@@ -708,18 +711,13 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       indhyp = lambda( {{ "x1", O }, { "x2", O }}, indhyp );
       indhyp = lambda( {{ "n1", Nat }, { "n2", Nat }}, indhyp );
    }
+      indhyp = check. replacedebruijn( indhyp ); 
+      check. deflocal( "Q", indhyp );
+      check. show( "this is the point", std::cout );
+#if 0
 
    auto proof = chain( 
-      { proofterm( prf_cut, "goal"_unchecked ),
-        proofterm( prf_orrepl, -1, 1,       
-        { proofterm( prf_expandlocal, -1, "goal", 0 ),
-          proofterm( prf_flatten, -1 ),   X
-          proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" }, 
-          { 
-             proofterm( prf_flatten, -1 ),
-             proofterm( prf_expand, -3, identifier( ) + "minhomrel", 0 ),
-             proofterm( prf_expand, -1, identifier( ) + "minimal", 0 ),
-             proofterm( prf_normalize, -1 ), 
+      { 
              proofterm( prf_deflocal, "Q", indhyp, 
              {
                 proofterm( prf_flatten, -1 ),
