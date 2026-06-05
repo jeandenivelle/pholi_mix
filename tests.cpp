@@ -687,6 +687,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       lab = check. flatten( lab. value( )); 
 
       logic::term indhyp = logic::term( logic::op_false );  
+
       // Called Q in the report:
       {
          using namespace logic;
@@ -737,8 +738,8 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 
       lab = check. resolve( );  
       check. show( "this is the point", std::cout );
-#if 0
 
+#if 0
    auto proof = chain( 
       { 
              {

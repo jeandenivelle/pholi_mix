@@ -25,7 +25,7 @@ thm induction : [ s : Nat, P : Form( Obj ) ]
 
 def homrel( s1,s2: Nat )( R: Form(Obj,Obj) ) :=
    R( s1.0, s2.0 ) & [ x1,x2: Obj ] { s1. gen(x1) & s2. gen(x2) } -> 
-        R( x1, x2 ) -> R( s1. succ(x1), s2. succ(x2) ) : Form; 
+       R( x1, x2 ) -> R( s1. succ(x1), s2. succ(x2) ) : Form; 
 
 def freegen( s1 : Nat ) :=
    [ s2 : Nat ] < R : Form( Obj, Obj ) > 

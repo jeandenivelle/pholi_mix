@@ -532,7 +532,8 @@ std::optional< calc::label > calc::proofchecker::resolve( )
 }
 
 void 
-calc::proofchecker::show( std::string_view label, std::ostream& out ) const
+calc::proofchecker::show( std::string_view label, 
+                          std::ostream& out ) const
 {
    auto prt = pretty_printer( std::cout, blfs );
    prt << bar( 75 ) << "\n";
