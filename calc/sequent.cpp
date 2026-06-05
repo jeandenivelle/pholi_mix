@@ -69,6 +69,24 @@ calc::sequent::maketrivial( size_t ind )
 
 #endif
 
+void calc::sequent::popdecision( )
+{
+   if( decisions. empty( ))
+      throw std::logic_error( "popdecision( ): there is no decision" );
+
+   if( decisions. back( ). ctxtsize > ctxt. size( ))
+      throw std::logic_error( "popdecision( ): context too small" ); 
+
+   ctxt. restore( decisions. back( ). ctxtsize );
+
+   for( auto h : decisions. back( ). hidden )
+      stack. at(h). second. hidden = false; 
+  
+   stack. restore( decisions. back( ). stacksize );
+
+   decisions. pop_back( );  
+}
+
 void calc::sequent::hide( size_t ind ) 
 {
    if( !stack. at( ind ). second. hidden )
@@ -79,42 +97,11 @@ void calc::sequent::hide( size_t ind )
    }
 }
 
-#if 0
-
-void calc::sequent::poplevel( )
-{
-   if( levels. empty( ))
-      throw std::logic_error( "poplevel( ): there is no level" );
- 
-   if( levels. back( ). ctxtsize != ctxt. size( ))
-      throw std::logic_error( "poplevel( ): context not restored" );
-
-   for( auto h : levels. back( ). hidden )
-      stack. at(h). second. hidden = false; 
-  
-   stack. restore( levels. back( ). stacksize );
-
-   levels. pop_back( );  
-}
-
-#endif
-
 size_t calc::sequent::liftdist( size_t ind ) const
 {
    return ctxt. size( ) - stack. at( ind ). second. ctxtsize; 
 }
 
-#if 0
-
-calc::sequent::segment& calc::sequent::back( )
-{  
-   if( seg. size( ) == 0 )
-      throw std::logic_error( "back: there are no segments" );
-
-   return seg. back( );
-}
-
-#endif
 
 void calc::sequent::print( std::ostream& out ) const
 {

@@ -4,6 +4,10 @@
 #ifndef CALC_TRAVERSE_
 #define CALC_TRAVERSE_
 
+#include "logic/counters.h"
+#include "quantifiers.h"
+#include "propositional.h"
+
 namespace calc
 {
 

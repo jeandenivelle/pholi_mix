@@ -119,24 +119,17 @@ namespace calc
       seqform& at( size_t ind )
          { return stack. at( ind ). second; } 
 
-      const seqform& back( ) const 
-         { return stack. back( ). second; }
-
       void maketrivial( size_t ind );
          // Permantently replace the formula by the truth constant.
          // We also hide it.
-
-      size_t stacksize( ) const { return stack. size( ); }
 
       void pushdecision( size_t parent, size_t choice ) 
          { decisions. push_back( decision( ctxt. size( ), stack. size( ), 
                                  parent , choice )); }
 
       void popdecision( );  
-          // Also unhide everything that was hidden after our decision.
-          // and restore the stack. We don't restore ctxt,
-          // but we require that it was restored in advance.
- 
+         // Also restores the context, the stack, and undoes hidings.
+
       size_t nrdecisions( ) const { return decisions. size( ); }
 
       void hide( size_t );

@@ -734,9 +734,8 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       lab = check. flatten( lab. value( ));
       lab = check. flatten( lab. value( ));  
       check. simplify( );
-      //                proofterm( prf_flatten, -2 ),
-
       lab = check. resolve( );  
+      lab = check. orexists( lab. value( ), 0 ); 
       check. show( "this is the point", std::cout );
 
 #if 0

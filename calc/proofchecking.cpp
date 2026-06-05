@@ -18,46 +18,6 @@
 
 #include "logic/termoperators.h"
 
-namespace
-{
-
-   template< typename F > F lift( F f, size_t dist )
-   {
-      // std::cout << "lifting " << f << " over distance " << dist << "\n";
-      if( dist != 0 )
-      {
-         auto lift = logic::lifter( dist );
-         return outermost( lift, std::move(f), 0 );
-      }
-      else
-         return f;
-   }
-
-   template< typename F > 
-   F normalize( const logic::beliefstate& blfs, F f, size_t dist )
-   {
-      logic::betareduction beta;
-      logic::decurrier dec;
-      calc::projection proj( blfs );
-
-      do
-      {
-         beta. used = 0;
-         f = outermost( beta, std::move(f), dist );
-
-         dec. used = 0;
-         f = outermost( dec, std::move(f), dist ); 
-
-         proj. used = 0;
-         f = outermost( proj, std::move(f), dist );
-      }
-      while( beta. used || proj. used || dec. used );
-
-      return f;
-   }
-
-}
-
 
 std::optional< logic::type >
 calc::checktype( const logic::beliefstate& blfs,
@@ -217,53 +177,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 
    case prf_orrepl:
       {
-         // Take the disjunction, and lift it:
-
-         seq. appendlevel( );
-
-         seq. append( disjunction( { std::move( chosen ) } ));
-
-         for( size_t i = 0; i != repl. size( ); ++ i )
-         {
-            auto prf = repl. extr_sub(i);
-            checkproof( blfs, seq, prf, err, dependencies ); 
-            repl. update_sub( i, std::move( prf )); 
-         }
-
-         if( lev + 1 != seq. nrlevels( ))
-            throw std::logic_error( "levels are not right" );
-
-         if( seq. lastlevel( ). stacksize >= seq. stack. size( ))
-         {
-            errorstack::builder bld;
-            bld << "disjunction elimination has no result"; 
-            err. push( std::move( bld ));
-            return; 
-         }
-
-         if( !seq. back( ). is_dnf( ))
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs );
-            prnt << "orrepl: Last formula not disjunction " << seq. back( );
-            err. push( std::move( bld ));
-            return;
-         }
-
-         decltype( disj ) result;
-         std::cout << disj << "\n";
-         for( size_t i = 0; i != disj. size( ); ++ i )
-         {
-            if( i != alt ) 
-               result. append( disj. at(i));
-         }
-
-         for( auto& lit : seq. back( ). get_dnf( ) ) 
-         {
-            if( !subsumes( lit, result ))
-               result. append( std::move( lit ));
-         }
-
          std::cout << "result = " << result << "\n";
          seq. poplevel( ); 
 
@@ -278,37 +191,11 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
    case prf_existsrepl:
       {
 
-         enf< logic::term > mainform = seq. at( ind ). get_dnf( ). at(0); 
-         mainform = lift( std::move( mainform ), seq. liftdist( ind ));
-
-         size_t cc = seq. ctxt. size( );
-         size_t ff = seq. stack. size( );
-         size_t ll = seq. nrlevels( );
-
-         for( size_t i = 0; i != repl. size( ); ++ i )
-         {
-            auto subproof = repl. extr_sub(i);
-            checkproof( blfs, seq, subproof, err, dependencies );
-            repl. update_sub( i, std::move( subproof ));
-         }
-
-         if( ll != seq. nrlevels( ))
-            throw std::logic_error( "something went wrong with the levels" );
-
          for( size_t ind = ff; ind != seq. stack. size( ); ++ ind )
          {
-            if( seq. at( ind ). ctxtsize != seq. ctxt. size( ))
-               throw std::logic_error( "existsrepl: wrong context size" );
-
-            // Formulas that are not DNF, we make trivial:
-
             if( seq. at( ind ). is_dnf( ))
             {
                auto& dnf = seq. at( ind ). get_dnf( );
-
-               // For each disjunct separately,
-               // we determine its free variables, and
-               // add existential quantifiers for them.
 
                for( size_t i = 0; i != dnf. size( ); ++ i )
                {
@@ -320,11 +207,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
                   logic::debruijn_counter vars;
                   traverse( vars, seq. at( ind ). get_dnf( ). at(i), 0 );
  
-                  // We don't care about all free variables, only about the 
-                  // ones that we assumed just now. 
-                  // We go through our assumptions, check if they occur
-                  // in vars. We create a normalizing subsitution for those. 
-
                   auto norm = logic::normalizer( seq. ctxt. size( ) - cc );
 
                   for( size_t v = 0; v + cc < seq. ctxt. size( ); ++ v )

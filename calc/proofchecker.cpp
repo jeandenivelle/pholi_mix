@@ -4,6 +4,7 @@
 #include "outermost.h"
 #include "expander.h"
 #include "localexpander.h"
+#include "traverse.h"
 #include "flatten.h"
 #include "subsumption.h"
 #include "saturation.h"
@@ -173,8 +174,8 @@ calc::proofchecker::orexists( label fm, size_t choice,
       return { };
    }
    
-   seq. hide( ind );
    seq. pushdecision( ind, choice );
+   seq. hide( ind );
 
    for( size_t v = 0; v != ex. vars. size( ); ++ v )
    {
@@ -526,10 +527,148 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    if( seq. decisions. size( ) == 0 )
       throw std::logic_error( "resolve: no decision" ); 
 
-   std::cout << seq. decisions. back( ) << "\n";
+   if( seq. decisions. size( ) == 0 )
+      throw std::logic_error( "there is no decision to resolve" );
 
-   return { };
+   std::cout << seq. decisions. back( ) << "\n";
+   std::cout << seq << "\n";
+
+   // We check the context sizes. It never hurts to do that:
+
+   for( size_t i = seq. decisions. back( ). stacksize;
+        i != seq. stack. size( ); ++ i )
+   {
+      if( seq. stack. at(i). second. ctxtsize != 
+          seq. decisions. back( ). ctxtsize )
+      {
+         throw std::logic_error( "wrong context size" );
+      }
+   }
+
+   size_t nrassumed = seq. ctxt. size( ) - seq. decisions. back( ). ctxtsize;
+      // This is the number of variables that were assumed 
+      // in the decision.
+
+   for( size_t var = 0; var != nrassumed; ++ var ) 
+   {
+      throw std::logic_error( "untested. This is the chance!" );
+      if( seq. ctxt. hasdefinition( var ))
+         throw std::logic_error( "must be assumption" );
+   }
+
+   // Very unlikely, but who knows?
+
+   while( seq. decisions. back( ). stacksize < seq. stack. size( ) &&
+          seq. stack. back( ). second. hidden )
+   {
+      seq. stack. pop( );
+   }
+   
+   if( seq. decisions. back( ). stacksize >= seq. stack. size( ))
+      throw std::logic_error( "resolve: there is no usable result" );
+ 
+   if( !seq. stack. back( ). second. is_dnf( ))
+   {
+      errorstack::builder bld;
+      auto prnt = pretty_printer( bld, blfs, seq. ctxt );
+      prnt << "Resolve: Last formula is not DNF: ";
+      prnt << seq. stack. back( ). second;
+      err. push( std::move( bld )); 
+      return { };
+   }
+
+   dnf< logic::term > resolvent;
+
+   size_t parind = seq. decisions. back( ). parent;
+
+   {
+      const dnf< logic::term > & parent = 
+         seq. stack. at( parind ). second. get_dnf( ); 
+
+      for( size_t i = 0; i != parent. size( ); ++ i )
+      {
+         if( i != seq. decisions. back( ). choice )
+         {
+            if( !subsumes( parent. at(i), resolvent ))
+               resolvent. append( parent. at(i));
+         } 
+      }
+
+      std::cout << "parent = " << parent << "\n";
+   }
+
+   std::cout << "resolvent = " << resolvent << "\n";
+
+   // For each disjunct separately,
+   // we determine its free variables, and
+   // prepend existential quantifiers for them:
+
+   for( auto lit : seq. stack. back( ). second. get_dnf( ))
+   {
+      // Collect the free variables of lit. Note that
+      // lit may contain free variables. That is unproblematic. 
+ 
+      logic::debruijn_counter varsinlit;
+      traverse( varsinlit, lit, 0 );
+
+      // We don't care about all free variables, only about the
+      // ones that are assumed in the last decision. 
+      // We go through the assumptions, check if they occur
+      // in vars. We create a normalizing subsitution for those.
+
+      auto norm = logic::normalizer( nrassumed );
+
+      // Store this in a variable: 
+      // seq. ctxt. size( ) - seq. decisions. back( ). ctxtsize;
+
+      for( size_t var = 0; var != nrassumed; ++ var )
+      {
+         if( varsinlit. contains( var ))
+            norm. append( var );
+      }
+
+      // Apply norm to lit, to obtain the free variables normalized.
+
+      lit = outermost( norm, std::move( lit ), 0 );
+
+      // We need to collect the types of the variables that  
+      // occur in varsinlit. 
+      // Unfortunately, it needs to be done backwards:
+
+      std::vector< logic::vartype > quant;
+
+      for( size_t var = nrassumed; var != 0; )
+      {
+         -- var; 
+         if( varsinlit. contains( var ))
+         {
+            quant. push_back( { seq. ctxt. getname( var ),
+                                seq. ctxt. gettype( var ) } );
+         }
+      }
+
+      // If lit contains (existentially quantified) variables, we add
+      // them to quant.
+
+      for( auto& q : lit. vars )
+         quant. push_back( std::move(q));
+
+      lit. vars = std::move( quant );  
+     
+      if( !subsumes( lit, resolvent ))
+         resolvent. append( std::move( lit ));  
+   }
+
+   seq. popdecision( );
+
+   if( subsumes( resolvent, seq. stack. at( parind ). second. get_dnf( )))
+      seq. hide( parind );
+
+   auto lab = seq. nextlabel; 
+   seq. append( std::move( resolvent ));  
+   return lab;
 }
+
 
 void 
 calc::proofchecker::show( std::string_view label, 
