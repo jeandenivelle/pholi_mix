@@ -27,6 +27,12 @@ namespace calc
       label operator ++ ( int )
          { auto copy = *this; ++ index; return copy; }  
 
+      label operator + ( uint64_t diff )
+         { auto res = *this; res. index += diff; return res; }
+
+      label& operator += ( uint64_t diff )
+         { index += diff; return *this; }
+
       struct hash
       {
          hash( ) noexcept = default; 
@@ -41,26 +47,11 @@ namespace calc
 
    };
 
-   bool operator < ( const label& lab1, const label& lab2 );
    bool operator == ( const label& lab1, const label& lab2 );
-
-   inline  
-   bool operator > ( const label& lab1, const label& lab2 )
-      { return lab2 < lab1; }  
-
-   inline 
-   bool operator <= ( const label& lab1, const label& lab2 )
-      { return !( lab2 < lab1 ); }
-
-   inline
-   bool operator >= ( const label& lab1, const label& lab2 )
-      { return !( lab1 < lab2 ); }
-
-   inline 
-   bool operator != ( const label& lab1, const label& lab2 )
-      { return !( lab1 == lab2 ); }
+   bool operator != ( const label& lab1, const label& lab2 ); 
 
    std::ostream& operator << ( std::ostream& out, const label& lab );
+
 }
 
 #endif

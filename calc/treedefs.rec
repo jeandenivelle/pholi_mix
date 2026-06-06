@@ -40,15 +40,6 @@
 %option deflocal { prf_deflocal } =>
    name : std::string, val : logic::term, [ sub : proofterm ]
 
-%option import { prf_import } =>
-   ident : identifier, [ tp : logic::type ]
-
-%option importlocal { prf_importlocal } =>
-   var : size_t, [ tp : logic::type ]
-      // Exists because import could import a local variable,
-      // which we must reject. This rule will be always
-      // rejected.
-      
 %option simplify { prf_simplify } => 
 
 %option fake { prf_fake } => goal : logic::term

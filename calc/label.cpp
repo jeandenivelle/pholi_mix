@@ -25,11 +25,9 @@ bool calc::operator == ( const label& lab1, const label& lab2 )
    return lab1. base == lab2. base && lab1. index == lab2. index;
 }
 
-bool calc::operator < ( const label& lab1, const label& lab2 )
+bool calc::operator != ( const label& lab1, const label& lab2 )
 {
-   if( lab1. base < lab2. base ) return true;
-   if( lab1. base == lab2. base ) return lab1. index < lab2. index;
-   return false;
+   return lab1. base != lab2. base || lab1. index != lab2. index; 
 }
 
 size_t 

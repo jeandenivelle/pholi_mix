@@ -8,6 +8,7 @@
 #include "flatten.h"
 #include "subsumption.h"
 #include "saturation.h"
+#include "structural.h"
 
 #include "logic/structural.h"
 #include "logic/replacements.h"
@@ -111,25 +112,18 @@ std::optional< calc::label > calc::proofchecker::cut( logic::term fm )
              logic::term( logic::op_prop, fm ));
    auto f2 = logic::term( logic::op_not, fm );
 
-   auto lab = seq. nextlabel; 
-   seq. append( disjunction{ exists(f1), exists(f2), exists(fm) } );
-   return lab;
+   return seq. append( disjunction{ exists(f1), exists(f2), exists(fm) } );
 }
 
 
 std::optional< calc::label >
-calc::proofchecker::orexists( label fm, size_t choice,
-                              const std::vector< std::string > & eigen )
+calc::proofchecker::branch( label lab, size_t choice,
+                            const std::vector< std::string > & eigen )
 {
-   size_t ind = seq. find( fm );
+   size_t ind = try2find( lab, "main formula of branch" );
    if( ind == seq. stack. size( ))
-   {
-      errorstack::builder bld;
-      bld << "ordisjrepl: Unknown label for disjunction " << fm;
-      err. push( std::move( bld )); 
       return { };
-   }  
-
+ 
    if( !seq. at( ind ). is_dnf( ))
    {
       errorstack::builder bld;
@@ -166,7 +160,7 @@ calc::proofchecker::orexists( label fm, size_t choice,
    if( eigen. size( ) > ex. vars. size( ))
    {
       errorstack::builder bld;
-      bld << "exists " << fm << " : ";
+      bld << "exists " << lab << " : ";
       bld << "there are too many eigenvariables: ";
       bld << "it is " << eigen. size( );
       bld << ", but the formula has only " << ex. vars. size( ) << "variables";
@@ -185,22 +179,15 @@ calc::proofchecker::orexists( label fm, size_t choice,
          assume( ex. vars. at(v). pref, ex. vars. at(v). tp );
    }
 
-   auto lab = seq. nextlabel; 
-   seq. append( disjunction( { exists( std::move( ex. body )) } ));
-   return lab; 
+   return seq. append( disjunction( { exists( std::move( ex. body )) } ));
 }
 
 std::optional< calc::label >
-calc::proofchecker::expand( label fm, const identifier& ident, size_t occ )
+calc::proofchecker::expand( label lab, const identifier& ident, size_t occ )
 {
-   auto ind = seq. find( fm );
+   auto ind = try2find( lab, "formula to expand" );
    if( ind == seq. stack. size( ))
-   {
-      errorstack::builder bld;
-      bld << "expand: unknown label " << ident;
-      err. push( std::move( bld ));
-      return { };
-   }
+      return { }; 
 
    // The expander will check if ident has a definition
    // for the types with which it is used. We don't need
@@ -221,9 +208,7 @@ calc::proofchecker::expand( label fm, const identifier& ident, size_t occ )
       res = lift( std::move( res ), seq. liftdist( ind ));
       res = outermost( def, std::move( res ), 0 );
       seq. hide( ind );
-      auto lab = seq. nextlabel;
-      seq. append( res );
-      return lab;
+      return seq. append( res );
    }
 
    if( seq. at( ind ). is_unf( ))
@@ -231,6 +216,7 @@ calc::proofchecker::expand( label fm, const identifier& ident, size_t occ )
       std::cout << "it is a UNF\n";
    }
 
+   throw std::logic_error( "unreachable!" );
 }
 
 
@@ -270,9 +256,7 @@ calc::proofchecker::expand( label fm, size_t var, size_t occ )
       auto d = seq. at( ind ). get_dnf( );
       d = lift( std::move(d), seq. liftdist( ind ));
       std::cout << "after the lift " << d << "\n";
-      auto lab = seq. nextlabel; 
-      seq. append( outermost( def, std::move(d), 0 ));
-      return lab; 
+      return seq. append( outermost( def, std::move(d), 0 ));
    }
 
    if( seq. at( ind ). is_unf( ))
@@ -286,65 +270,91 @@ calc::proofchecker::expand( label fm, size_t var, size_t occ )
 }
 
 
+std::optional< calc::label >
+calc::proofchecker::import( const identifier& ident, 
+                            std::vector< logic::type > argtypes )
+{
+   size_t nrcorrect = 0;
+
+   for( auto& tp : argtypes )
+   {
+      bool b = checkandresolve( blfs, err, tp );
+      if( b )
+         ++ nrcorrect;
+      else
+      {
+         errorstack::builder bld; 
+         auto prt = pretty_printer( bld, blfs );
+         prt << "Bad structural type while importing " << ident << " : ";
+         prt << tp;
+         err. push( std::move( bld ));
+      }
+   }
+ 
+   if( nrcorrect != argtypes. size( ))
+      return { };
+
+   auto ex = findformula( blfs, err, ident, argtypes );
+   if( !ex. has_value( ))
+      return { };  
+         // We can return quietly because findformula created an error. 
+
+   const auto& fm = blfs. at( ex. value( )). view_form( ). fm( );
+
+   return seq. append( disjunction( { exists( fm ) } ));
+}
+
 std::optional< calc::label > 
-calc::proofchecker::flatten( label fm )
+calc::proofchecker::flatten( label lab )
 {
    // This repeated pattern needs to become a function:
 
-   size_t ind = seq. find( fm );
+   size_t ind = try2find( lab, "main formula of flatten" ); 
    if( ind == seq. stack. size( ))
-   {
-      errorstack::builder bld;
-      auto prnt = pretty_printer( bld, blfs, seq. ctxt );
-      seq. print( prnt );
-      prnt << "flatten: unknown formula label " << fm;
-      err. push( std::move( bld ));
       return { };
-   }
 
-   std::cout << "mainform = " << seq. at( ind ) << "\n";
-
-   if( seq. at( ind ). is_cnf( ))
+   if( seq. at( ind ). is_unf( ))
    {
+      auto f = lift( seq. at( ind ). get_unf( ), seq. liftdist( ind )); 
+      auto f2 = try_flatten( conjunction( { f } ));
+      if( f2. has_value( ))
+      {
+         seq. hide( ind ); 
+         return seq. append( std::move( f2. value( )) );
+      }
 
-
+      return { };
    }
 
    if( seq. at( ind ). is_dnf( ))
    {
       auto f = lift( seq. at( ind ). get_dnf( ), seq. liftdist( ind ));
-
       auto f2 = try_flatten(f);
       if( f2. has_value( )) 
       {
          seq. hide( ind );
-         auto lab = seq. nextlabel;
-         seq. append( std::move(f2) );
-         return lab; 
+         return seq. append( std::move( f2. value( )) );
       }
 
-      // If f1 is trivial, it may still be possible to transform into
-      // CNF. I believe this should be put in separate functions.
+      // If f is trivial, it may still be possible to flatten forall(f):
 
-      if( f1. size( ) == 1 && f1. at(0). vars. size( ) == 0 )
+      if( f. size( ) == 1 && f. at(0). vars. size( ) == 0 )
       {
-         auto cnf1 = conjunction( { forall( f1. at(0). body ) } );
-         auto cnf2 = calc::flatten( cnf1 );
+         auto cnf1 = conjunction( { forall( f. at(0). body ) } );
+         auto cnf2 = try_flatten( cnf1 );
 
-         std::cout << "cnf1 = " << cnf1 << "\n";
-         std::cout << "cnf2 = " << cnf2 << "\n";
-         if( cnf1. size( ) != cnf2. size( ) || !subsumes( cnf2, cnf1 ))
+         if( cnf2. has_value( ))
          {
+            std::cout << "cnf1 = " << cnf1 << "\n";
+            std::cout << "cnf2 = " << cnf2. has_value( ) << "\n";
+            
             seq. hide( ind ); 
-            auto lab = seq. nextlabel; 
-            seq. append( cnf2 );
-            return lab;
+            return seq. append( std::move( cnf2. value( )) );
          }
       }
-   }
 
-   if( seq. at( ind ). is_unf( ))
-       throw std::logic_error( "this case is not handled" );
+      return { };
+   }
 
    throw std::logic_error( "flatten: unreachable" );
 }
@@ -369,9 +379,7 @@ std::optional< calc::label > calc::proofchecker::normalize( label fm )
       auto d = seq. at( ind ). get_dnf( );
       d = lift( std::move(d), seq. liftdist( ind ));
       seq. hide( ind );
-      auto lab = seq. nextlabel;
-      seq. append( ::normalize( blfs, std::move(d), 0 ));
-      return lab;
+      return seq. append( ::normalize( blfs, std::move(d), 0 ));
    }
 
    throw std::logic_error( "normalize not finished" );
@@ -477,11 +485,7 @@ calc::proofchecker::instantiate( label fm,
    // We append mainform as CNF. The append function will
    // convert formula into a DNF is the quantification is empty.
 
-   seq. hide( ind );
-   auto lab = seq. nextlabel; 
-   seq. append( conjunction( { mainform } ));
-   return lab;
-
+   return seq. append( conjunction( { mainform } ));
 }
 
 
@@ -537,9 +541,9 @@ std::optional< calc::label > calc::proofchecker::resolve( )
         i != seq. stack. size( ); ++ i )
    {
       if( seq. stack. at(i). second. ctxtsize != 
-          seq. decisions. back( ). ctxtsize )
+          seq. ctxt. size( ))
       {
-         throw std::logic_error( "wrong context size" );
+         throw std::logic_error( "resolve: wrong context size" );
       }
    }
 
@@ -549,7 +553,6 @@ std::optional< calc::label > calc::proofchecker::resolve( )
 
    for( size_t var = 0; var != nrassumed; ++ var ) 
    {
-      throw std::logic_error( "untested. This is the chance!" );
       if( seq. ctxt. hasdefinition( var ))
          throw std::logic_error( "must be assumption" );
    }
@@ -559,11 +562,15 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    while( seq. decisions. back( ). stacksize < seq. stack. size( ) &&
           seq. stack. back( ). second. hidden )
    {
+      throw std::logic_error( "unlikely thing happened" );
       seq. stack. pop( );
    }
    
    if( seq. decisions. back( ). stacksize >= seq. stack. size( ))
+   {
       throw std::logic_error( "resolve: there is no usable result" );
+
+   }
  
    if( !seq. stack. back( ). second. is_dnf( ))
    {
@@ -662,19 +669,24 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    if( subsumes( resolvent, seq. stack. at( parind ). second. get_dnf( )))
       seq. hide( parind );
 
-   auto lab = seq. nextlabel; 
-   seq. append( std::move( resolvent ));  
-   return lab;
+   return seq. append( std::move( resolvent ));  
 }
 
 
 void
-calc::proofchecker::setlabel( label lab ) 
+calc::proofchecker::nextlabel( label lab ) 
 {
    std::cout << "lab = " << lab << "\n";
    seq. nextlabel = lab;
 }
 
+void
+calc::proofchecker::hide( label lab )
+{
+   auto ind = try2find( lab, "for hiding" );
+   if( ind < seq. stack. size( ))
+      seq. hide( ind );
+}
 
 void 
 calc::proofchecker::show( std::string_view label, 
@@ -723,8 +735,6 @@ calc::proofchecker::checktype( logic::term& tm )
 
 logic::term calc::proofchecker::replacedebruijn( logic::term tm )
 {
-   std::cout << db. size( ) << " " << seq. ctxt. size( ) << "\n";
-
    if( db. size( ) != seq. ctxt. size( ))
       throw std::logic_error( "replacedebruijn: Sizes differ" );
 
@@ -753,4 +763,15 @@ calc::proofchecker::try_flatten( const dnf< logic::term > & disj )
       return { };
 }
 
+size_t calc::proofchecker::try2find( label lab, std::string_view descr )
+{
+   size_t ind = seq. find( lab );
+   if( ind == seq. stack. size( ))
+   {
+      errorstack::builder bld;
+      bld << "Unknown label " << lab << " used for " << descr; 
+      err. push( std::move( bld ));
+   }
+   return ind;
+}
 

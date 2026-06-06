@@ -6,6 +6,7 @@
 #define CALC_PROOFCHECKER_
 
 #include <optional>
+#include <string_view>
 
 #include "logic/beliefstate.h"
 #include "errorstack.h"
@@ -49,8 +50,8 @@ namespace calc
       // names of the eigenvariables.
 
       std::optional< label >  
-      orexists( label fm, size_t choice,
-                const std::vector< std::string > & eigen = { } );
+      branch( label lab, size_t choice, 
+              const std::vector< std::string > & eigen = { } );
 
       std::optional< label > 
       expand( label fm, const identifier& ident, size_t occ ); 
@@ -58,6 +59,9 @@ namespace calc
       std::optional< label > 
       expand( label fm, size_t var, size_t occ );
          // var must be a De Bruijn index. 
+
+      std::optional< label >
+      import( const identifier& ident, std::vector< logic::type > argtypes );
 
       std::optional< label > flatten( label fm );
       std::optional< label > normalize( label fm );
@@ -74,16 +78,20 @@ namespace calc
       size_t nrdecisions( ) const { return seq. decisions. size( ); }
 
       std::optional< label > resolve( );
+         // Resolve the last choice.
 
-      logic::term replacedebruijn( logic::term tm );
-
-      void setlabel( label lab );
+      void nextlabel( label lab );
          // Will be the next label. 
 
+      void hide( label lab );
+         
       void show( std::string_view label, 
                  std::ostream& out = std::cout ) const;
 
+      logic::term replacedebruijn( logic::term tm );
+
    private: 
+       
       std::optional< logic::type > checktype( logic::term& tm );
 
       void assume( const std::string& name, const logic::type& tp );
@@ -96,6 +104,10 @@ namespace calc
 
       std::optional< dnf< logic::term >> 
       try_flatten( const dnf< logic::term > & disj );
+
+      size_t try2find( label lab, std::string_view descr ); 
+         // If we don't find, we return seq. stack. size( ) and
+         // write that we could not find {descr} into err. 
 
    }; 
 

@@ -14,8 +14,6 @@
 
 #include "parsing/parser.h"
 
-#include "calc/label.h"
-
 
 void
 includefile( logic::beliefstate& blfs, 
@@ -86,8 +84,6 @@ includefile( logic::beliefstate& blfs,
 
 int main( int argc, char* argv[] )
 {
-   tests::saturate( );
-
    errorstack err;
    logic::beliefstate blfs;  
    filehasher seen;

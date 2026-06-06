@@ -33,7 +33,7 @@ calc::findformula( const logic::beliefstate& blfs, errorstack& err,
    if( nrfits == 0 )
    {
       errorstack::builder bld;
-      bld << "Import: No suitable formula found for " << ident;
+      bld << "Import: No suitable formula found for identifier " << ident;
       err. push( std::move( bld ));
       return { };
    }

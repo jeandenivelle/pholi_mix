@@ -27,20 +27,28 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
       out << "   (hidden)";
 }
 
-void calc::sequent::append( cnf< logic::term > c )
+calc::label calc::sequent::append( cnf< logic::term > c )
 {
+   auto firstlabel = nextlabel;
+
    for( auto& u : c )
    {
       if( u. vars. size( ) == 0 )
          append( disjunction( { exists( std::move( u. body )) } ));
       else
-         stack. push( nextlabel ++, seqform( std::move(u), ctxt. size( )));
+      {
+         stack. push( nextlabel, seqform( std::move(u), ctxt. size( )));
+         ++ nextlabel;
+      }
    }
+
+   return firstlabel;
 }
 
-void calc::sequent::append( dnf< logic::term > d )
+calc::label calc::sequent::append( dnf< logic::term > d )
 {
-   stack. push( nextlabel ++, seqform( std::move(d), ctxt. size( )));
+   stack. push( nextlabel, seqform( std::move(d), ctxt. size( )));
+   return nextlabel ++ ; 
 }
 
 size_t calc::sequent::find( const label& lab ) const
@@ -54,20 +62,6 @@ size_t calc::sequent::find( const label& lab ) const
    return s;
 }
 
-#if 0
-
-void
-calc::sequent::maketrivial( size_t ind )
-{
-   if( ind >= stack. size( ))
-      throw std::logic_error( "maketrivial: Not a valid index" );
-
-   auto tr = exists( logic::term( logic::op_true ));
-   stack. at( ind ). second. fm = disjunction( { std::move( tr ) } ); 
-   stack. at( ind ). second. hidden = true;
-}
-
-#endif
 
 void calc::sequent::popdecision( )
 {

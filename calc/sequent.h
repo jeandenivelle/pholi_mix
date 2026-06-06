@@ -104,11 +104,12 @@ namespace calc
       void print( std::ostream& out ) const;
       void print( pretty_printer& prt ) const;
 
-      void append( cnf< logic::term > c ); 
+      label append( cnf< logic::term > c ); 
          // We append the components separately, and trivial 
-         // components are appended as dnf.
+         // components are appended as dnf. We return
+         // the label of the first appended formula. 
 
-      void append( dnf< logic::term > d );
+      label append( dnf< logic::term > d );
      
       size_t find( const label& lab ) const; 
             // Returns stack. size( ) if not found, 

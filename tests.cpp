@@ -402,7 +402,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       { 
          proofterm( prf_cut, "goal"_unchecked ),
 
-         // We expand the 'goal' before the split,
+         // We expand the 'goal' before the branch,
          // that saves an existsintro:
 
          proofterm( prf_expandlocal, -1, "goal", 0 ),
@@ -474,6 +474,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
    }
 #endif
 
+#if 0
    if constexpr( false )
    {
       auto id = identifier( ) + "induction";
@@ -537,6 +538,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          err. push( std::move( bld ));
       } 
    }
+#endif
 
 #if 0
       auto splitprop = orexistselim( -1, "prop",
@@ -573,7 +575,6 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
                                })
                             } )
                          } ) } ), 
-                      chain( { calc::show( "GAL" ) } )
                    } ) } )
          } );
 #endif
@@ -675,10 +676,10 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       check. setgoal( bl. value( ));
       auto ct = check. replacedebruijn( "goal"_unchecked );
       auto lab = check. cut( ct );
-      lab = check. orexists( lab. value( ), 1 ); 
+      lab = check. branch( lab. value( ), 1 ); 
       lab = check. expand( lab. value( ), 0, 0 );
       lab = check. flatten( lab. value( )); 
-      lab = check. orexists( lab. value( ), 0, { "s1", "s2", "x1", "x2" } );
+      lab = check. branch( lab. value( ), 0, { "s1", "s2", "x1", "x2" } );
       lab = check. flatten( lab. value( )); 
      
       lab = check. expand( label( "form7" ), identifier( ) + "minhomrel", 0 ); 
@@ -720,13 +721,13 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 
       lab = check. instantiate( lab. value( ), { val } );
       lab = check. flatten( lab. value( ));
-      lab = check. orexists( lab. value( ), 1 );
+      lab = check. branch( lab. value( ), 1 );
       check. show( "!homrel( s1, s2, Q( s1, s2 )", std::cout );
 
       lab = check. expand( lab. value( ), identifier( ) + "homrel", 0 );
       lab = check. normalize( lab. value( ));
       lab = check. flatten( lab. value( ));
-      lab = check. orexists( lab. value( ), 0 );
+      lab = check. branch( lab. value( ), 0 );
 
       lab = check. expand( lab. value( ),
                            check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
@@ -735,8 +736,8 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       lab = check. flatten( lab. value( ));  
       check. simplify( );
       lab = check. resolve( );  
-      lab = check. orexists( lab. value( ), 0, { "y1", "y2" } ); 
-      check. setlabel( label( "induction" ));
+      lab = check. branch( lab. value( ), 0, { "y1", "y2" } ); 
+      check. nextlabel( label( "induction" ));
       lab = check. flatten( lab. value( ));
       lab = check. expand( label( "induction3" ), 
                            check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
@@ -745,7 +746,47 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
  
       lab = check. expand( label( "induction2" ),
                            check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
+      lab = check. normalize( lab. value( ));
       lab = check. flatten( lab. value( ));
+      std::cout << lab. value( ) << "\n";
+      check. nextlabel( label( "step" ));
+      lab = check. branch( lab. value( ), 1, { "z1", "z2" } );
+      {
+         auto tm1 = check. replacedebruijn( "y1"_unchecked );
+         auto tm2 = check. replacedebruijn( "y2"_unchecked );
+         lab = check. instantiate( label( "induction" ) + 7, { tm1, tm2 } );
+      }
+
+      check. flatten( label( "step" ));
+      check. flatten( label( "step1" ));
+
+      check. simplify( ); 
+      check. hide( label( "induction6" ));
+      check. hide( label( "induction7" ));
+      lab = check. import( identifier( ) + "minhomrel_succ", { Nat, Nat } );
+      lab = check. flatten( lab. value( )); 
+      {
+         auto s1 = check. replacedebruijn( "s1"_unchecked );
+         auto s2 = check. replacedebruijn( "s2"_unchecked );
+
+         auto z1 = check. replacedebruijn( "z1"_unchecked );
+         auto z2 = check. replacedebruijn( "z2"_unchecked );
+
+         lab = check. instantiate( lab. value( ), { s1, s2, z1, z2 } );
+      }
+      lab = check. flatten( lab. value( ));
+      check. simplify( );
+       
+      check. nextlabel( label( "base" ));
+      lab = check. resolve( );
+      {
+         auto tm1 = check. replacedebruijn( "y1"_unchecked );
+         auto tm2 = check. replacedebruijn( "y2"_unchecked );
+         lab = check. instantiate( label( "base" ), { tm1, tm2 } );
+      }
+ 
+      lab = check. import( identifier( ) + "minhomrel_zero", { Nat, Nat } );
+
       check. show( "this is the point", std::cout );
 
 #if 0
@@ -754,9 +795,6 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
              {
                 { 
                    { 
-                      proofterm( prf_expandlocal, 24, "Q", 0 ),
-                      proofterm( prf_normalize, -1 ), 
-                      proofterm( prf_flatten, -1 ),
                       proofterm( prf_orrepl, -1, 0,
                       {
                          proofterm( prf_forallelim, 29, { "y1"_unchecked, "y2"_unchecked } ),
@@ -767,23 +805,6 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
                          proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked } ),
                          proofterm( prf_flatten, 33 ),
                          proofterm( prf_simplify ) 
-                      }),
-                      proofterm( prf_existsrepl, -1, std::vector<std::string> { "z1", "z2" },
-                      {
-                         proofterm( prf_flatten, -1 ),
-                         proofterm( prf_forallelim, 29, { "y1"_unchecked, "y2"_unchecked } ),
-                         proofterm( prf_flatten, -1 ),
-                         proofterm( prf_import, identifier( ) + "minhomrel_succ", { Nat, Nat } ),
-                         proofterm( prf_flatten, -1 ),
-                         proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked, "z1"_unchecked, "z2"_unchecked } ),
-                         proofterm( prf_flatten, -1 ),
-                         proofterm( prf_import, identifier( ) + "gen_succ", { Nat, O } ),
-                         proofterm( prf_flatten, -1 ),
-                         proofterm( prf_forallelim, -1, { "s1"_unchecked, "z1"_unchecked } ),
-                         proofterm( prf_flatten, -1 ), 
-                         proofterm( prf_forallelim, -3, { "s2"_unchecked, "z2"_unchecked } ),
-                         proofterm( prf_flatten, -1 ),
-                         proofterm( prf_simplify ),
                       }),
                    }),
                 }),

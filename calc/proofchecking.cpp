@@ -346,52 +346,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       }
 #endif
 
-   case prf_import:
-      {
-         auto imp = prf. view_import( );
-
-         // We need to make the types exact:
-
-         std::vector< logic::type > types;
-
-         bool alltypescorrect = true;
-
-         // In the future, we will have const_iterator:
-
-         for( size_t i = 0; i != imp. size( ); ++ i )
-         {
-            auto tp = imp. extr_tp(i);
-            bool b = checkandresolve( blfs, err, tp );
-            if(b)
-               types. push_back( tp );
-            else
-            {
-               errorstack::builder bld;
-               auto prnt = pretty_printer( bld, blfs ); 
-               prnt << "Bad structural type: " << tp; 
-               err. push( std::move( bld ));  
-
-               alltypescorrect = false;
-            }
-
-            imp. update_tp( i, tp );
-         }
-
-         if( !alltypescorrect )
-            return; 
-
-         std::optional< logic::exact >
-         optex = findformula( blfs, err, imp. ident( ), types );
-
-         if( !optex. has_value( ))
-            return;
-
-         const auto& fm = blfs. at( optex. value( )). view_form( ). fm( );
-
-         seq. append( disjunction( { exists( fm ) } ));
-         return;  
-      }
-
    case prf_fake:
       {
          auto trmp = prf. view_fake( ). extr_goal( );
