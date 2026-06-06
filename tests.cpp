@@ -735,7 +735,17 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       lab = check. flatten( lab. value( ));  
       check. simplify( );
       lab = check. resolve( );  
-      lab = check. orexists( lab. value( ), 0 ); 
+      lab = check. orexists( lab. value( ), 0, { "y1", "y2" } ); 
+      check. setlabel( label( "induction" ));
+      lab = check. flatten( lab. value( ));
+      lab = check. expand( label( "induction3" ), 
+                           check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
+      lab = check. normalize( lab. value( ));
+      lab = check. flatten( lab. value( )); 
+ 
+      lab = check. expand( label( "induction2" ),
+                           check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
+      lab = check. flatten( lab. value( ));
       check. show( "this is the point", std::cout );
 
 #if 0
@@ -743,12 +753,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       { 
              {
                 { 
-                   proofterm( prf_existsrepl, -1, std::vector<std::string> { "y1", "y2" },
                    { 
-                      proofterm( prf_flatten, -1 ),
-                      proofterm( prf_expandlocal, -1, "Q", 0 ),
-                      proofterm( prf_normalize, -1 ),
-                      proofterm( prf_flatten, -1 ),
                       proofterm( prf_expandlocal, 24, "Q", 0 ),
                       proofterm( prf_normalize, -1 ), 
                       proofterm( prf_flatten, -1 ),

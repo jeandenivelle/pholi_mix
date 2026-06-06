@@ -19,21 +19,6 @@
 #include "logic/termoperators.h"
 
 
-std::optional< logic::type >
-calc::checktype( const logic::beliefstate& blfs,
-                 logic::term& tm, sequent& seq, errorstack& err )
-{
-   size_t ss = seq. ctxt. size( );
-
-   auto tp = checkandresolve( blfs, err, seq. ctxt, tm );
-
-   if( seq. ctxt. size( ) != ss )
-      throw std::logic_error( "context not restored" );
-
-   return tp; 
-}
-
-
 #if 0
 void
 calc::checkproof( const logic::beliefstate& blfs, sequent& seq, 

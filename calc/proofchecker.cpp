@@ -302,23 +302,21 @@ calc::proofchecker::flatten( label fm )
       return { };
    }
 
-   // If it is UNF, we know that it is non-trivial.
-   // Hence, we can only flatten into UNF.
+   std::cout << "mainform = " << seq. at( ind ) << "\n";
+
+   if( seq. at( ind ). is_cnf( ))
+   {
+
+
+   }
 
    if( seq. at( ind ). is_dnf( ))
    {
-      auto f1 = lift( seq. at( ind ). get_dnf( ),
-                      seq. liftdist( ind ));
+      auto f = lift( seq. at( ind ). get_dnf( ), seq. liftdist( ind ));
 
-      auto f2 = calc::flatten(f1);
-
-      if( f1. size( ) != f2. size( ) || !subsumes( f2, f1 ))
+      auto f2 = try_flatten(f);
+      if( f2. has_value( )) 
       {
-         // Note that this is problematic. It relies on
-         // weakness of subsumption. There should be some kind of
-         // weight function based on offending operators.
-         // Equality will probably also work.
-
          seq. hide( ind );
          auto lab = seq. nextlabel;
          seq. append( std::move(f2) );
@@ -670,6 +668,14 @@ std::optional< calc::label > calc::proofchecker::resolve( )
 }
 
 
+void
+calc::proofchecker::setlabel( label lab ) 
+{
+   std::cout << "lab = " << lab << "\n";
+   seq. nextlabel = lab;
+}
+
+
 void 
 calc::proofchecker::show( std::string_view label, 
                           std::ostream& out ) const
@@ -724,4 +730,27 @@ logic::term calc::proofchecker::replacedebruijn( logic::term tm )
 
    return logic::replace_debruijn( db, tm );
 }
+
+std::optional< calc::cnf< logic::term >>
+calc::proofchecker::try_flatten( const cnf< logic::term > & conj )
+{
+   auto conj2 = calc::flatten( conj );
+
+   if( conj2. size( ) < conj. size( ) || !subsumes( conj, conj2 ))
+      return conj2; 
+   else
+      return { };
+}
+
+
+std::optional< calc::dnf< logic::term >>
+calc::proofchecker::try_flatten( const dnf< logic::term > & disj )
+{
+   auto disj2 = calc::flatten( disj );
+   if( disj2. size( ) < disj. size( ) || !subsumes( disj, disj2 ))
+      return disj2;
+   else
+      return { };
+}
+
 

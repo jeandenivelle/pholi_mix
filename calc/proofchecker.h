@@ -77,6 +77,9 @@ namespace calc
 
       logic::term replacedebruijn( logic::term tm );
 
+      void setlabel( label lab );
+         // Will be the next label. 
+
       void show( std::string_view label, 
                  std::ostream& out = std::cout ) const;
 
@@ -87,6 +90,13 @@ namespace calc
 
       void define( const std::string& name, 
                    const logic::term& val, const logic::type& tp );
+
+      std::optional< cnf< logic::term >> 
+      try_flatten( const cnf< logic::term > & conj );
+
+      std::optional< dnf< logic::term >> 
+      try_flatten( const dnf< logic::term > & disj );
+
    }; 
 
 } 
