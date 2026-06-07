@@ -69,7 +69,7 @@ namespace calc
       bool deflocal( std::string_view name, logic::term val );
 
       std::optional< label > 
-      instantiate( label fm, const std::vector< logic::term > & values );
+      instantiate( label lab, const std::vector< logic::term > & values );
 
       std::optional< label > simplify( );
          // We always simplify everything. The return value

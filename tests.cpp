@@ -779,35 +779,30 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
        
       check. nextlabel( label( "base" ));
       lab = check. resolve( );
+      lab = check. import( identifier( ) + "minhomrel_zero", { Nat, Nat } );
+      lab = check. flatten( lab. value( ));
+      {
+         auto tm1 = check. replacedebruijn( "s1"_unchecked );
+         auto tm2 = check. replacedebruijn( "s2"_unchecked );
+         lab = check. instantiate( lab. value( ), { tm1, tm2 } );
+      }
+
       {
          auto tm1 = check. replacedebruijn( "y1"_unchecked );
          auto tm2 = check. replacedebruijn( "y2"_unchecked );
-         lab = check. instantiate( label( "base" ), { tm1, tm2 } );
+         lab = check. instantiate( label( "induction" ) + 7, { tm1, tm2 } );
       }
- 
-      lab = check. import( identifier( ) + "minhomrel_zero", { Nat, Nat } );
-
+      lab = check. flatten( lab. value( ));
+      lab = check. flatten( label( "base" ));
+      check. simplify( ); 
+      check. resolve( );
+      check. resolve( );
       check. show( "this is the point", std::cout );
 
 #if 0
    auto proof = chain( 
       { 
              {
-                { 
-                   { 
-                      proofterm( prf_orrepl, -1, 0,
-                      {
-                         proofterm( prf_forallelim, 29, { "y1"_unchecked, "y2"_unchecked } ),
-                         proofterm( prf_flatten, -1 ),
-                         proofterm( prf_simplify ),
-                         proofterm( prf_import, identifier( ) + "minhomrel_zero", { Nat, Nat } ),
-                         proofterm( prf_flatten, -1 ),
-                         proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked } ),
-                         proofterm( prf_flatten, 33 ),
-                         proofterm( prf_simplify ) 
-                      }),
-                   }),
-                }),
                 proofterm( prf_expand, -1, identifier( ) + "stricton", 0 ),
                 proofterm( prf_expand, -1, identifier( ) + "prod", 0 ),
                 proofterm( prf_normalize, -1 ),

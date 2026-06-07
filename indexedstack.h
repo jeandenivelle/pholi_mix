@@ -2,7 +2,7 @@
 // Written by Hans de Nivelle, Oct 2023.
 // Added hash and equal_to parameters in Sept 2024.
 // Replaced iterators by indices on 2026.05.24. 
-// Use of iterators was ridiculous because they are not stable. 
+// Use of iterators was a ridiculous idea, because they are not stable. 
 
 #ifndef INDEXEDSTACK_
 #define INDEXEDSTACK_

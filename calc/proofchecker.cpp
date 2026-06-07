@@ -404,20 +404,15 @@ std::optional< calc::label >
 calc::proofchecker::instantiate( label fm,
                                  const std::vector< logic::term > & values )
 {
-   size_t ind = seq. find( fm );
+   size_t ind = try2find( fm, "instantiated formula" );
    if( ind == seq. stack. size( ))   
-   {
-      errorstack::builder bld;
-      bld << "instantiate: Unknown label for universal " << fm; 
-      err. push( std::move( bld ));
       return { };
-   }
     
    if( !seq. at( ind ). is_unf( ))
    {     
       errorstack::builder bld;
-      auto prnt = pretty_printer( bld, blfs );
-      bld << "instantiate, formula is not universal: " << seq. at( ind );
+      auto prt = pretty_printer( bld, blfs, seq. ctxt );
+      prt << "instantiate, formula is not UNF: " << seq. at( ind );
       err. push( std::move( bld ));
       return { };
    }
@@ -454,8 +449,8 @@ calc::proofchecker::instantiate( label fm,
          else
          {
             auto bld = errorstack::builder( );
-            auto prt = pretty_printer( bld, blfs );
-            prt << "true type of instance " << inst << " is wrong\n";
+            auto prt = pretty_printer( bld, blfs, seq. ctxt );
+            prt << "true type of value " << inst << " does not fit.\n";
             prt << "It is " << tp. value( ) << ", but it must be ";
             prt << mainform. vars. at(i). tp;
             err. push( std::move( bld ));
@@ -665,7 +660,8 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    }
 
    seq. popdecision( );
-
+   db. restore( seq. ctxt. size( ));
+ 
    if( subsumes( resolvent, seq. stack. at( parind ). second. get_dnf( )))
       seq. hide( parind );
 
@@ -735,8 +731,12 @@ calc::proofchecker::checktype( logic::term& tm )
 
 logic::term calc::proofchecker::replacedebruijn( logic::term tm )
 {
+
    if( db. size( ) != seq. ctxt. size( ))
+   {
+      std::cout << db. size( ) << " " << seq. ctxt. size( ) << "\n";
       throw std::logic_error( "replacedebruijn: Sizes differ" );
+   }
 
    return logic::replace_debruijn( db, tm );
 }
