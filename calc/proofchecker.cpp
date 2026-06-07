@@ -153,17 +153,18 @@ calc::proofchecker::branch( label lab, size_t choice,
    std::cout << "lifted mainform : " << mainform << "\n";
 
    enf< logic::term > ex = std::move( mainform. at( choice ));
-   std::cout << "ex: " << ex << "\n";
+   std::cout << "existential " << lab << " : " << ex << "\n";
   
    // Assume the existentially quantified variables of alt:
 
    if( eigen. size( ) > ex. vars. size( ))
-   {
+   { 
       errorstack::builder bld;
       bld << "exists " << lab << " : ";
       bld << "there are too many eigenvariables: ";
       bld << "it is " << eigen. size( );
-      bld << ", but the formula has only " << ex. vars. size( ) << "variables";
+      bld << ", but the formula has only " << ex. vars. size( );
+      bld << " variables";
       err. push( std::move( bld ));
       return { };
    }
@@ -674,6 +675,13 @@ calc::proofchecker::nextlabel( label lab )
 {
    std::cout << "lab = " << lab << "\n";
    seq. nextlabel = lab;
+}
+
+calc::label calc::proofchecker::getlabel( ssize_t cnt ) const
+{
+
+
+
 }
 
 void

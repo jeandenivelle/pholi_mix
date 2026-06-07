@@ -83,6 +83,10 @@ namespace calc
       void nextlabel( label lab );
          // Will be the next label. 
 
+      label getlabel( ssize_t cnt ) const;
+         // >= 0 looks from beginning,
+         // < 0 looks from end. Hidden formulas are ignored.
+
       void hide( label lab );
          
       void show( std::string_view label, 
