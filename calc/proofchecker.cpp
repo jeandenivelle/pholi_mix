@@ -677,10 +677,42 @@ calc::proofchecker::nextlabel( label lab )
    seq. nextlabel = lab;
 }
 
-calc::label calc::proofchecker::getlabel( ssize_t cnt ) const
+
+calc::label calc::proofchecker::labelof( ssize_t cnt ) const
 {
+   if( seq. size( ) == 0 )
+      return label( "(doesnotexist)" );
 
+   if( cnt >= 0 )
+   {
+      size_t ind = 0;
+      while( cnt || seq. at( ind ). hidden )
+      {
+         if( !seq. at( ind ). hidden )
+            -- cnt;
+ 
+         ++ ind;
+         if( ind == seq. size( ))
+            return label( "(doesnotexist)" );
+      }
+      return seq. stack. at( ind ). first; 
+   }
+   else
+   {
+      size_t ind = seq. size( );
+      while( cnt < -1 || seq. at( ind - 1 ). hidden ) 
+      {
+         -- ind;
 
+         if( ! seq. at( ind ). hidden )
+            ++ cnt; 
+         
+         if( ind == 0 )
+            return label( "(doesnotexist)" );     
+      }
+     
+      return seq. stack. at( ind - 1 ). first; 
+   }
 
 }
 

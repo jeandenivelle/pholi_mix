@@ -817,10 +817,15 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 
       // This is the proof of #Q, which is long and boring.
       // Perhaps it shouldn't be here. One could also consider using cut. 
- 
-      last = check. branch( check. getlabel(-1), 0, { "y1", "y2" } );
- 
+
+      // last = check. branch( check. labelof(-2), 0, { "y1", "y2" } );
+
       check. show( "this is the point", std::cout );
+
+      for( ssize_t i = -12; i < 0; ++ i )
+         std::cout << check. labelof(i) << "\n";
+      std::cout << "\n\n";
+
 #if 0
    auto proof = chain( 
       { 

@@ -110,19 +110,18 @@ namespace calc
          // the label of the first appended formula. 
 
       label append( dnf< logic::term > d );
-     
+    
+      size_t size( ) const 
+         { return stack. size( ); }
+ 
       size_t find( const label& lab ) const; 
-            // Returns stack. size( ) if not found, 
+            // Returns size( ) if not found, 
             // lab is hidden.
  
       const seqform& at( size_t ind ) const
          { return stack. at( ind ). second; } 
       seqform& at( size_t ind )
          { return stack. at( ind ). second; } 
-
-      void maketrivial( size_t ind );
-         // Permantently replace the formula by the truth constant.
-         // We also hide it.
 
       void pushdecision( size_t parent, size_t choice ) 
          { decisions. push_back( decision( ctxt. size( ), stack. size( ), 
