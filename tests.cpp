@@ -12,7 +12,6 @@
 #include "calc/removelets.h"
 #include "calc/expander.h"
 #include "calc/projection.h"
-#include "calc/proofoperators.h"
 #include "calc/saturation.h"
 #include "calc/structural.h"
 #include "calc/proofchecker.h"
@@ -494,7 +493,6 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 
          check. rename( label( "initial2" ), label( "flatten" ));
          auto res = check. flatten( label( "flatten" ));
-         if( !res. has_value( )) throw std::logic_error( "failed" );
          check. branch( res. value( ), 0, { "s", "P" } );
          check. expand( check. labelof(-1), identifier( ) + "stricton", 0 ); 
          check. normalize( check. labelof(-1));
@@ -508,6 +506,27 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
             auto tm1 = check. replacedebruijn( "s"_unchecked );
             auto tm2 = check. replacedebruijn( "yy"_unchecked );
             res = check. instantiate( label( "gen_prop1" ), { tm1, tm2 } );
+         }
+
+         res = check. simplify( label( "simplified" ));
+         res = check. resolve( );
+         res = check. resolve( );
+
+         res = check. branch( label( "flatten2" ), 0, { "s", "P" } );
+         res = check. flatten( label( "flatten3" ));
+
+         res = check. rename( label( "flatten4" ), label( "propP" ));
+         res = check. expand( check. labelof( -1 ), identifier( ) + "stricton", 0 );
+         res = check. normalize( check. labelof( -1 ));
+         res = check. flatten( check. labelof( -1 )); 
+
+         res = check. flatten( label( "flatten5" ));
+         res = check. branch( label( "flatten6" ), 0, {} );
+
+         {
+            auto tm = apply( "0"_unchecked, { "s"_unchecked } );
+            tm =  check. replacedebruijn( tm );
+            res = res = check. instantiate( label( "propP3" ), { tm } ); 
          }
 
          if( !res. has_value( ))

@@ -74,14 +74,17 @@ namespace calc
       std::optional< label > 
       instantiate( label lab, const std::vector< logic::term > & values );
 
-      std::optional< label > simplify( );
+      std::optional< label > simplify( label names );
          // We always simplify everything. The return value
          // is empty if no simplification was possible. 
+         // Since we do not know how to resolve names from parents,
+         // the caller has to provide names for the results.
 
       size_t nrdecisions( ) const { return seq. decisions. size( ); }
 
       std::optional< label > resolve( );
-         // Resolve the last choice.
+         // Resolve the last choice. Name of the result will
+         // be derived from the original disjunction.
 
       std::optional< label > rename( label was, label becomes );
 

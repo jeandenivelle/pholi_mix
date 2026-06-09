@@ -464,8 +464,8 @@ calc::proofchecker::instantiate( label lab,
    return lab;
 }
 
-#if 0
-std::optional< calc::label > calc::proofchecker::simplify( )
+std::optional< calc::label > 
+calc::proofchecker::simplify( label names )
 {
    saturation sat; 
 
@@ -483,24 +483,22 @@ std::optional< calc::label > calc::proofchecker::simplify( )
    for( auto rm : sat. removed_initials )
       seq. hide( rm );
 
-   auto res = seq. nextlabel; 
+   auto lab = names;
+
    for( auto& cls : sat. checked )
    {
       // We don't add initial ones, because they are already there.
 
       if( !cls. seqind )
-         seq. append( make_dnf( cls. disj ));
+         seq. append( lab ++ , make_dnf( cls. disj ));
    }
 
-   if( res != seq. nextlabel )
-      return res;
+   if( lab != names )  
+      return names;      // Something was simplified.
    else
-      return { };
-
+      return { };        // Nothing was simplified.
 }
-#endif
 
-#if 0
 std::optional< calc::label > calc::proofchecker::resolve( )
 {  
    if( seq. decisions. size( ) == 0 )
@@ -527,11 +525,12 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    size_t nrassumed = seq. ctxt. size( ) - seq. decisions. back( ). ctxtsize;
       // This is the number of variables that were assumed 
       // in the decision.
+   std::cout << "nrassumed = " << nrassumed << "\n";
 
    for( size_t var = 0; var != nrassumed; ++ var ) 
    {
       if( seq. ctxt. hasdefinition( var ))
-         throw std::logic_error( "must be assumption" );
+         throw std::logic_error( "resolve: variable cannot be definition" );
    }
 
    // Very unlikely, but who knows?
@@ -546,9 +545,8 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    if( seq. decisions. back( ). stacksize >= seq. stack. size( ))
    {
       throw std::logic_error( "resolve: there is no usable result" );
-
    }
- 
+
    if( !seq. stack. back( ). second. is_dnf( ))
    {
       errorstack::builder bld;
@@ -647,9 +645,10 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    if( subsumes( resolvent, seq. stack. at( parind ). second. get_dnf( )))
       seq. hide( parind );
 
-   return seq. append( std::move( resolvent ));  
+   label lab = seq. stack. at( parind ). first + 1; 
+   seq. append( lab, std::move( resolvent ));  
+   return lab;
 }
-#endif
 
 
 std::optional< calc::label > 

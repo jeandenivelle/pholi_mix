@@ -144,25 +144,33 @@ namespace calc
 
 
 void 
-calc::sequent::print( pretty_printer& pret ) const
+calc::sequent::print( pretty_printer& prt ) const
 {
-   pret << "Sequent:\n";
+   prt << "Sequent:\n";
 
-   if( pret. names. size( ) != 0 )
+   prt << "   Decisions: "; 
+   for( size_t i = 0; i != decisions. size( ); ++ i )
+   {
+      if(i) prt << ", ";
+      prt << decisions. at(i). choice << "/";
+      prt << at( decisions. at(i). parent ). get_dnf( ). size( );
+   }
+   prt << "\n"; 
+   if( prt. names. size( ) != 0 )
       throw std::logic_error( "sequent: pretty-print, names not empty" );
 
    for( size_t ind = 0; ind != stack. size( ); ++ ind )
    { 
-      print_ctxt( pret, ctxt, stack. at( ind ). second. ctxtsize );
+      print_ctxt( prt, ctxt, stack. at( ind ). second. ctxtsize );
       
-      pret << "      " << stack. at( ind ). first;
-      pret << "   : ";
-      stack. at( ind ). second. print( pret ); 
-      pret << '\n';
+      prt << "      " << stack. at( ind ). first;
+      prt << "   : ";
+      stack. at( ind ). second. print( prt ); 
+      prt << '\n';
    }
 
-   print_ctxt( pret, ctxt, ctxt. size( ));
-   pret. names. restore(0); 
+   print_ctxt( prt, ctxt, ctxt. size( ));
+   prt. names. restore(0); 
 }
 
 
