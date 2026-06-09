@@ -737,7 +737,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       check. simplify( );
       last = check. resolve( );  
       last = check. branch( last. value( ), 0, { "y1", "y2" } ); 
-      check. nextlabel( label( "induction" ));
+      check. setlabel( label( "induction" ));
       last = check. flatten( last. value( ));
       last = check. expand( label( "induction3" ), 
                            check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
@@ -749,7 +749,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       last = check. normalize( last. value( ));
       last = check. flatten( last. value( ));
       std::cout << last. value( ) << "\n";
-      check. nextlabel( label( "step" ));
+      check. setlabel( label( "step" ));
       last = check. branch( last. value( ), 1, { "z1", "z2" } );
       {
          auto tm1 = check. replacedebruijn( "y1"_unchecked );
@@ -763,7 +763,8 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       check. simplify( ); 
       check. hide( label( "induction6" ));
       check. hide( label( "induction7" ));
-      last = check. import( identifier( ) + "minhomrel_succ", { Nat, Nat } );
+      last = check. import( identifier( ) + "minhomrel_succ", 
+                            { Nat, Nat }, label( "minhomrel" ));
       last = check. flatten( last. value( )); 
       {
          auto s1 = check. replacedebruijn( "s1"_unchecked );
@@ -777,9 +778,10 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       last = check. flatten( last. value( ));
       check. simplify( );
        
-      check. nextlabel( label( "base" ));
+      check. setlabel( label( "base" ));
       last = check. resolve( );
-      last = check. import( identifier( ) + "minhomrel_zero", { Nat, Nat } );
+      last = check. import( identifier( ) + "minhomrel_zero", { Nat, Nat },
+                            label( "minhomrel" ));
       last = check. flatten( last. value( ));
       {
          auto tm1 = check. replacedebruijn( "s1"_unchecked );
@@ -806,25 +808,26 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       last = check. branch( last. value( ), 0, { "y1", "y2" } );
       last = check. flatten( last. value( )); 
 
-      check. nextlabel( label( "qqqq" ));
+      check. setlabel( label( "qqqq" ));
       
       last = check. expand( last. value( ) + 2,
                             check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
       last = check. normalize( last. value( ));
       last = check. flatten( last. value( ));
 
-      last = check. import( identifier( ) + "gen_prop", { Nat, O } );
+      last = check. import( identifier( ) + "gen_prop", { Nat, O },
+                            label( "genprop" ));
 
       // This is the proof of #Q, which is long and boring.
       // Perhaps it shouldn't be here. One could also consider using cut. 
 
-      // last = check. branch( check. labelof(-2), 0, { "y1", "y2" } );
-
+      last = check. branch( check. labelof(-2), 0, { "y1", "y2" } );
+      {
+         auto tm1 = check. replacedebruijn( "s1"_unchecked );
+         auto tm2 = check. replacedebruijn( "y3"_unchecked );
+         last = check. instantiate( label( "genprop" ), { tm1, tm2 } );
+      }
       check. show( "this is the point", std::cout );
-
-      for( ssize_t i = -12; i < 0; ++ i )
-         std::cout << check. labelof(i) << "\n";
-      std::cout << "\n\n";
 
 #if 0
    auto proof = chain( 

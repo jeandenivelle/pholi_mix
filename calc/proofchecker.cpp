@@ -273,7 +273,8 @@ calc::proofchecker::expand( label fm, size_t var, size_t occ )
 
 std::optional< calc::label >
 calc::proofchecker::import( const identifier& ident, 
-                            std::vector< logic::type > argtypes )
+                            std::vector< logic::type > argtypes,
+                            label lab  )
 {
    size_t nrcorrect = 0;
 
@@ -302,7 +303,11 @@ calc::proofchecker::import( const identifier& ident,
 
    const auto& fm = blfs. at( ex. value( )). view_form( ). fm( );
 
-   return seq. append( disjunction( { exists( fm ) } ));
+   auto skipped = std::exchange( seq. nextlabel, lab );
+   seq. append( disjunction( { exists( fm ) } ));
+
+   seq. nextlabel = skipped; 
+   return lab; 
 }
 
 std::optional< calc::label > 
@@ -671,9 +676,8 @@ std::optional< calc::label > calc::proofchecker::resolve( )
 
 
 void
-calc::proofchecker::nextlabel( label lab ) 
+calc::proofchecker::setlabel( label lab ) 
 {
-   std::cout << "lab = " << lab << "\n";
    seq. nextlabel = lab;
 }
 

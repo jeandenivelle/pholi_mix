@@ -61,7 +61,10 @@ namespace calc
          // var must be a De Bruijn index. 
 
       std::optional< label >
-      import( const identifier& ident, std::vector< logic::type > argtypes );
+      import( const identifier& ident, 
+              std::vector< logic::type > argtypes,
+              label lab );
+         // We give the label  because import is usually out of sequence.
 
       std::optional< label > flatten( label fm );
       std::optional< label > normalize( label fm );
@@ -80,7 +83,7 @@ namespace calc
       std::optional< label > resolve( );
          // Resolve the last choice.
 
-      void nextlabel( label lab );
+      void setlabel( label lab );
          // Will be the next label. 
 
       label labelof( ssize_t cnt ) const;
