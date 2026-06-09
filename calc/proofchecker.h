@@ -25,6 +25,7 @@ namespace calc
 
    std::ostream& operator << ( std::ostream& out, bar b );
 
+
    struct proofchecker
    {
       const logic::beliefstate& blfs; 
@@ -44,13 +45,13 @@ namespace calc
 
       // The functions that follow return a label if they succeed.
 
-      std::optional< label > cut( logic::term fm );
+      std::optional< label > cut( const label& lab, logic::term fm );
 
       // If you want to parse expressions, you must set the
       // names of the eigenvariables.
 
       std::optional< label >  
-      branch( label lab, size_t choice, 
+      branch( label disj, size_t choice, 
               const std::vector< std::string > & eigen = { } );
 
       std::optional< label > 
@@ -62,9 +63,8 @@ namespace calc
 
       std::optional< label >
       import( const identifier& ident, 
-              std::vector< logic::type > argtypes,
-              label lab );
-         // We give the label  because import is usually out of sequence.
+              std::vector< logic::type > argtypes, label name );
+         // Imported formula will be called 'name'.
 
       std::optional< label > flatten( label fm );
       std::optional< label > normalize( label fm );
@@ -83,8 +83,7 @@ namespace calc
       std::optional< label > resolve( );
          // Resolve the last choice.
 
-      void setlabel( label lab );
-         // Will be the next label. 
+      std::optional< label > rename( label was, label becomes );
 
       label labelof( ssize_t cnt ) const;
          // >= 0 looks from the beginning,
@@ -99,7 +98,7 @@ namespace calc
 
    private: 
        
-      std::optional< logic::type > checktype( logic::term& tm );
+      std::optional< logic::type > gettype( logic::term& tm );
 
       void assume( const std::string& name, const logic::type& tp );
 
@@ -116,6 +115,8 @@ namespace calc
          // If we don't find, we return seq. stack. size( ) and
          // write that we could not find {descr} into err. 
 
+      bool is_dnf( const label& lab, size_t ind, std::string_view descr );
+      bool is_unf( const label& lab, size_t ind, std::string_view descr );
    }; 
 
 } 

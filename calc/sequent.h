@@ -64,7 +64,6 @@ namespace calc
       };
 
       logic::context ctxt;
-      label nextlabel = label( "form" );
       indexedstack< label, seqform, label::hash, label::equal_to > stack;
 
       struct decision
@@ -104,23 +103,19 @@ namespace calc
       void print( std::ostream& out ) const;
       void print( pretty_printer& prt ) const;
 
-      label append( cnf< logic::term > c ); 
-         // We append the components separately, and trivial 
-         // components are appended as dnf. We return
-         // the label of the first appended formula. 
+      void append( label lab, cnf< logic::term > c ); 
+         // We append the components separately, and components with 
+         // empty quantifier as appended as dnf. 
 
-      label append( dnf< logic::term > d );
+      void append( label lab, dnf< logic::term > d );
     
       size_t size( ) const 
          { return stack. size( ); }
  
       size_t find( const label& lab ) const; 
-            // Returns size( ) if not found, 
-            // lab is hidden.
- 
+            // Returns size( ) lab does not exist, or is hidden. 
+
       const seqform& at( size_t ind ) const
-         { return stack. at( ind ). second; } 
-      seqform& at( size_t ind )
          { return stack. at( ind ). second; } 
 
       void pushdecision( size_t parent, size_t choice ) 
@@ -132,7 +127,7 @@ namespace calc
 
       size_t nrdecisions( ) const { return decisions. size( ); }
 
-      void hide( size_t );
+      void hide( size_t ind );
          // If we have a decision, we register the hiding,
          // so that it can be undone when we undo the decision.
 

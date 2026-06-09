@@ -375,7 +375,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
    auto F = logic::type( logic::type_form );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
    auto Net = logic::type( logic::type_unchecked, identifier( ) + "Net" );
-      // For generation of error messages.
+      // So that we can test generation of error messages.
 
    using namespace calc;
 
@@ -474,23 +474,49 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
    }
 #endif
 
-#if 0
-   if constexpr( false )
+   if constexpr( true )
    {
       auto id = identifier( ) + "induction";
-      auto bl = calc::findformula( blfs, err, id, { } ); 
-      if( bl. has_value( ))
+      std::optional< logic::exact >
+      name = calc::findformula( blfs, err, id, { } ); 
+
+      if( name. has_value( ))
       {
-         auto prf = proofterm( prf_fake, "FF"_unchecked );
-         prf = chain( 
-         { proofterm( prf_cut, "goal"_unchecked ),
-           proofterm( prf_orrepl, label( "form" ), 0,
+         calc::proofchecker check( blfs, err );
+         check. setgoal( name. value( ));
+         check. show( "begin" );
+         check. cut( label( "initial" ), 
+                     check. replacedebruijn( "goal"_unchecked ));
+         check. branch( check. labelof(-1), 0, { } );
+
+         check. expand( check. labelof(-1), 
+                        check. replacedebruijn( "goal"_unchecked ). view_debruijn( ). index( ), 0 );
+
+         check. rename( label( "initial2" ), label( "flatten" ));
+         auto res = check. flatten( label( "flatten" ));
+         if( !res. has_value( )) throw std::logic_error( "failed" );
+         check. branch( res. value( ), 0, { "s", "P" } );
+         check. expand( check. labelof(-1), identifier( ) + "stricton", 0 ); 
+         check. normalize( check. labelof(-1));
+
+         res = check. flatten( check. labelof(-1));
+         res = check. branch( res. value( ), 0, { "yy" } ); 
+         res = check. import( identifier( ) + "gen_prop", { Nat, O },
+                              label( "gen_prop" ));
+         check. flatten( label( "gen_prop" )); 
+         {
+            auto tm1 = check. replacedebruijn( "s"_unchecked );
+            auto tm2 = check. replacedebruijn( "yy"_unchecked );
+            res = check. instantiate( label( "gen_prop1" ), { tm1, tm2 } );
+         }
+
+         if( !res. has_value( ))
+            std::cout << "failed\n"; 
+
+         check. show( "unfinished" );
+ 
+#if 0
            {
-              proofterm( prf_show, "expanding" ),
-              proofterm( prf_expand, label( "form1" ), identifier( ) + "goal", 0 ), 
-              proofterm( prf_flatten, label( "form2" )),
-              proofterm( prf_show, "ORIG" ),
-              proofterm( prf_orrepl, label( "form3" ), 0,
               {
                  proofterm( prf_existsrepl, label( "form4" ), { "s", "P" },
                  {
@@ -530,6 +556,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       // seq. push_back( "goal" );
       // seq. ugly( std::cout );
 #endif
+#endif
       }
       else
       { 
@@ -538,7 +565,6 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          err. push( std::move( bld ));
       } 
    }
-#endif
 
 #if 0
       auto splitprop = orexistselim( -1, "prop",
@@ -667,7 +693,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
 
    using namespace calc;
-
+#if 0
    auto id = identifier( ) + "just";
    auto bl = calc::findformula( blfs, err, id, { } );
    if( bl. has_value( ))
@@ -970,6 +996,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
    }
    else
       std::cout << id << " not found\n";
+#endif
 }
 
 
