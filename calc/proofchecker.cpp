@@ -674,6 +674,36 @@ calc::proofchecker::rename( label was, label becomes )
 }
 
 
+std::optional< calc::label > 
+calc::proofchecker::fake( logic::term trmp, label name )
+{
+   auto tp = gettype( trmp );
+   if( !tp. has_value( ))
+      return { } ;  // Error is already created by checktype. 
+
+   if( tp. value( ). sel( ) != logic::type_form )
+   {
+      errorstack::builder bld;
+      auto prt = pretty_printer( bld, blfs, seq. ctxt );
+      prt << "Type of faked formala is not F, instead it is ";
+      prt << tp. value( );
+      err. push( std::move( bld ));
+      return { }; 
+   }
+   else
+   {
+      errorstack::builder bld;
+      auto prt = pretty_printer( bld, blfs, seq. ctxt );
+      prt << "Faked proof of " << trmp; 
+      err. push( std::move( bld ));
+
+      seq. append( name, disjunction( { exists( std::move( trmp )) } ));
+      ++ nrfakes;
+      return name;
+   }
+}
+
+
 calc::label calc::proofchecker::labelof( ssize_t cnt ) const
 {
    if( seq. size( ) == 0 )
@@ -712,8 +742,6 @@ calc::label calc::proofchecker::labelof( ssize_t cnt ) const
 
 }
 
-#if 0
-
 void
 calc::proofchecker::hide( label lab )
 {
@@ -721,8 +749,6 @@ calc::proofchecker::hide( label lab )
    if( ind < seq. stack. size( ))
       seq. hide( ind );
 }
-
-#endif
 
 void 
 calc::proofchecker::show( std::string_view label, 

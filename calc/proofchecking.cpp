@@ -147,18 +147,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 #endif 
 
 
-#if 0
-   case prf_hide: 
-      {
-         auto hd = prf. view_hide( );
-         if( !seq. hasindex( hd. ind( )))
-            throw std::logic_error( "hide: wrong index" );
-
-         seq. hide( hd. ind( ));
-         return;
-      }
-
-#endif
 
    case prf_orrepl:
       {
@@ -346,42 +334,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       }
 #endif
 
-   case prf_fake:
-      {
-         auto trmp = prf. view_fake( ). extr_goal( );
-         auto tp = checktype( blfs, trmp, seq, err );
-
-         if( !tp. has_value( ))
-            return;  // Error is already created. 
-
-         if( tp. value( ). sel( ) != logic::type_form )
-         {
-            errorstack::builder bld;
-            auto prnt = pretty_printer( bld, blfs ); 
-            prnt << "Type of faked formala is not F, instead it is ";
-            prnt << tp. value( );
-            err. push( std::move( bld ));
-            return; 
-         }
-
-         std::cout << "faking: " << trmp << "\n";
-         seq. append( disjunction( { exists( std::move( trmp )) } ));
-         return;
-      }
-
-   case prf_nextlabel:
-      {
-         auto lab = prf. view_nextlabel( ). lab( );
-         std::cout << "lab = " << lab << "\n";
-
-         auto ind = seq. find( lab ); 
-         if( ind != seq. stack. size( ))
-            throw std::logic_error( "already occurs" );
-               // Sequent must automatically find an available label.
-
-         seq. nextlabel = lab; 
-         return; 
-      }
    }
 
    std::cout << prf. sel( ) << "\n";

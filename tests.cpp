@@ -529,9 +529,50 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
             res = res = check. instantiate( label( "propP3" ), { tm } ); 
          }
 
+         res = check. import( identifier( ) + "gen_0", { Nat },
+                              label( "gen_0" ));
+ 
+         {
+            auto tm = "s"_unchecked;
+            tm =  check. replacedebruijn( tm );
+            res = check. flatten( res. value( ));  
+            res = check. instantiate( label( "gen_1" ), { tm } );
+         }
+         check. flatten( label( "propP4" ));
+ 
+         check. simplify( label( "close" ));
+         check. resolve( );
+
+         check. branch( label( "flatten7" ), 0, { } );
+         check. import( identifier( ) + "gen_prop", { Nat, O },
+                        label( "genprop" ));
+         check. flatten( check. labelof( -1 ));
+         {
+            auto tm1 = "s"_unchecked;
+            auto tm2 = "x"_unchecked;
+
+            tm1 = check. replacedebruijn( tm1 );
+            tm2 = check. replacedebruijn( tm2 ); 
+            res = check. instantiate( check. labelof( -1 ), { tm1, tm2 } );
+
+         }
+
+         check. simplify( label( "close" )); 
+         check. resolve( );
+
          if( !res. has_value( ))
             std::cout << "failed\n"; 
 
+         check. branch( label( "flatten8" ), 0, { "x" } );
+         check. flatten( label( "flatten9" ));
+         check. flatten( label( "flatten11" ));
+
+         check. instantiate( label( "propP3" ),
+                             { check. replacedebruijn( "x"_unchecked ) } );
+         check. flatten( check. labelof( -1 ));
+
+         check. simplify( label( "res" ));
+         check. hide( label( "res" ));
          check. show( "unfinished" );
  
 #if 0

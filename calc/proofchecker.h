@@ -88,12 +88,15 @@ namespace calc
 
       std::optional< label > rename( label was, label becomes );
 
+      std::optional< label > 
+      fake( logic::term trmp, label name );
+
       label labelof( ssize_t cnt ) const;
          // >= 0 looks from the beginning,
          // < 0 looks from the end. Hidden formulas are ignored.
 
       void hide( label lab );
-         
+
       void show( std::string_view label, 
                  std::ostream& out = std::cout ) const;
 
