@@ -13,7 +13,7 @@ Problems on April 11th 2026:
   The at( ) methods should use size_t. 
   Once we have a separate class, one can look into even nicer 
   types of indexing, like for example 'last universal formula'.
-  I fixed this with a separate label class on 2026.05.23.
+  This problem is with a separate label class on 2026.05.23.
 
 - Currently, local definitions are stored separately in a sequent.
   This is a bad design.
@@ -33,7 +33,7 @@ Problems on April 11th 2026:
   which is still trivial. 
   Another one would be ( A | B ) & PROP( t = t ). 
   The CNF would be ( A | B ) which is simpler but still trivial. 
-  The conclusion is that one should use weights. 
+  (I fixed this problem.)
 
 - The theorem lookup mechanism used by import, should be moved to
   logic::structural. I think that I fixed this on
@@ -41,11 +41,15 @@ Problems on April 11th 2026:
 
 - I believe that expandlocal is not correctly implemented.
   It should use the De Bruijn index of sequent, as with all local
-  variables. 
+  variables. (It is fixed).
 
 - I designed a great error reporting mechanism, which unfortunately
   is used almost nowhere. I should gradually start using it.
   Also, more systematic testing of some of the rules is needed.
+  (Gradually being fixed.)
+
+- Consider extending simplifying resolution to making it size based?
+  Also, resolve existential quantifiers with universal?
 
 For the rest, I think that the calculus itself is nice and meeting its 
 goals. I also think that the automatic saturation procedure works great. 

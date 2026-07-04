@@ -7,7 +7,7 @@
 #include "logic/cmp.h"
 #include "logic/termoperators.h"
 
-#include "calc/proofterm.h"
+#include "calc/tableau.h"
 #include "calc/flatten.h"
 #include "calc/removelets.h"
 #include "calc/expander.h"
@@ -16,7 +16,7 @@
 #include "calc/structural.h"
 #include "calc/proofchecker.h"
 
-#include "natded/eval.h"
+#include "labeled/eval.h"
 
 #include "parsing/parser.h"
 
@@ -571,10 +571,57 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
                              { check. replacedebruijn( "x"_unchecked ) } );
          check. flatten( check. labelof( -1 ));
 
+         check. instantiate( label( "propP3" ),
+                             { check. replacedebruijn( apply( "succ"_unchecked, { "s"_unchecked, "x"_unchecked } )) } );
+
+         check. flatten( check. labelof( -1 ));
+
+         check. import( identifier( ) + "gen_succ", { Nat, O },
+                       label( "gen_succ" ));
+         check. flatten( label( "gen_succ" ));
+         check. instantiate( label( "gen_succ1" ),
+                             { check. replacedebruijn( "s"_unchecked ),
+                               check. replacedebruijn( "x"_unchecked ) } );
+         check. flatten( label( "gen_succ2" ));
          check. simplify( label( "res" ));
-         check. hide( label( "res" ));
+         check. resolve( );
+
+         check. branch( label( "flatten9" ), 0, { "x" } );
+         check. instantiate( label( "propP3" ),
+                             { check. replacedebruijn( "x"_unchecked ) } );
+
+         check. simplify( label( "simp" ));
+         check. resolve( );
+         check. resolve( ); 
+         check. resolve( );
+
+         // This was only the refutation of !# goal.
+
+         check. branch( check. labelof(-1), 0, { } ); 
+         check. expand( check. labelof(-1),
+                        check. replacedebruijn( "goal"_unchecked ). view_debruijn( ). index( ), 0 );
+         check. flatten( check. labelof( -1 ));
+         check. branch( check. labelof( -1 ), 0, { "s", "P" } );
+         check. flatten( check. labelof( -1 ));
+         check. flatten( check. labelof( -1 )); 
+         check. branch( check. labelof( -1 ), 0, { "x" } );
+         check. flatten( check. labelof( -1 ) );
+         check. expand( check. labelof( -2 ), identifier( ) + "gen", 0 ); 
+         check. normalize( check. labelof( -1 )); 
+         check. flatten( check. labelof( -1 ) );
+         check. instantiate( check. labelof( -1 ), 
+                             { check. replacedebruijn( lambda( {{ "x", O }},
+                                lazy_and( apply( "gen"_unchecked, { "s"_unchecked, "x"_unchecked } ),
+                                          apply( "P"_unchecked, { "x"_unchecked } )) )) } );
+         check. normalize( check. labelof( -1 ));
+         check. flatten( check. labelof( -1 ) );
+
+         check. branch( check. labelof( -1 ), 0, { } );
+         check. expand( check. labelof( -1 ), identifier( ) + "strict", 0 );
+         check. normalize( check. labelof( -1 )); 
+         check. flatten( check. labelof( -1 ));
+         check. branch( check. labelof( -1 ), 0, { "xx" } );
          check. show( "unfinished" );
- 
 #if 0
            {
               {

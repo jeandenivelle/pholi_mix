@@ -2,59 +2,30 @@
 %dir calc
 %namespace calc
 
-%define proofterm ( prf_nop ) 
+%define tableau ( tab_empty ) 
 
-%option nop { prf_nop } => 
+%option empty { tab_empty } => 
 
-%option cut { prf_cut } => fm : logic::term
-
-%option chain { prf_chain } => [ sub : proofterm ] 
-
-%option flatten { prf_flatten } => fm : label
-
-%option hide { prf_hide } => ind : ssize_t
-
-%option orrepl { prf_orrepl } => 
-    disj : label, alt : size_t, [ sub : proofterm ] 
-
-%option existsrepl { prf_existsrepl } => 
-   fm : label, eigen : std::vector< std::string > , [ sub : proofterm ]
-      // Without explicit eigennames, you cannot refer to introduced 
-      // variables in proofs. 
-
-%option expand { prf_expand } => 
-   fm : label, ident : identifier, occ : size_t 
-
-%option expandlocal { prf_expandlocal } => 
-   fm : label, var : size_t, occ : size_t
-
-%option normalize { prf_normalize } => fm : label
-
-%option forallintro { prf_forallintro } =>
-   parent : proofterm, [ var : logic::vartype ]
-
-%option forallelim { prf_forallelim } => 
-   fm : label, [ inst : logic::term ] 
-      // Append an instance of fm.
-
-%option deflocal { prf_deflocal } =>
-   name : std::string, val : logic::term, [ sub : proofterm ]
-
-%option simplify { prf_simplify } => 
-
-%option fake { prf_fake } => goal : logic::term
-
-%option show { prf_show } => comment : std::string
-
-%option nextlabel { prf_nextlabel } => lab : label
+%option assume { tab_assume } => aaaa: std::vector< logic::vartype >,
+                                 [ sub : tableau ] 
+%option define { tab_define } => var : logic::vartype, val : logic::term,
+                                 [ sub : tableau ]
+%option decide { tab_decide } => fm : logic::term, [ sub : tableau ]  
+%option conclusion { tab_concl } => lab : label, fm : logic::term, 
+                                    comment : std::string
+%option importance { tab_imp } => imp : int 
 
 %h_incl {
-   #include "sequent.h"
+   #include "tvm/concepts.h"
+   #include "tvm/includes.h"
+   #include <vector>
+   #include "logic/term.h"
+   #include "label.h"
 }
 
 %h_before {
-   bool very_equal( const std::vector< logic::term > & v1, 
-                    const std::vector< logic::term > & v2 );
+   bool very_equal( const std::vector< logic::vartype > & v1, 
+                  const std::vector< logic::vartype > & v2 );
 }
 
 

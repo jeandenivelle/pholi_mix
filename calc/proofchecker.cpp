@@ -109,8 +109,8 @@ calc::proofchecker::cut( const label& lab, logic::term fm )
              logic::term( logic::op_prop, fm ));
    auto f2 = logic::term( logic::op_not, fm );
 
-   seq. append( lab, disjunction{ exists(f1), exists(f2), exists(fm) } );
-   return lab;
+   return seq. append( lab, 
+      disjunction{ exists(f1), exists(f2), exists(fm) } );
 }
 
 std::optional< calc::label >
@@ -148,7 +148,7 @@ calc::proofchecker::branch( label disj, size_t choice,
    if( eigen. size( ) > ex. vars. size( ))
    { 
       errorstack::builder bld;
-      bld << "exists " << disj << " : ";
+      bld << "branch " << disj << " : ";
       bld << "there are too many eigenvariables: ";
       bld << "it is " << eigen. size( );
       bld << ", but the formula has only " << ex. vars. size( );
@@ -169,8 +169,8 @@ calc::proofchecker::branch( label disj, size_t choice,
    }
 
    ++ disj; 
-   seq. append( disj, disjunction( { exists( std::move( ex. body )) } ));
-   return disj;
+   return seq. append( disj, 
+                       disjunction( { exists( std::move( ex. body )) } ));
 }
 
 
@@ -200,16 +200,15 @@ calc::proofchecker::expand( label lab,
    {
       auto res = seq. at( ind ). get_dnf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      seq. append( lab, outermost( def, std::move( res ), 0 ));
+      return seq. append( lab, outermost( def, std::move( res ), 0 ));
    }
 
    if( seq. at( ind ). is_unf( ))
    {
-      std::cout << "it is a UNF\n";
-      throw std::logic_error( "fix it" ); 
+      auto res = seq. at( ind ). get_unf( );
+      res = lift( std::move( res ), seq. liftdist( ind )); 
+      return seq. append( lab, outermost( def, std::move( res ), 0 )); 
    }
-
-   return lab; 
 }
 
 
@@ -243,7 +242,7 @@ calc::proofchecker::expand( label lab, size_t var, size_t occ )
    {
       auto res = seq. at( ind ). get_dnf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      seq. append( lab, outermost( def, std::move( res ), 0 ));
+      return seq. append( lab, outermost( def, std::move( res ), 0 ));
    }
 
    if( seq. at( ind ). is_unf( ))
@@ -252,7 +251,6 @@ calc::proofchecker::expand( label lab, size_t var, size_t occ )
 
    }
 
-   return lab;
 }
 
 
@@ -287,8 +285,7 @@ calc::proofchecker::import( const identifier& ident,
          // We can return quietly because findformula created an error. 
 
    const auto& fm = blfs. at( ex. value( )). view_form( ). fm( );
-   seq. append( name, disjunction( { exists( fm ) } ));
-   return name; 
+   return seq. append( name, disjunction( { exists( fm ) } ));
 }
 
 std::optional< calc::label > 
@@ -306,8 +303,11 @@ calc::proofchecker::flatten( label lab )
       {
          seq. hide( ind ); 
 
-         ++ lab;
-         seq. append( lab, std::move( f2. value( )) );
+         for( auto& u : f2. value( ))
+         {
+            ++ lab; 
+            lab = seq. append( lab, std::move(u));
+         }
          return lab; 
       }
 
@@ -323,8 +323,7 @@ calc::proofchecker::flatten( label lab )
          seq. hide( ind );
 
          ++ lab; 
-         seq. append( lab, std::move( f2. value( )) );
-         return lab;
+         return seq. append( lab, std::move( f2. value( )) );
       }
 
       // If f is trivial, it may still be possible to flatten forall(f):
@@ -337,9 +336,12 @@ calc::proofchecker::flatten( label lab )
          if( cnf2. has_value( ))
          {
             seq. hide( ind );
- 
-            ++ lab; 
-            seq. append( lab, std::move( cnf2. value( )) );
+
+            for( auto& u : cnf2. value( ))
+            {
+               ++ lab; 
+               lab = seq. append( lab, std::move(u)); 
+            }
             return lab;
          }
       }
@@ -357,22 +359,22 @@ std::optional< calc::label > calc::proofchecker::normalize( label lab )
    if( ind == seq. stack. size( ))
       return { };
 
-   ++ lab;
    seq. hide( ind );
 
+   ++ lab;
    if( seq. at( ind ). is_dnf( ))
    {        
       auto res = seq. at( ind ). get_dnf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      seq. append( lab, ::normalize( blfs, std::move( res ), 0 ));
+      return seq. append( lab, ::normalize( blfs, std::move( res ), 0 ));
    }
 
    if( seq. at( ind ). is_unf( ))
    {
-      throw std::logic_error( "normalize not finished" );
+      auto res = seq. at( ind ). get_unf( );
+      res = lift( std::move( res ), seq. liftdist( ind ));
+      return seq. append( lab, ::normalize( blfs, std::move( res ), 0 ));
    }
-
-   return lab;
 }
 
 bool 
@@ -460,8 +462,7 @@ calc::proofchecker::instantiate( label lab,
    // convert formula into a DNF is the quantification is empty.
 
    ++ lab; 
-   seq. append( lab, conjunction( { mainform } ));
-   return lab;
+   return seq. append( lab, std::move( mainform ) );
 }
 
 std::optional< calc::label > 
@@ -490,7 +491,7 @@ calc::proofchecker::simplify( label names )
       // We don't add initial ones, because they are already there.
 
       if( !cls. seqind )
-         seq. append( lab ++ , make_dnf( cls. disj ));
+         lab = seq. append( lab , make_dnf( cls. disj ));
    }
 
    if( lab != names )  
@@ -646,8 +647,7 @@ std::optional< calc::label > calc::proofchecker::resolve( )
       seq. hide( parind );
 
    label lab = seq. stack. at( parind ). first + 1; 
-   seq. append( lab, std::move( resolvent ));  
-   return lab;
+   return seq. append( lab, std::move( resolvent ));  
 }
 
 
@@ -664,7 +664,7 @@ calc::proofchecker::rename( label was, label becomes )
    {
       auto res = seq. at( ind ). get_dnf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      seq. append( becomes, std::move( res ));
+      return seq. append( becomes, std::move( res ));
    }
 
    if( seq. at( ind ). is_unf( ))
@@ -697,7 +697,7 @@ calc::proofchecker::fake( logic::term trmp, label name )
       prt << "Faked proof of " << trmp; 
       err. push( std::move( bld ));
 
-      seq. append( name, disjunction( { exists( std::move( trmp )) } ));
+      name = seq. append( name, disjunction( { exists( std::move( trmp )) } ));
       ++ nrfakes;
       return name;
    }
@@ -745,7 +745,7 @@ calc::label calc::proofchecker::labelof( ssize_t cnt ) const
 void
 calc::proofchecker::hide( label lab )
 {
-   auto ind = try2find( lab, "for hiding" );
+   auto ind = try2find( lab, "hiding" );
    if( ind < seq. stack. size( ))
       seq. hide( ind );
 }

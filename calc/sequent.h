@@ -103,12 +103,13 @@ namespace calc
       void print( std::ostream& out ) const;
       void print( pretty_printer& prt ) const;
 
-      void append( label lab, cnf< logic::term > c ); 
-         // We append the components separately, and components with 
-         // empty quantifier as appended as dnf. 
-
-      void append( label lab, dnf< logic::term > d );
-    
+      label append( label lab, unf< logic::term > u ); 
+         // If the quantifier is empty, we append as dnf.
+ 
+      label append( label lab, dnf< logic::term > d );
+         // Both methods look for the first free label >= lab.
+         // and return the label where the formula was added.
+ 
       size_t size( ) const 
          { return stack. size( ); }
  

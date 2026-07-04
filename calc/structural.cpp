@@ -2,7 +2,7 @@
 #include "structural.h"
 #include "logic/structural.h"
 #include "logic/cmp.h"
-#include "proofchecking.h"
+
 
 std::optional< logic::exact >
 calc::findformula( const logic::beliefstate& blfs, errorstack& err,

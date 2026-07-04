@@ -27,23 +27,29 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
       out << "   (hidden)";
 }
 
-void calc::sequent::append( label lab, cnf< logic::term > c )
+calc::label
+calc::sequent::append( label lab, unf< logic::term > u )
 {
-   for( auto& u : c )
+   if( u. vars. size( ) == 0 )
+      return append( lab, disjunction( { exists( std::move( u. body )) } ));
+   else 
    {
-      if( u. vars. size( ) == 0 )
-         append( lab, disjunction( { exists( std::move( u. body )) } ));
-      else
-         stack. push( lab, seqform( std::move(u), ctxt. size( )));
-     
-      ++ lab;  
-   }
+      while( find( lab ) != size( ))
+         ++ lab; 
 
+      stack. push( lab, seqform( std::move(u), ctxt. size( )));
+      return lab;
+   }
 }
 
-void calc::sequent::append( label lab, dnf< logic::term > d )
+calc::label 
+calc::sequent::append( label lab, dnf< logic::term > d )
 {
+   while( find( lab ) != size( ))
+      ++ lab;
+
    stack. push( lab, seqform( std::move(d), ctxt. size( )));
+   return lab;
 }
 
 

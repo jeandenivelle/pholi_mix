@@ -5,7 +5,6 @@
 #include <optional>
 #include "logic/beliefstate.h"
 #include "errorstack.h"
-#include "proofterm.h"
 
 namespace calc 
 {
