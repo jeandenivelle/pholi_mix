@@ -2,15 +2,15 @@
 %dir calc
 %namespace calc
 
-%define tableau ( tab_empty ) 
+%define fitch ( tab_empty ) 
 
 %option empty { tab_empty } => 
 
 %option assume { tab_assume } => aaaa: std::vector< logic::vartype >,
-                                 [ sub : tableau ] 
+                                 [ sub : fitch ] 
 %option define { tab_define } => var : logic::vartype, val : logic::term,
-                                 [ sub : tableau ]
-%option decide { tab_decide } => fm : logic::term, [ sub : tableau ]  
+                                 [ sub : fitch ]
+%option decide { tab_decide } => fm : logic::term, [ sub : fitch ]  
 %option conclusion { tab_concl } => lab : label, fm : logic::term, 
                                     comment : std::string
 %option importance { tab_imp } => imp : int 

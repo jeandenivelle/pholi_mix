@@ -46,7 +46,7 @@
    projection.cpp
    label.cpp
    sequent.cpp
-   tableau.cpp
+   fitch_diagram.cpp
    proofchecker.cpp
    saturation.cpp
    truthset.cpp
@@ -105,8 +105,8 @@
 %out 
    selector.h
    selector.cpp
-   tableau.h
-   tableau.cpp
+   fitch_diagram.h
+   fitch_diagram.cpp
 
 %preproc $(Maph)/maphoon $(Source)/parsing/grammar.m $(Source)/parsing $(Maph) 
 %dir Source/parsing

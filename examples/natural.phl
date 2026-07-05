@@ -49,7 +49,7 @@ thm minhomrel_succ :
       minhomrel( s1, s2, x1, x2 ) 
           -> minhomrel( s1, s2, s1. succ( x1 ), s2. succ( x2 ));
 
-thm just : [ s1,s2: Nat ] [ x1,x2: Obj ] 
+thm justification : [ s1,s2: Nat ] [ x1,x2: Obj ] 
    { s1. gen(x1) & s2.gen(x2) } -> minhomrel( s1, s2, x1, x2 ) -> 
       x1 == s1.0 & x2 == s2.0 | 
       < y1,y2: Obj > { s1. gen(y1) & s2. gen(y2) } & 

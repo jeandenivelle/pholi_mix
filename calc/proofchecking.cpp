@@ -1,22 +1,4 @@
 
-#include "proofchecking.h"
-
-#include "logic/pretty.h"
-#include "logic/replacements.h"
-#include "logic/counters.h"
-#include "logic/structural.h"
-#include "logic/cmp.h"
-#include "logic/counters.h"
-
-#include "localexpander.h"
-#include "projection.h"
-#include "outermost.h"
-#include "traverse.h"
-#include "saturation.h"
-#include "calc/structural.h"
-#include "weights.h"
-
-#include "logic/termoperators.h"
 
 
 #if 0
@@ -146,91 +128,6 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
       }
 #endif 
 
-
-
-   case prf_orrepl:
-      {
-         std::cout << "result = " << result << "\n";
-         seq. poplevel( ); 
-
-         if( subsumes( result, seq. formula( ind ). get_dnf( )) )
-            seq. hide( ind ); 
-
-         seq. append( std::move( result ));
-         seq. ugly( std::cout );  
-         return;
-      }
-
-   case prf_existsrepl:
-      {
-
-         for( size_t ind = ff; ind != seq. stack. size( ); ++ ind )
-         {
-            if( seq. at( ind ). is_dnf( ))
-            {
-               auto& dnf = seq. at( ind ). get_dnf( );
-
-               for( size_t i = 0; i != dnf. size( ); ++ i )
-               {
-                  // We need construct a substitution that normalizes
-                  // the free variables in concl. body. at(i).
-
-                  // we first collect the free variables of dnf. at(i) :
-
-                  logic::debruijn_counter vars;
-                  traverse( vars, seq. at( ind ). get_dnf( ). at(i), 0 );
- 
-                  auto norm = logic::normalizer( seq. ctxt. size( ) - cc );
-
-                  for( size_t v = 0; v + cc < seq. ctxt. size( ); ++ v )
-                  {
-                     if( vars. contains(v))
-                        norm. append(v);
-                  }
- 
-                  // apply norm to the body:
-
-                  dnf. at(i) = 
-                     outermost( norm, std::move( dnf. at(i)), 0 );
-
-                  // We collect the quantification of the variables
-                  // that are still there.
-
-                  std::vector< logic::vartype > quant;
-
-                  // These are the assumptions that we are about to drop:
-
-                  for( size_t v = seq. ctxt. size( ) - cc; v -- ; )
-                  {
-                     if( vars. contains(v))
-                        quant. push_back( { seq. ctxt. getname(v),
-                                         seq. ctxt. gettype(v) } );                          
-                  }
-
-                  for( auto& q : dnf. at(i). vars )
-                     quant. push_back( std::move(q));
-
-                  dnf. at(i). vars = std::move( quant );
-               }
-            }
-            else
-            {
-               seq. maketrivial( ind );
-               seq. hide( ind );
-            }
-
-            seq. at( ind ). ctxtsize = cc;
-               // We decrease the level. 
-         }
-
-         {
-            auto prt = pretty_printer( std::cout, blfs );
-            seq. pretty( prt );
-         }
-
-         seq. ctxt. restore( cc );
-      }
-      return;
 
 #if 0
 #if 0

@@ -78,8 +78,7 @@ includefile( logic::beliefstate& blfs,
 #include "calc/truthform.h"
 
 #include "calc/pretty.h"
-#include "calc/tableau.h"
-   // Call it Fitch? 
+#include "calc/fitch_diagram.h"
 
 template< typename T >
 concept has_equality =

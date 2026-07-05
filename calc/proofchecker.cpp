@@ -500,13 +500,13 @@ calc::proofchecker::simplify( label names )
       return { };        // Nothing was simplified.
 }
 
-std::optional< calc::label > calc::proofchecker::resolve( )
+std::optional< calc::label > calc::proofchecker::merge( )
 {  
    if( seq. decisions. size( ) == 0 )
-      throw std::logic_error( "resolve: no decision" ); 
+      throw std::logic_error( "merge: there is no decision" ); 
 
    if( seq. decisions. size( ) == 0 )
-      throw std::logic_error( "there is no decision to resolve" );
+      throw std::logic_error( "there is no decision to merge" );
 
    std::cout << seq. decisions. back( ) << "\n";
    std::cout << seq << "\n";
@@ -519,7 +519,7 @@ std::optional< calc::label > calc::proofchecker::resolve( )
       if( seq. stack. at(i). second. ctxtsize != 
           seq. ctxt. size( ))
       {
-         throw std::logic_error( "resolve: wrong context size" );
+         throw std::logic_error( "merge: wrong context size" );
       }
    }
 
@@ -531,7 +531,7 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    for( size_t var = 0; var != nrassumed; ++ var ) 
    {
       if( seq. ctxt. hasdefinition( var ))
-         throw std::logic_error( "resolve: variable cannot be definition" );
+         throw std::logic_error( "merge: variable cannot be definition" );
    }
 
    // Very unlikely, but who knows?
@@ -545,7 +545,7 @@ std::optional< calc::label > calc::proofchecker::resolve( )
    
    if( seq. decisions. back( ). stacksize >= seq. stack. size( ))
    {
-      throw std::logic_error( "resolve: there is no usable result" );
+      throw std::logic_error( "merge: there is no usable result" );
    }
 
    if( !seq. stack. back( ). second. is_dnf( ))
@@ -671,6 +671,26 @@ calc::proofchecker::rename( label was, label becomes )
       throw std::logic_error( "not implemented" );
 
    return becomes;  
+}
+
+
+std::optional< calc::label >
+calc::proofchecker::copy( label lab )
+{
+   size_t ind = try2find( lab, "formula to copy" );
+   if( ind == seq. stack. size( ))
+      return { };
+
+   if( seq. at( ind ). is_dnf( ))
+   {
+      auto res = seq. at( ind ). get_dnf( );
+      res = lift( std::move( res ), seq. liftdist( ind ));
+      return seq. append( lab, std::move( res ));
+   }
+
+   if( seq. at( ind ). is_unf( ))
+      throw std::logic_error( "not implemented" );
+
 }
 
 

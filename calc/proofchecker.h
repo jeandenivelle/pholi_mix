@@ -82,11 +82,13 @@ namespace calc
 
       size_t nrdecisions( ) const { return seq. decisions. size( ); }
 
-      std::optional< label > resolve( );
-         // Resolve the last choice. Name of the result will
+      std::optional< label > merge( );
+         // Merge (resolve) the last choice. Name of the result will
          // be derived from the original disjunction.
 
       std::optional< label > rename( label was, label becomes );
+
+      std::optional< label > copy( label lab );
 
       std::optional< label > 
       fake( logic::term trmp, label name );

@@ -7,7 +7,6 @@
 #include "logic/cmp.h"
 #include "logic/termoperators.h"
 
-#include "calc/tableau.h"
 #include "calc/flatten.h"
 #include "calc/removelets.h"
 #include "calc/expander.h"
@@ -476,14 +475,13 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
    if constexpr( true )
    {
       auto id = identifier( ) + "induction";
-      std::optional< logic::exact >
-      name = calc::findformula( blfs, err, id, { } ); 
+      auto name = calc::findformula( blfs, err, id, { } ); 
 
       if( name. has_value( ))
       {
          calc::proofchecker check( blfs, err );
          check. setgoal( name. value( ));
-         check. show( "begin" );
+         check. show( "initial" );
          check. cut( label( "initial" ), 
                      check. replacedebruijn( "goal"_unchecked ));
          check. branch( check. labelof(-1), 0, { } );
@@ -509,8 +507,8 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          }
 
          res = check. simplify( label( "simplified" ));
-         res = check. resolve( );
-         res = check. resolve( );
+         res = check. merge( );
+         res = check. merge( );
 
          res = check. branch( label( "flatten2" ), 0, { "s", "P" } );
          res = check. flatten( label( "flatten3" ));
@@ -541,7 +539,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          check. flatten( label( "propP4" ));
  
          check. simplify( label( "close" ));
-         check. resolve( );
+         check. merge( );
 
          check. branch( label( "flatten7" ), 0, { } );
          check. import( identifier( ) + "gen_prop", { Nat, O },
@@ -558,7 +556,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          }
 
          check. simplify( label( "close" )); 
-         check. resolve( );
+         check. merge( );
 
          if( !res. has_value( ))
             std::cout << "failed\n"; 
@@ -584,18 +582,19 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
                                check. replacedebruijn( "x"_unchecked ) } );
          check. flatten( label( "gen_succ2" ));
          check. simplify( label( "res" ));
-         check. resolve( );
+         check. merge( );
 
          check. branch( label( "flatten9" ), 0, { "x" } );
          check. instantiate( label( "propP3" ),
                              { check. replacedebruijn( "x"_unchecked ) } );
 
          check. simplify( label( "simp" ));
-         check. resolve( );
-         check. resolve( ); 
-         check. resolve( );
+         check. merge( );
+         check. merge( ); 
+         check. merge( );
 
          // This was only the refutation of !# goal.
+         // Here comes the real proof:
 
          check. branch( check. labelof(-1), 0, { } ); 
          check. expand( check. labelof(-1),
@@ -606,7 +605,9 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          check. flatten( check. labelof( -1 )); 
          check. branch( check. labelof( -1 ), 0, { "x" } );
          check. flatten( check. labelof( -1 ) );
-         check. expand( check. labelof( -2 ), identifier( ) + "gen", 0 ); 
+         check. copy( check. labelof( -2 ));
+         check. show( "this is probably the point" );
+         check. expand( check. labelof( -1 ), identifier( ) + "gen", 0 ); 
          check. normalize( check. labelof( -1 )); 
          check. flatten( check. labelof( -1 ) );
          check. instantiate( check. labelof( -1 ), 
@@ -621,49 +622,65 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          check. normalize( check. labelof( -1 )); 
          check. flatten( check. labelof( -1 ));
          check. branch( check. labelof( -1 ), 0, { "xx" } );
-         check. show( "unfinished" );
-#if 0
-           {
-              {
-                 proofterm( prf_existsrepl, label( "form4" ), { "s", "P" },
-                 {
-                    proofterm( prf_expand, label( "form5" ), identifier( ) + "stricton", 0 ),
-                    proofterm( prf_normalize, label( "form6" )),
-                    proofterm( prf_flatten, label( "form7" )),
-                    proofterm( prf_existsrepl, label( "form8" ), { "x" },
-                    {
-                       proofterm( prf_import, identifier( ) + "gen_prop",
-                                  { Nat, logic::type( logic::type_obj ) } ), 
-                       proofterm( prf_flatten, label( "form10" )),
-                       proofterm( prf_forallelim, label( "form11" ), 
-                                  { "s"_unchecked, "x"_unchecked } ),
-                       proofterm( prf_simplify ) 
-                    }) 
-                 }),
-              }),
-              proofterm( prf_nextlabel, label( "prop" )),
 
-              proofterm( prf_existsrepl, label( "form14" ), { "s", "P" },
-              { 
-                 proofterm( prf_flatten, label( "prop" )),
-                 proofterm( prf_flatten, label( "prop2" )),
-                 proofterm( prf_show, "tiefer" )
-              }),  
-              proofterm( prf_show, "XXXX" )
-           })  
-         });
-         prf = replace_debruijn( std::move( prf )); 
-         checkproof( blfs, err, bl. value( ), prf ); 
-#if 0
-      auto seq = sequent( );
-      seq. ctxt_define( "goal",
-                        blfs. at( f. front( )). view_form( ). fm( ),
-                        logic::type( logic::type_form ));
+         check. import( identifier( ) + "gen_prop", { Nat, O },
+                       label( "gen_prop" ));
+         check. flatten( check. labelof( -1 ));
+         check. instantiate( check. labelof( -1 ),
+                             { check. replacedebruijn( "s"_unchecked ),
+                               check. replacedebruijn( "xx"_unchecked ) } );
+         check. simplify( label( "emtpy" ));
+         check. merge( );
+         check. show( "before" );
+         check. branch( check. labelof( -1 ), 0, { "xx" } );
+         {
+            auto prob = check. replacedebruijn( "stricton"_unchecked );
+            std::cout << "prob = " << prob << "\n"; 
+         }
 
-      // seq. push_back( "goal" );
-      // seq. ugly( std::cout );
-#endif
-#endif
+         check. expand( label( "initial6" ), 
+                        identifier( ) + "stricton", 0 );
+         check. normalize( check. labelof( -1 )); 
+         check. flatten( check. labelof( -1 ));
+         check. instantiate( check. labelof( -1 ),
+                           { check. replacedebruijn( "xx"_unchecked ) } );
+         check. simplify( label( "contr" )); 
+         check. merge( ); 
+         check. merge( );
+
+         check. expand( check. labelof( -1 ), 
+                        identifier( ) + "isclosed", 0 );
+         check. normalize( check. labelof( -1 ));
+         check. flatten( check. labelof( -1 ));
+
+         check. import( identifier( ) + "gen_0", { Nat }, label( "gen_0" ));
+         check. flatten( check. labelof( -1 ));
+         check. instantiate( check. labelof( -1 ),
+                           { check. replacedebruijn( "s"_unchecked ) } );
+         check. simplify( label( "final" ));
+         check. branch( check. labelof( -1 ), 0, { "xx" } );
+         check. flatten( check. labelof( -1 ));
+         check. flatten( check. labelof( -1 ));
+         check. instantiate( label( "initial8" ), 
+                           { check. replacedebruijn( "xx"_unchecked ) } );
+         check. flatten( check. labelof( -1 ));
+         check. simplify( label( "final" ));
+         check. import( identifier( ) + "gen_succ", { Nat, O }, label( "gen_succ" ));
+         check. flatten( check. labelof( -1 ));
+        
+         check. instantiate( check. labelof( -1 ),
+                             { check. replacedebruijn( "s"_unchecked ),
+                               check. replacedebruijn( "xx"_unchecked ) } );
+         check. flatten( check. labelof( -1 ));
+         check. simplify( label( "closed" ));  
+         check. merge( );
+         check. flatten( check. labelof( -1 )); 
+         check. simplify( label( "contr" )); 
+         
+         check. merge( );
+         check. merge( );
+         check. merge( );
+         check. show( "finished" );
       }
       else
       { 
@@ -673,122 +690,6 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       } 
    }
 
-#if 0
-      auto splitprop = orexistselim( -1, "prop",
-         {
-            chain( { calc::show( "NOTPROP" ) } ),
-            chain( { proofterm( prf_cut, -1 ), 
-                   orexistselim( -1, "truth", 
-                   {
-                      chain( { 
-                         proofterm( prf_expandlocal, -1, "goal", 0 ),
-                         proofterm( prf_flatten, -1 ),
-                         orexistselim( -1, "exists",
-                         {
-                            chain( 
-                            {
-                               proofterm( prf_flatten, -1 ),
-
-                               proofterm( prf_flatten, 2 ),
-                               orexistselim( -1, "R",
-                               {
-                                  chain(
-                                  {
-                                     proofterm( prf_copy, "R", -2 ),
-                                     proofterm( prf_expand, -1, identifier( ) + "homrel", 0 ),
-                                     proofterm( prf_normalize, -1 ),
-                                     proofterm( prf_flatten, -1 ),
-                                     proofterm( prf_forallelim, -1, { 2_db, 1_db } ), 
-                                     proofterm( prf_copy, "exists", 2 ),  
-                                     proofterm( prf_forallelim, -1, { 0_db } ),
-                                     proofterm( prf_copy, "exists", 0 ),
-                                     proofterm( prf_copy, "exists", 1 ),
-                                     proofterm( prf_simplify ) 
-                                  } )
-                               })
-                            } )
-                         } ) } ), 
-                   } ) } )
-         } );
-#endif
-#if 0
-      auto prf = chain( 
-      { 
-         proofterm( prf_cut, "goal"_unchecked ), 
-         proofterm( prf_expandlocal, -1, "goal", 0 ),
-         proofterm( prf_flatten, -1 ),
-         proofterm( prf_orexistselimintro, -1, 0, "notprop", { },
-         {
-            proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
-            proofterm( prf_flatten, -1 ),
-            proofterm( prf_forallelim, -1, { 3_db, 1_db } ),
-            proofterm( prf_simplify ) 
-         }),
-         proofterm( prf_orexistselimintro, -1, 0, "notprop", { },
-         {
-            proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
-            proofterm( prf_flatten, -1 ),
-            proofterm( prf_forallelim, -1, { 2_db, 0_db } ),
-            proofterm( prf_simplify ) 
-         }),
-         proofterm( prf_flatten, -1 ),
-         proofterm( prf_orexistselimintro, -1, 0, "notprop", { },
-         {
-            proofterm( prf_flatten, -1 ),
-            proofterm( prf_import, identifier( ) + "minhomrel_prop", { Nat, Nat } ), 
-            proofterm( prf_flatten, -1 ),
-            proofterm( prf_forallelim, -1, { 3_db, 2_db } ),
-            proofterm( prf_copy, "notprop", -1 ), 
-            proofterm( prf_forallelim, -1, { 1_db, 0_db } ),
-            proofterm( prf_simplify ),
-            proofterm( prf_copy, "notprop", 0 ),
-            proofterm( prf_forallelim, -1, 
-                 { apply( "succ"_unchecked, { 3_db, 1_db } ),
-                   apply( "succ"_unchecked, { 2_db, 0_db } ) } ),
-            proofterm( prf_simplify ),
-            proofterm( prf_import, identifier( ) + "gen_succ", { Nat, O } ), 
-            proofterm( prf_flatten, -1 ),
-            proofterm( prf_copy, "notprop", -1 ),
-            proofterm( prf_forallelim, -1, { 3_db, 1_db } ),
-            proofterm( prf_forallelim, -2, { 2_db, 0_db } ),
-            proofterm( prf_simplify )
-         }),
-         proofterm( prf_expandlocal, -1, "goal", 0 ),
-         proofterm( prf_flatten, -1 ),
-         proofterm( prf_orexistselimintro, -1, 0, "negated", { },
-         {
-            proofterm( prf_flatten, -1 ),
-            proofterm( prf_expand, 2, identifier( ) + "minhomrel", 0 ),
-            proofterm( prf_expand, 3, identifier( ) + "minhomrel", 0 ),
-            proofterm( prf_expand, 2, identifier( ) + "minimal", 0 ),
-            proofterm( prf_expand, 3, identifier( ) + "minimal", 0 ),
-            proofterm( prf_normalize, 2 ), 
-            proofterm( prf_normalize, 3 ),
-            proofterm( prf_flatten, -1 ),
-            proofterm( prf_orexistselimintro, -1, 0, "R", { "R" },
-            {
-               proofterm( prf_flatten, -1 ),
-               proofterm( prf_copy, "R", -2 ),
-               proofterm( prf_expand, -1, identifier( ) + "homrel", 0 ),
-               proofterm( prf_normalize, -1 ),
-               proofterm( prf_flatten, -1 ),
-
-               proofterm( prf_show, "NEG" )
-
-            }),
-            proofterm( prf_show, "NEGATED" ) 
-         }),
-         proofterm( prf_show, "XXXX" ) 
-      });
-
-      prf. print( indentation( ), std::cout );
-
-      // checkproof( blfs, prf, seq, err );
-      std::cout << "\n";
-      std::cout << "FINAL STATE " << id << "\n";
-      seq. ugly( std::cout );
-   }
-#endif
 }
 
 
@@ -800,16 +701,27 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
 
    using namespace calc;
-#if 0
-   auto id = identifier( ) + "just";
-   auto bl = calc::findformula( blfs, err, id, { } );
-   if( bl. has_value( ))
+   auto id = identifier( ) + "justification";
+   auto name = calc::findformula( blfs, err, id, { } );
+
+   if( name. has_value( ))
    {
       calc::proofchecker check( blfs, err );
-      check. setgoal( bl. value( ));
-      auto ct = check. replacedebruijn( "goal"_unchecked );
-      auto last = check. cut( ct );
-      last = check. branch( last. value( ), 1 ); 
+      check. setgoal( name. value( ));
+      check. show( "initial" );
+
+      check. cut( label( "initial" ),
+                     check. replacedebruijn( "goal"_unchecked ));
+
+      check. branch( check. labelof( -1 ), 1, { } );
+      check. expand( check. labelof(-1),
+                     check. replacedebruijn( "goal"_unchecked ). view_debruijn( ). index( ), 0 );
+      check. flatten( check. labelof( -1 ));
+
+      check. branch( check. labelof( -1 ), 0, { "s1", "s2", "x1", "x2" } );
+      check. show( "unfinished" );
+
+#if 0
       last = check. expand( last. value( ), 0, 0 );
       last = check. flatten( last. value( )); 
       last = check. branch( last. value( ), 0, { "s1", "s2", "x1", "x2" } );
@@ -868,7 +780,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       last = check. flatten( last. value( ));
       last = check. flatten( last. value( ));  
       check. simplify( );
-      last = check. resolve( );  
+      last = check. merge( );  
       last = check. branch( last. value( ), 0, { "y1", "y2" } ); 
       check. setlabel( label( "induction" ));
       last = check. flatten( last. value( ));
@@ -912,7 +824,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       check. simplify( );
        
       check. setlabel( label( "base" ));
-      last = check. resolve( );
+      last = check. merge( );
       last = check. import( identifier( ) + "minhomrel_zero", { Nat, Nat },
                             label( "minhomrel" ));
       last = check. flatten( last. value( ));
@@ -930,8 +842,8 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       last = check. flatten( last. value( ));
       last = check. flatten( label( "base" ));
       check. simplify( ); 
-      check. resolve( );
-      last = check. resolve( );
+      check. merge( );
+      last = check. merge( );
 
       last = check. expand( last. value( ), identifier( ) + "stricton", 0 );
       last = check. expand( last. value( ), identifier( ) + "prod", 0 );
@@ -1100,10 +1012,10 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
    std::cout << "FINAL STATE\n";
    seq. ugly( std::cout );
 #endif
+#endif
    }
    else
       std::cout << id << " not found\n";
-#endif
 }
 
 
