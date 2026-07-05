@@ -719,18 +719,13 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       check. flatten( check. labelof( -1 ));
 
       check. branch( check. labelof( -1 ), 0, { "s1", "s2", "x1", "x2" } );
-      check. show( "unfinished" );
+      check. flatten( check. labelof( -1 )); 
 
-#if 0
-      last = check. expand( last. value( ), 0, 0 );
-      last = check. flatten( last. value( )); 
-      last = check. branch( last. value( ), 0, { "s1", "s2", "x1", "x2" } );
-      last = check. flatten( last. value( )); 
-     
-      last = check. expand( label( "form7" ), identifier( ) + "minhomrel", 0 ); 
-      last = check. expand( last. value( ), identifier( ) + "minimal", 0 );
-      last = check. normalize( last. value( ));
-      last = check. flatten( last. value( )); 
+      check. expand( label( "initial7" ), identifier( ) + "minhomrel", 0 ); 
+      check. expand( check. labelof( -1 ), identifier( ) + "minimal", 0 );
+      check. normalize( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 )); 
+      check. rename( check. labelof( -1 ), label( "main_forall" )); 
 
       logic::term indhyp = logic::term( logic::op_false );  
 
@@ -759,8 +754,10 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
          indhyp = lambda( {{ "x1", O }, { "x2", O }}, indhyp );
          indhyp = lambda( {{ "n1", Nat }, { "n2", Nat }}, indhyp );
       }
-      indhyp = check. replacedebruijn( indhyp ); 
-      check. deflocal( "Q", indhyp );
+
+      check. let( "Q", check. replacedebruijn( indhyp ));
+      check. show( "unfinished" );
+#if 0
       auto val = check. replacedebruijn( 
                 apply( "Q"_unchecked, { "s1"_unchecked, "s2"_unchecked } ));
 

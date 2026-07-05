@@ -175,7 +175,7 @@ calc::checkproof( const logic::beliefstate& blfs, sequent& seq,
 #endif 
 
 #if 0
-   case prf_deflocal: 
+   case prf_let: 
       {
          seq. ctxt_define( def. name( ), val, tp. value( ));
 

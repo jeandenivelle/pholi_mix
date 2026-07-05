@@ -209,6 +209,8 @@ calc::proofchecker::expand( label lab,
       res = lift( std::move( res ), seq. liftdist( ind )); 
       return seq. append( lab, outermost( def, std::move( res ), 0 )); 
    }
+
+   throw std::logic_error( "reached the unreachable" );
 }
 
 
@@ -378,13 +380,31 @@ std::optional< calc::label > calc::proofchecker::normalize( label lab )
 }
 
 bool 
-calc::proofchecker::deflocal( std::string_view name, logic::term val )
+calc::proofchecker::let( std::string_view name, logic::term val )
 {
-   std::cout << "val = " << val << "\n";
+   std::cout << "val in let = " << val << "\n";
+
+   size_t errsize = err. size( );
+
    auto tp = gettype( val );
 
    if( !tp. has_value( ))
-      throw std::logic_error( "def local, no type" );
+   {
+      auto bld = errorstack::builder( );
+      auto prt = pretty_printer( bld, blfs, seq. ctxt );
+      prt << "type checking failed for let " << name << " := " << val;
+      err. push( std::move( bld )); 
+      return false;
+   }
+
+   if( err. size( ) != errsize )
+   {
+      auto bld = errorstack::builder( );
+      auto prt = pretty_printer( bld, blfs, seq. ctxt );
+      prt << "type errors for let " << name << " := " << val;
+      err. addheader( errsize, std::move( bld )); 
+      return false;
+   }
 
    define( std::string( name ), val, tp. value( ));
    return true;
@@ -408,6 +428,7 @@ calc::proofchecker::instantiate( label lab,
       bld << "There are " << values. size( ) << " instances, ";
       bld << "while the formula has only ";
       bld << seq. at( ind ). get_unf( ). vars. size( ) << " variables";
+      err. push( std::move( bld ));
       return { };
    }
 
@@ -668,9 +689,13 @@ calc::proofchecker::rename( label was, label becomes )
    }
 
    if( seq. at( ind ). is_unf( ))
-      throw std::logic_error( "not implemented" );
+   {
+      auto res = seq. at( ind ). get_unf( ); 
+      res = lift( std::move( res ), seq. liftdist( ind )); 
+      return seq. append( becomes, std::move( res )); 
+   }
 
-   return becomes;  
+   throw std::logic_error( "reached the unreachable" );
 }
 
 
@@ -690,7 +715,8 @@ calc::proofchecker::copy( label lab )
 
    if( seq. at( ind ). is_unf( ))
       throw std::logic_error( "not implemented" );
-
+  
+   throw std::logic_error( "reached the unreachable" );
 }
 
 
