@@ -69,7 +69,7 @@ namespace calc
       std::optional< label > flatten( label fm );
       std::optional< label > normalize( label fm );
 
-      bool let( std::string_view name, logic::term val );
+      bool def( std::string_view name, logic::term val );
 
       std::optional< label > 
       instantiate( label lab, const std::vector< logic::term > & values );

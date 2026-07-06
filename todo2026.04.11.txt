@@ -55,3 +55,14 @@ For the rest, I think that the calculus itself is nice and meeting its
 goals. I also think that the automatic saturation procedure works great. 
 If I manage to go down to one proof step per minute, proving should
 become acceptable. 
+
+Using a display calculus, many steps (introduction and elimination steps),
+go away. They are not proof steps any more.
+
+You will not need to enter an existenetial quantifier in order to close it.
+
+Merge and introducing disappears:
+Try to prove exists x. p(x) | q(x) -> exists x. p(x) | exists x.p(x)
+
+You lose your way in sequent proofs.
+

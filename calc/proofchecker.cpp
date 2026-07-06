@@ -380,9 +380,9 @@ std::optional< calc::label > calc::proofchecker::normalize( label lab )
 }
 
 bool 
-calc::proofchecker::let( std::string_view name, logic::term val )
+calc::proofchecker::def( std::string_view name, logic::term val )
 {
-   std::cout << "val in let = " << val << "\n";
+   std::cout << "val in define = " << val << "\n";
 
    size_t errsize = err. size( );
 
@@ -849,6 +849,8 @@ logic::term calc::proofchecker::replacedebruijn( logic::term tm )
       throw std::logic_error( "replacedebruijn: Sizes differ" );
    }
 
+   std::cout << "term = " << tm << "\n\n";
+   std::cout << "replacedebruijn " << db << "\n";
    return logic::replace_debruijn( db, tm );
 }
 

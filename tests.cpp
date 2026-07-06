@@ -391,9 +391,8 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          throw std::runtime_error( "cannot continue" );
       auto seq = sequent( );
 
-      nr = seq. ctxt_define( "goal",
-                             blfs. at( f. front( )). view_form( ). fm( ),
-                             logic::type( logic::type_form ));
+      nr = seq. ctxt_def( "goal", blfs. at( f. front( )). view_form( ). fm( ),
+                          logic::type( logic::type_form ));
       seq. push_back( "start" );
  
       auto prf = chain( 
@@ -755,59 +754,61 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
          indhyp = lambda( {{ "n1", Nat }, { "n2", Nat }}, indhyp );
       }
 
-      check. let( "Q", check. replacedebruijn( indhyp ));
-      check. show( "unfinished" );
-#if 0
-      auto val = check. replacedebruijn( 
-                apply( "Q"_unchecked, { "s1"_unchecked, "s2"_unchecked } ));
+      check. def( "Q", check. replacedebruijn( indhyp ));
+      {
+         auto val = check. replacedebruijn( 
+                  apply( "Q"_unchecked, { "s1"_unchecked, "s2"_unchecked } ));
+         check. instantiate( check. labelof( -1 ), { val } ); 
+      }
 
-      last = check. instantiate( last. value( ), { val } );
-      last = check. flatten( last. value( ));
-      last = check. branch( last. value( ), 1 );
-      check. show( "!homrel( s1, s2, Q( s1, s2 )", std::cout );
+      check. flatten( check. labelof( -1 ));
+      check. branch( check. labelof( -1 ), 1 );
+      check. show( "!homrel( s1, s2, Q( s1, s2 )" );
 
-      last = check. expand( last. value( ), identifier( ) + "homrel", 0 );
-      last = check. normalize( last. value( ));
-      last = check. flatten( last. value( ));
-      last = check. branch( last. value( ), 0 );
+      check. expand( check. labelof( -1 ), identifier( ) + "homrel", 0 );
+      check. normalize( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 ));
 
-      last = check. expand( last. value( ),
+      check. branch( check. labelof( -1 ), 0, { } );
+
+      check. expand( check. labelof( -1 ), 
                            check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
-      last = check. normalize( last. value( ));
-      last = check. flatten( last. value( ));
-      last = check. flatten( last. value( ));  
-      check. simplify( );
-      last = check. merge( );  
-      last = check. branch( last. value( ), 0, { "y1", "y2" } ); 
-      check. setlabel( label( "induction" ));
-      last = check. flatten( last. value( ));
-      last = check. expand( label( "induction3" ), 
-                           check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
-      last = check. normalize( last. value( ));
-      last = check. flatten( last. value( )); 
+      check. normalize( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 ));
+      check. flatten( check. labelof( -2 ));  
+      check. simplify( label( "contr" ));
+      check. merge( ); 
  
-      last = check. expand( label( "induction2" ),
-                            check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
-      last = check. normalize( last. value( ));
-      last = check. flatten( last. value( ));
-      std::cout << last. value( ) << "\n";
-      check. setlabel( label( "step" ));
-      last = check. branch( last. value( ), 1, { "z1", "z2" } );
+      check. branch( check. labelof( -1 ), 0, { "y1", "y2" } ); 
+      check. rename( check. labelof( -1 ), label( "induction" ));
+      check. flatten( check. labelof( -1 ));
+
+      check. expand( label( "induction3" ), 
+                     check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
+      check. normalize( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 )); 
+
+      check. expand( label( "induction4" ),
+                     check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
+      check. normalize( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 ));
+
+      check. branch( label( "induction" ) + 7, 1, { "z1", "z2" } );
       {
          auto tm1 = check. replacedebruijn( "y1"_unchecked );
          auto tm2 = check. replacedebruijn( "y2"_unchecked );
-         last = check. instantiate( label( "induction" ) + 7, { tm1, tm2 } );
+         check. instantiate( label( "induction" ) + 9, { tm1, tm2 } );
       }
 
+      check. rename( check. labelof( -1 ), label( "step" ));
       check. flatten( label( "step" ));
       check. flatten( label( "step1" ));
 
-      check. simplify( ); 
-      check. hide( label( "induction6" ));
-      check. hide( label( "induction7" ));
-      last = check. import( identifier( ) + "minhomrel_succ", 
-                            { Nat, Nat }, label( "minhomrel" ));
-      last = check. flatten( last. value( )); 
+      check. simplify( label( "simplified" ));
+
+      check. import( identifier( ) + "minhomrel_succ", 
+                      { Nat, Nat }, label( "minhomrel" ));
+      check. flatten( check. labelof( -1 )); 
       {
          auto s1 = check. replacedebruijn( "s1"_unchecked );
          auto s2 = check. replacedebruijn( "s2"_unchecked );
@@ -815,111 +816,131 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
          auto z1 = check. replacedebruijn( "z1"_unchecked );
          auto z2 = check. replacedebruijn( "z2"_unchecked );
 
-         last = check. instantiate( last. value( ), { s1, s2, z1, z2 } );
+         check. instantiate( check. labelof( -1 ), { s1, s2, z1, z2 } );
       }
-      last = check. flatten( last. value( ));
-      check. simplify( );
-       
-      check. setlabel( label( "base" ));
-      last = check. merge( );
-      last = check. import( identifier( ) + "minhomrel_zero", { Nat, Nat },
-                            label( "minhomrel" ));
-      last = check. flatten( last. value( ));
+      check. hide( label( "minhomrel" ) + 1 );
+
+      check. flatten( label( "induction" ) + 10 );
+      check. flatten( label( "minhomrel" ) + 2 );
+
+      check. simplify( label( "contr?" ));
+ 
+      check. merge( );
+
+      check. rename( check. labelof( -1 ), label( "base" )); 
+      check. flatten( check. labelof( -1 ));
+
+      // Base case:
+
+      check. import( identifier( ) + "minhomrel_zero", { Nat, Nat },
+                     label( "minhomrel" ));
+      check. flatten( check. labelof( -1));
       {
          auto tm1 = check. replacedebruijn( "s1"_unchecked );
          auto tm2 = check. replacedebruijn( "s2"_unchecked );
-         last = check. instantiate( last. value( ), { tm1, tm2 } );
+         check. instantiate( check. labelof( -1 ), { tm1, tm2 } );
       }
-
+      check. hide( label( "minhomrel" ) + 1 );
       {
          auto tm1 = check. replacedebruijn( "y1"_unchecked );
          auto tm2 = check. replacedebruijn( "y2"_unchecked );
-         last = check. instantiate( label( "induction" ) + 7, { tm1, tm2 } );
+         check. instantiate( label( "induction" ) + 9, { tm1, tm2 } );
       }
-      last = check. flatten( last. value( ));
-      last = check. flatten( label( "base" ));
-      check. simplify( ); 
+
+      check. flatten( check. labelof( -1 ));
+      check. simplify( label( "closed" ));
+
       check. merge( );
-      last = check. merge( );
+      check. merge( ); 
 
-      last = check. expand( last. value( ), identifier( ) + "stricton", 0 );
-      last = check. expand( last. value( ), identifier( ) + "prod", 0 );
-      last = check. normalize( last. value( ));
-      last = check. flatten( last. value( ));  
+      // Here comes stricton:
 
-      last = check. branch( last. value( ), 0, { "y1", "y2" } );
-      last = check. flatten( last. value( )); 
+      check. rename( check. labelof(-1), label( "stricton" ));
 
-      check. setlabel( label( "qqqq" ));
-      
-      last = check. expand( last. value( ) + 2,
-                            check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
-      last = check. normalize( last. value( ));
-      last = check. flatten( last. value( ));
+      check. expand( check. labelof( -1 ), identifier( ) + "stricton", 0 );
+      check. expand( check. labelof( -1 ), identifier( ) + "prod", 0 );
+      check. normalize( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 )); 
+ 
+      check. branch( check. labelof( -1 ), 0, { "y1", "y2" } );
+      check. flatten( check. labelof( -1 )); 
 
-      last = check. import( identifier( ) + "gen_prop", { Nat, O },
-                            label( "genprop" ));
+      check. expand( check. labelof( -1 ), 
+                     check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
 
-      // This is the proof of #Q, which is long and boring.
+      // Now comes the proof of #Q, which is unfortunately long and boring.
       // Perhaps it shouldn't be here. One could also consider using cut. 
 
-      last = check. branch( check. labelof(-2), 0, { "y1", "y2" } );
+      check. rename( check. labelof( -1 ), label( "qqqq" ));
+      check. normalize( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 ));
+
+      check. import( identifier( ) + "gen_prop", { Nat, O },
+                     label( "genprop" ));
+      check. flatten( check. labelof( -1 ));
+
+      check. branch( check. labelof(-2), 0, { "y1", "y2" } );
+         // They get renamed into y3, y4 in pretty printing, but you must use
+         // the names with which they were introduced, i.e. y1, y2.
+
       {
          auto tm1 = check. replacedebruijn( "s1"_unchecked );
-         auto tm2 = check. replacedebruijn( "y3"_unchecked );
-         last = check. instantiate( label( "genprop" ), { tm1, tm2 } );
+         auto tm2 = check. replacedebruijn( "y1"_unchecked );
+         check. instantiate( label( "genprop" ) + 1, { tm1, tm2 } );
       }
-      check. show( "this is the point", std::cout );
 
+      check. simplify( label( "closed" ));
+      check. merge( );
+
+      check. branch( check. labelof(-1), 0, { "y1", "y2" } );
+         // They get renamed into y3, y4 in pretty printing, but you must use
+         // the names with which they were introduced, i.e. y1, y2.
+
+      {
+         auto tm1 = check. replacedebruijn( "s2"_unchecked );
+         auto tm2 = check. replacedebruijn( "y2"_unchecked );
+         check. instantiate( label( "genprop" ) + 1, { tm1, tm2 } );
+      }
+      check. simplify( label( "closed" ));
+      check. merge( );
+
+      check. branch( check. labelof( -1 ), 0, { "y1", "y2" } );
+      check. flatten( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 ));
+         // This makes sense because there is an alternation.
+
+      check. import( identifier( ) + "minhomrel_prop", { Nat, Nat },
+                     label( "minhomrelprop" ));
+      check. flatten( check. labelof( -1 ));
+
+      check. instantiate( check. labelof( -1 ), 
+         { 
+            check. replacedebruijn( "s1"_unchecked ),
+            check. replacedebruijn( "s2"_unchecked ) 
+         });
+
+      check. instantiate( check. labelof( -1 ), 
+         { 
+            check. replacedebruijn( "y1"_unchecked ),
+            check. replacedebruijn( "y2"_unchecked )
+         });
+      check. flatten( check. labelof( -1 ));
+      check. simplify( label( "closed" ));
+ 
+      check. merge( ); 
+      check. merge( );
+
+      // We now have: Q( s1, s2, x1, x2 )
+
+      check. show( "unfinished" );
+
+#if 0
 #if 0
    auto proof = chain( 
       { 
              {
                 {
-                   proofterm( prf_orrepl, -1, 0,
-                   {
-                      proofterm( prf_flatten, 8 ),
-                      proofterm( prf_flatten, 25 ), 
-                      proofterm( prf_simplify ) 
-                   }),
-                   proofterm( prf_existsrepl, -1, { "y1", "y2" },
-                   {
-                      proofterm( prf_forallelim, 9, { "y1"_unchecked, "y2"_unchecked } ),
-                      proofterm( prf_simplify ) 
-                   })  
-                }),
-                proofterm( prf_existsrepl, -1, { "y1", "y2" },
-                {
-                   proofterm( prf_expandlocal, -1, "Q", 0 ),
-                   proofterm( prf_normalize, -1 ),
-                   proofterm( prf_flatten, -1 ),
-                   proofterm( prf_flatten, -1 ),
-                   proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
-                   proofterm( prf_flatten, -1 ),
-                   proofterm( prf_orrepl, -3, 0,
-                   {
-                      proofterm( prf_existsrepl, -1, { "y" },
-                      {
-                         proofterm( prf_forallelim, -3, { "s1"_unchecked, "y"_unchecked } ), 
-                         proofterm( prf_simplify ),
-                      }) 
-                   }),
-                   proofterm( prf_orrepl, -1, 0,
-                   {
-                      proofterm( prf_existsrepl, -1, { "", "y" },
-                      {
-                         proofterm( prf_forallelim, -4, { "s2"_unchecked, "y"_unchecked } ),
-                         proofterm( prf_simplify ), 
-                      })
-                   }),
-                   proofterm( prf_existsrepl, -1, { "y1a", "y2a", "y1", "y2" },  
-                   {
                       proofterm( prf_flatten, -1 ),
-                      proofterm( prf_flatten, -1 ),    // This makes sense when there is an alternation.
-                      proofterm( prf_import, identifier( ) + "minhomrel_prop", { Nat, Nat } ),
-                      proofterm( prf_flatten, -1 ),
-                      proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked } ),
-                      proofterm( prf_forallelim, -1, { "y1a"_unchecked, "y2a"_unchecked } ),
                       proofterm( prf_flatten, -1 ),
                       proofterm( prf_simplify ) 
                    }) 
