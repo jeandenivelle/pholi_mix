@@ -249,7 +249,7 @@ calc::proofchecker::expand( label lab, size_t var, size_t occ )
 
    if( seq. at( ind ). is_unf( ))
    {
-       throw std::logic_error( "unf: unfinished" );
+       throw std::logic_error( "unf: unfinished !!" );
 
    }
 
@@ -410,6 +410,50 @@ calc::proofchecker::def( std::string_view name, logic::term val )
    return true;
 }
 
+
+bool
+calc::proofchecker::removedef( )
+{
+   std::cout << seq << "\n";
+
+   if( seq. ctxt. size( ) == 0 || !seq. ctxt. hasdefinition(0))
+   {
+      errorstack::builder bld;
+      auto prt = pretty_printer( bld, blfs, seq. ctxt );
+      prt << "removedef: Last variable is not definition"; 
+      err. push( std::move( bld ));
+      return false;
+   }
+
+   auto subst = logic::singlesubst( seq. ctxt. getdefinition(0));
+   std::cout << subst << "\n";
+
+   size_t s = seq. stack. size( );
+   while( s && seq. at( s - 1 ). ctxtsize == seq. ctxt. size( ))
+   {
+      -- s; 
+      if( seq. at(s). is_dnf( ))
+      {
+         seq. at(s). get_dnf( ) = 
+            outermost( subst, std::move( seq. at(s). get_dnf( )), 0 ); 
+      }
+
+      if( seq. at(s). is_unf( ))
+      {
+         seq. at(s). get_unf( ) =
+            outermost( subst, std::move( seq. at(s). get_unf( )), 0 );
+
+      }
+      
+      -- seq. at(s). ctxtsize;
+
+   }
+
+   seq. ctxt. restore( seq. ctxt. size( ) - 1 );
+   return true;
+}
+
+
 std::optional< calc::label > 
 calc::proofchecker::instantiate( label lab,
                                  const std::vector< logic::term > & values )
@@ -523,14 +567,32 @@ calc::proofchecker::simplify( label names )
 
 std::optional< calc::label > calc::proofchecker::merge( )
 {  
-   if( seq. decisions. size( ) == 0 )
-      throw std::logic_error( "merge: there is no decision" ); 
+   if( seq. nrdecisions( ) == 0 )
+   {
+      errorstack::builder bld;
+      bld << "merge: there is no decision";
+      err. push( std::move( bld ));
+      return { };
+   }
 
-   if( seq. decisions. size( ) == 0 )
-      throw std::logic_error( "there is no decision to merge" );
+   size_t nrassumed = seq. ctxt. size( ) - seq. decisions. back( ). ctxtsize;
+      // This is the number of variables that were assumed 
+      // for the decision.
 
-   std::cout << seq. decisions. back( ) << "\n";
-   std::cout << seq << "\n";
+   for( size_t var = 0; var != nrassumed; ++ var )
+   {
+      if( seq. ctxt. hasdefinition(var)) 
+      {
+         errorstack::builder bld;
+         auto prt = pretty_printer( bld, blfs, seq. ctxt );
+         prt << "Cannot merge, because ";
+         prt << "variable " << logic::term( logic::op_debruijn, var );
+         prt << " is defined (while it must be assumed)\n"; 
+         prt << seq. ctxt << "\n";
+         err. push( std::move( bld )); 
+         return { };
+      }
+   }
 
    // We check the context sizes. It never hurts to do that:
 
@@ -543,11 +605,6 @@ std::optional< calc::label > calc::proofchecker::merge( )
          throw std::logic_error( "merge: wrong context size" );
       }
    }
-
-   size_t nrassumed = seq. ctxt. size( ) - seq. decisions. back( ). ctxtsize;
-      // This is the number of variables that were assumed 
-      // in the decision.
-   std::cout << "nrassumed = " << nrassumed << "\n";
 
    for( size_t var = 0; var != nrassumed; ++ var ) 
    {

@@ -66,3 +66,8 @@ Try to prove exists x. p(x) | q(x) -> exists x. p(x) | exists x.p(x)
 
 You lose your way in sequent proofs.
 
+the rule exists x. p(x) | q(x) --> exists x. p(x) | exists x. q(x) is frequently not helpful.
+As a consequence, one must introduce variables more than once.
+
+The flattening introduces extra steps. In principle, these can be easily removed.
+

@@ -823,7 +823,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       check. flatten( label( "induction" ) + 10 );
       check. flatten( label( "minhomrel" ) + 2 );
 
-      check. simplify( label( "contr?" ));
+      check. simplify( label( "contr" ));
  
       check. merge( );
 
@@ -910,7 +910,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
          // This makes sense because there is an alternation.
 
       check. import( identifier( ) + "minhomrel_prop", { Nat, Nat },
-                     label( "minhomrelprop" ));
+                     label( "minhomrel_prop" ));
       check. flatten( check. labelof( -1 ));
 
       check. instantiate( check. labelof( -1 ), 
@@ -932,105 +932,131 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 
       // We now have: Q( s1, s2, x1, x2 )
 
+      check. expand( check. labelof( -1 ),
+                     check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
+
+      check. normalize( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 ));
+
+      check. simplify( label( "resolved" ));
+
+      check. branch( label( "resolved" ), 0, { "y1", "y2" } );  
+     
+      check. instantiate( label( "initial9" ), 
+      {
+         check. replacedebruijn( "y1"_unchecked ),
+         check. replacedebruijn( "y2"_unchecked )
+      });
+
+      check. simplify( label( "closed" ));
+      check. merge( );
+
+      check. removedef( );  // This is Q.
+      check. merge( );
+      check. merge( );
+
+      // Here starts the proof of !# goal:
+
+      check. branch( check. labelof( -1 ), 0, { } );
+      check. expand( check. labelof(-1),
+                     check. replacedebruijn( "goal"_unchecked ). view_debruijn( ). index( ), 0 );
+      check. flatten( check. labelof( -1 ));
+
+      check. rename( check. labelof( -1 ), label( "propgoal" ));
+
+     
+      check. import( identifier( ) + "gen_prop", { Nat, O }, label( "genprop" ));
+      check. branch( label( "propgoal" ), 0, { "s1", "s2", "x1", "x2" } );
+
+      check. flatten( label( "genprop" ));
+      check. instantiate( check. labelof(-1),
+      {
+         check. replacedebruijn( "s1"_unchecked ),
+         check. replacedebruijn( "x1"_unchecked )
+      });          
+ 
+      check. simplify( label( "contradiction" ));
+      check. merge( );
+
+      check. branch( check. labelof( -1 ), 0, { "s1", "s2", "x1", "x2" } );
+      check. flatten( label( "genprop" ));
+      check. instantiate( check. labelof(-1),
+      {
+         check. replacedebruijn( "s2"_unchecked ),
+         check. replacedebruijn( "x2"_unchecked )
+      });          
+      check. simplify( label( "contradiction" ));
+      check. merge( );
+
+      check. branch( check. labelof( -1 ), 0, { "s1", "s2", "x1", "x2" } );
+      check. flatten( check. labelof( -1 ));
+      check. flatten( check. labelof( -1 ));
+
+      check. import( identifier( ) + "minhomrel_prop", { Nat, Nat, O, O }, 
+                     label( "minhomrel_prop" ));
+
+      check. branch( check. labelof( -2 ), 0, { } ); 
+      check. flatten( label( "minhomrel_prop" ));
+      check. instantiate( check. labelof(-1),
+      {
+         check. replacedebruijn( "s1"_unchecked ),
+         check. replacedebruijn( "s2"_unchecked ),
+         check. replacedebruijn( "x1"_unchecked ),
+         check. replacedebruijn( "x2"_unchecked ),
+      });          
+
+      check. flatten( check. labelof( -1 ));
+      check. simplify( label( "contradiction" )); 
+      check. merge( );
+      check. branch( check. labelof( -1 ), 0, { } );
+
+      check. flatten( label( "genprop" ));
+      check. instantiate( check. labelof(-1), 
+      {
+         check. replacedebruijn( "s1"_unchecked ),
+         check. replacedebruijn( "y1"_unchecked )
+      });
+
+      check. simplify( label( "contradiction" ));
+      check. merge( ); 
+
+      check. branch( check. labelof( -1 ), 0, { "y1", "y2" } );
+      check. flatten( label( "genprop" ));
+      check. instantiate( check. labelof(-1),
+      {
+         check. replacedebruijn( "s2"_unchecked ),
+         check. replacedebruijn( "y2"_unchecked )
+      }); 
+
+      check. simplify( label( "contradiction" ));
+      check. merge( );
+
+      check. branch( check. labelof( -1 ), 0, { "y1", "y2" } );
+        
+      check. flatten( check. labelof( -1 )); 
+      check. flatten( check. labelof( -1 ));
+
+      check. flatten( label( "minhomrel_prop" ));
+
+      check. instantiate( check. labelof( -1 ),
+      {
+         check. replacedebruijn( "s1"_unchecked ),
+         check. replacedebruijn( "s2"_unchecked ),
+         check. replacedebruijn( "y1"_unchecked ), 
+         check. replacedebruijn( "y2"_unchecked ) 
+      } );
+
+      check. flatten( check. labelof( -1 ));
+      check. simplify( label( "contradiction" ));
+
+      check. merge( );
+      check. merge( );
+      check. merge( );
+
+      // completed 2026.07.06 (at 15.59).
+
+      check. merge( );
       check. show( "unfinished" );
-
-#if 0
-#if 0
-   auto proof = chain( 
-      { 
-             {
-                {
-                      proofterm( prf_flatten, -1 ),
-                      proofterm( prf_flatten, -1 ),
-                      proofterm( prf_simplify ) 
-                   }) 
-                }),
-             }),
-             proofterm( prf_normalize, -1 ),
-          } ) 
-        } ),
-        proofterm( prf_orrepl, -1, 0,
-        { 
-           proofterm( prf_expandlocal, -1, "goal", 0 ),
-           proofterm( prf_flatten, -1 ),
-           proofterm( prf_orrepl, -1, 0,
-           {
-              proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" },
-              {
-                 proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
-                 proofterm( prf_flatten, -1 ),
-                 proofterm( prf_forallelim, -1, { "s1"_unchecked, "x1"_unchecked } ),
-                 proofterm( prf_simplify )  
-              })
-           }),
-           proofterm( prf_orrepl, -1, 0,
-           {
-              proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" },
-              {
-                 proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
-                 proofterm( prf_flatten, -1 ),
-                 proofterm( prf_forallelim, -1, { "s2"_unchecked, "x2"_unchecked } ),
-                 proofterm( prf_simplify )  
-              })
-           }), 
-           proofterm( prf_existsrepl, -1, { "s1", "s2", "x1", "x2" },
-           {
-              proofterm( prf_flatten, -1 ),
-              proofterm( prf_flatten, -1 ),
-              proofterm( prf_orrepl, -1, 0,
-              {  
-                  proofterm( prf_import, identifier( ) + "minhomrel_prop", { Nat, Nat } ),
-                  proofterm( prf_flatten, -1 ), 
-                  proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked, 
-                                                   "x1"_unchecked, "x2"_unchecked } ),
-                  proofterm( prf_flatten, -1 ),
-                  proofterm( prf_simplify ), 
-              }),
-              proofterm( prf_orrepl, -1, 0,
-              {  
-                 proofterm( prf_existsrepl, -1, { "x", "" },
-                 {
-                    proofterm( prf_simplify ),
-                    proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
-                    proofterm( prf_flatten, -1 ),
-                    proofterm( prf_forallelim, -1, { "s1"_unchecked, "x"_unchecked } ),
-                    proofterm( prf_simplify )
-                 })
-              }),
-              proofterm( prf_orrepl, -1, 0,
-              {  
-                 proofterm( prf_existsrepl, -1, { "", "x" },
-                 {
-                    proofterm( prf_import, identifier( ) + "gen_prop", { Nat, O } ),
-                    proofterm( prf_flatten, -1 ),
-                    proofterm( prf_forallelim, -1, { "s2"_unchecked, "x"_unchecked } ),
-                    proofterm( prf_simplify )
-                 })
-              }),
-              proofterm( prf_existsrepl, -1, { "y1", "y2" },
-              {
-                 proofterm( prf_flatten, -1 ),
-                 proofterm( prf_flatten, -1 ),
-                 proofterm( prf_import, identifier( ) + "minhomrel_prop", { Nat, Nat } ),
-                 proofterm( prf_flatten, -1 ),
-                 proofterm( prf_forallelim, -1, { "s1"_unchecked, "s2"_unchecked,
-                                                  "y1"_unchecked, "y2"_unchecked } ),
-                 proofterm( prf_flatten, -1 ),
-                 proofterm( prf_simplify ) 
-              }) 
-           }),
-        }), 
-        proofterm( prf_show, "END" ) } 
-   ); 
-
-   proof. print( indentation( ), std::cout );
-
-   checkproof( blfs, proof, seq, err );
-   std::cout << "\n";
-   std::cout << "FINAL STATE\n";
-   seq. ugly( std::cout );
-#endif
-#endif
    }
    else
       std::cout << id << " not found\n";

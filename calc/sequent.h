@@ -119,6 +119,9 @@ namespace calc
       const seqform& at( size_t ind ) const
          { return stack. at( ind ). second; } 
 
+      seqform& at( size_t ind ) 
+         { return stack. at( ind ). second; }
+
       void pushdecision( size_t parent, size_t choice ) 
          { decisions. push_back( decision( ctxt. size( ), stack. size( ), 
                                  parent , choice )); }

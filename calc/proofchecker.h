@@ -70,6 +70,10 @@ namespace calc
       std::optional< label > normalize( label fm );
 
       bool def( std::string_view name, logic::term val );
+         // Introduce a local definition.
+
+      bool removedef( );
+         // Remove the last local definition by substituting it away.
 
       std::optional< label > 
       instantiate( label lab, const std::vector< logic::term > & values );
