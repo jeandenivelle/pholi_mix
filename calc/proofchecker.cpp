@@ -195,7 +195,7 @@ calc::proofchecker::expand( label lab,
 
    seq. hide( ind );
    ++ lab;
- 
+
    if( seq. at( ind ). is_dnf( ))
    {
       auto res = seq. at( ind ). get_dnf( );

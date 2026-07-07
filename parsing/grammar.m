@@ -24,6 +24,7 @@
 %symbol{ std::vector< std::string > } VarSeq
 %symbol{ std::vector< logic::vartype > } VarTypeSeq VarsOneType 
    // VarsOneType has form v1, ..., vn : T 
+   // VarTypeSeq consists of many VarsOneType, separated by commas.
 
 %symbol{ std::vector< std::vector< logic::vartype >> } ParSeqSeq 
    // Used in definitions. A definition can have form
@@ -40,11 +41,12 @@
 
 %symbol{ } EOF FILEBAD WHITESPACE COMMENT 
 %symbol{ } LPAR RPAR LBRACE RBRACE LBRACKET RBRACKET LT GT
+%symbol{ } FALSE TRUE 
 %symbol{ } EQ NE ASSIGN
 %symbol{ } NOT PROP
 %symbol{ } AND OR IMPLIES EQUIV 
 %symbol{ } COLON SEMICOLON COMMA DOT SEP
-%symbol{ } LET IN LAMBDA
+%symbol{ } FORALL EXISTS LET IN LAMBDA
 %symbol{ std::string } SCANERROR
 
 %symbolcode_h { #include "location.h" }
@@ -109,8 +111,8 @@ File =>
        { 
           blfs. append( logic::belief( logic::bel_struct, id, def ));
        }
-    | File DEF Identifier : id ParSeqSeq : abstr ASSIGN 
-      Term : tm COLON StructType : tp SEMICOLON
+    | File DEF Identifier : id ParSeqSeq : abstr COLON StructType : tp 
+      ASSIGN Term : tm SEMICOLON
        { 
           tm = abstract( abstr, std::move(tm) ); 
           tp = abstract( abstr, std::move(tp) );
@@ -252,29 +254,26 @@ Identifier => IdentifierStart : id VARIABLE : v { return id + v; }
 // These are these greedy prefix operators that eat everything
 // they find to the right of them:
 
-GreedyPrefTerm => LBRACKET VarTypeSeq : vars RBRACKET Term : body
+GreedyPrefTerm 
+=> FORALL LBRACE VarTypeSeq : vars RBRACE COLON Term : body
 {
    return logic::term( logic::op_forall, body, vars. begin( ), vars. end( ));
 }
-| LT VarTypeSeq : vars GT Term : body
+| EXISTS LBRACE VarTypeSeq : vars RBRACE COLON Term : body
 {
    return logic::term( logic::op_exists, body, vars. begin( ), vars. end( ));
 }
-| LAMBDA LPAR VarTypeSeq : vars RPAR Term : body
+| LAMBDA LBRACE VarTypeSeq : vars RBRACE COLON Term : body
 {
    return logic::term( logic::op_lambda, body, vars. begin( ), vars. end( ));
 }
-| LBRACE Term : t1 RBRACE AND Term : t2 
-{
-   return logic::term( logic::op_lazy_and, t1, t2 );
-}
-| LBRACE Term : t1 RBRACE IMPLIES Term : t2
+| LBRACKET Term : t1 RBRACKET Term : t2
 {
    return logic::term( logic::op_lazy_implies, t1, t2 );
 }
-| LBRACE Term : t1 RBRACE OR Term : t2
+| LT Term : t1 GT Term : t2 
 {
-   return logic::term( logic::op_or, t1, t2 );
+   return logic::term( logic::op_lazy_and, t1, t2 );
 }
 | LET LetDefSeq : defs IN Term : tm 
 {
@@ -405,6 +404,8 @@ ApplTerm =>
 
 | Identifier : id  { return logic::term( logic::op_unchecked, id ); }
 | LPAR Term : tm RPAR { return std::move(tm); } 
+| FALSE { return logic::term( logic::op_false ); } 
+| TRUE { return logic::term( logic::op_true ); }
 ; 
 
 ArgSeq => ArgSeq : args COMMA Term : t 
@@ -414,7 +415,7 @@ ArgSeq => ArgSeq : args COMMA Term : t
      res. push_back( std::move(t)); 
      return res;
    } 
-            ;
+;
 
 %end
  

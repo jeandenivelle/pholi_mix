@@ -283,10 +283,6 @@ logic::replace_debruijn( indexedstack< std::string, size_t > & db, term t )
       std::cout << t << "\n";
    }
 
-   static const identifier ff = identifier( ) + "FF";
-   static const identifier ee = identifier( ) + "EE";
-   static const identifier tt = identifier( ) + "TT";
-
    switch ( t. sel( ))
    {
    case op_debruijn:
@@ -297,13 +293,6 @@ logic::replace_debruijn( indexedstack< std::string, size_t > & db, term t )
          auto un = t. view_unchecked( );
          const auto& id = un. id( );
 
-         if( id == ff )
-            return logic::term( op_false );
-         if( id == ee )
-            return logic::term( op_error );
-         if( id == tt )
-            return logic::term( op_true );
- 
          if( id. size( ) != 1 )
             return t;
  
@@ -313,6 +302,11 @@ logic::replace_debruijn( indexedstack< std::string, size_t > & db, term t )
 
          return t;
       }
+   case op_false:
+   case op_error:
+   case op_true:
+      return t;
+
    case op_not:
    case op_prop:
       {

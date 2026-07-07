@@ -55,7 +55,12 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "thm" ), symbolval::sym_THM );
    cls.insert( word( "axiom" ), symbolval::sym_AXIOM );
 
-   cls.insert( word( "??" ), symbolval::sym_LAMBDA );
+   cls.insert( word( "false" ), symbolval::sym_FALSE );
+   cls.insert( word( "true" ), symbolval::sym_TRUE );
+
+   cls.insert( word( "forall" ), symbolval::sym_FORALL );
+   cls.insert( word( "exists" ), symbolval::sym_EXISTS );
+   cls.insert( word( "lambda" ), symbolval::sym_LAMBDA );
    cls.insert( word( "let" ), symbolval::sym_LET );
    cls.insert( word( "in" ), symbolval::sym_IN );
    cls.insert( word( "eof" ), symbolval::sym_EOF );

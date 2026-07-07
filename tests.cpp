@@ -496,6 +496,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 
          res = check. flatten( check. labelof(-1));
          res = check. branch( res. value( ), 0, { "yy" } ); 
+
          res = check. import( identifier( ) + "gen_prop", { Nat, O },
                               label( "gen_prop" ));
          check. flatten( label( "gen_prop" )); 
@@ -687,7 +688,6 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
          err. push( std::move( bld ));
       } 
    }
-
 }
 
 
@@ -1058,6 +1058,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
    }
    else
       std::cout << id << " not found\n";
+
 }
 
 
