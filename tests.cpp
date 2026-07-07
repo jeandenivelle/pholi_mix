@@ -551,7 +551,6 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
             tm1 = check. replacedebruijn( tm1 );
             tm2 = check. replacedebruijn( tm2 ); 
             res = check. instantiate( check. labelof( -1 ), { tm1, tm2 } );
-
          }
 
          check. simplify( label( "close" )); 
@@ -1053,9 +1052,8 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
       check. merge( );
       check. merge( );
 
-      // completed 2026.07.06 (at 15.59).
+      // completed 2026.07.06 (at 15.59 Astana time).
 
-      check. merge( );
       check. show( "unfinished" );
    }
    else

@@ -24,8 +24,8 @@ parsing::tokenizer::buildclassifier()
    cls.insert( just( '(' ), sym_LPAR );
    cls.insert( just( '}' ), sym_RBRACE );
    cls.insert( just( '{' ), sym_LBRACE );
-   cls.insert( just( '<' ), sym_LEXISTS );
-   cls.insert( just( '>' ), sym_REXISTS );
+   cls.insert( just( '<' ), sym_LT );
+   cls.insert( just( '>' ), sym_GT );
 
    cls.insert( word( ":=" ), symbolval::sym_ASSIGN );
    cls.insert( word( "==" ), symbolval::sym_EQ );

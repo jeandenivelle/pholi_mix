@@ -39,7 +39,7 @@
 %symbol{ } STRUCT END DEF SYMBOL THM AXIOM 
 
 %symbol{ } EOF FILEBAD WHITESPACE COMMENT 
-%symbol{ } LPAR RPAR LBRACE RBRACE LBRACKET RBRACKET LEXISTS REXISTS
+%symbol{ } LPAR RPAR LBRACE RBRACE LBRACKET RBRACKET LT GT
 %symbol{ } EQ NE ASSIGN
 %symbol{ } NOT PROP
 %symbol{ } AND OR IMPLIES EQUIV 
@@ -256,7 +256,7 @@ GreedyPrefTerm => LBRACKET VarTypeSeq : vars RBRACKET Term : body
 {
    return logic::term( logic::op_forall, body, vars. begin( ), vars. end( ));
 }
-| LEXISTS VarTypeSeq : vars REXISTS Term : body
+| LT VarTypeSeq : vars GT Term : body
 {
    return logic::term( logic::op_exists, body, vars. begin( ), vars. end( ));
 }

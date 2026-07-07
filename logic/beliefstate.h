@@ -4,6 +4,7 @@
 // The main data structure now is a vector of beliefs.
 // An exact name is an index into this vector.
 // Added a backtrack method on July 21/22 2025.
+// (I removed it later, but I don't remember when.)
 
 #ifndef LOGIC_BELIEFSTATE_
 #define LOGIC_BELIEFSTATE_  
@@ -39,7 +40,7 @@ namespace logic
 
       identifier2exact formulas;
 
-      const std::vector< exact > empty;
+      std::vector< exact > empty;
          // This is an empty vector, so that we can return
          // a reference when somebody tries to look up an identifier
          // that has no overloads. Since we always return it 

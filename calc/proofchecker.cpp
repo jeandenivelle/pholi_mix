@@ -253,6 +253,7 @@ calc::proofchecker::expand( label lab, size_t var, size_t occ )
 
    }
 
+   throw std::logic_error( "unreachable" );
 }
 
 
@@ -377,6 +378,8 @@ std::optional< calc::label > calc::proofchecker::normalize( label lab )
       res = lift( std::move( res ), seq. liftdist( ind ));
       return seq. append( lab, ::normalize( blfs, std::move( res ), 0 ));
    }
+ 
+   throw std::logic_error( "unreachable" );
 }
 
 bool 
