@@ -30,6 +30,9 @@
    // Used in definitions. A definition can have form
    // def x( ) ( ) ( ) := t, so we need a vector of vector of vartypes.
 
+%symbol{ std::pair< logic::vartype, logic::term > } LetDef
+   // A single v:T := t.
+
 %symbol{ std::vector< std::pair< logic::vartype, logic::term >> } LetDefSeq 
    // Symbols that are defined in the scope of a let,
    // first is the declaration, second is the given value. 
@@ -46,7 +49,7 @@
 %symbol{ } NOT PROP
 %symbol{ } AND OR IMPLIES EQUIV 
 %symbol{ } COLON SEMICOLON COMMA DOT SEP
-%symbol{ } FORALL EXISTS LET IN LAMBDA
+%symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
 %symbolcode_h { #include "location.h" }
@@ -171,17 +174,22 @@ ParSeqSeq =>
 
 // ----------------------------- used in let --------------------
 
-LetDefSeq => VARIABLE : v ASSIGN Term : val COLON StructType : tp 
+LetDefSeq => LetDef : def 
 {
    std::vector< std::pair< logic::vartype, logic::term >> res;
-   res. push_back( std::pair( logic::vartype( v, tp ), val ));
+   res. push_back( std::move( def ));
    return res;
 }
-| LetDefSeq : defs COMMA 
-    VARIABLE : v ASSIGN Term : val COLON StructType : tp 
+| LetDefSeq : defs COMMA LetDef : def  
 {
-   defs. push_back( std::pair( logic::vartype( v, tp ), val ));
+   defs. push_back(  std::move( def ));
    return std::move( defs ); 
+}
+;
+
+LetDef => VARIABLE : v COLON StructType : tp ASSIGN Term : val 
+{
+   return std::pair( logic::vartype( v, tp ), val );
 }
 ;
 
@@ -275,7 +283,7 @@ GreedyPrefTerm
 {
    return logic::term( logic::op_lazy_and, t1, t2 );
 }
-| LET LetDefSeq : defs IN Term : tm 
+| LET LBRACE LetDefSeq : defs RBRACE COLON Term : tm 
 {
    size_t i = defs. size( );
    while(i)

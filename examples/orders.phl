@@ -1,0 +1,33 @@
+
+struct BinRel :=
+   D : Form( Obj );
+   R : Form( Obj, Obj );
+end ;
+
+def prop( rel : BinRel ) : Form :=
+   strict( rel.D ) & 
+   stricton( prod( rel.D, rel.D ), rel.R );  
+
+def reflexive( rel: BinRel ) : Form :=
+   forall{ d : Obj } :
+      [ rel.D(d) ] rel.R( d, d );
+
+def total( rel: BinRel ) : Form :=
+   forall{ d1, d2 : Obj } :
+      [ rel.D(d1) & rel.D(d2) ] rel.R(d1,d2) & rel.R(d2,d1) -> d1 == d2 ;
+
+def transitive( rel : BinRel ) : Form :=
+   forall{ d1, d2, d3 : Obj } : 
+      [ rel.D( d1 ) & rel.D( d2 ) & rel.D( d3 ) ]
+      rel.R( d1, d2 ) & rel.R( d2, d3 ) -> rel.R( d1, d3 );
+
+def symmetric( rel : BinRel ) : Form :=
+   forall{ d1, d2 : Obj } :
+      [ rel.D( d1 ) & rel. D( d2 ) ] rel.R( d1, d2 ) -> rel.R( d2, d1 );
+
+def reverse( rel : BinRel ) : BinRel :=
+   BinRel( rel.D, lambda{ d1, d2 : Obj } : rel.R( d2, d1 )) ;
+
+thm reverse: forall{ rel : BinRel } : 
+   [ prop ( rel ) ] transitive( rel ) -> transitive( reverse( rel )) ;
+

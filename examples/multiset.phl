@@ -1,0 +1,34 @@
+
+struct List :=
+   nil : Obj ; 
+   cons : Obj( Obj, Obj ) ;
+end ;
+
+def isclosed( lst : List, D : Form( Obj ), P : Form( Obj )) : Form :=
+   let{ nil : Obj := lst. nil, cons : Obj( Obj, Obj ) := lst. cons } : 
+      P( nil ) & implies( D, P ) & from_to( prod( D, P ), P, cons );
+
+def gen( lst : List, D : Form( Obj ))( x : Obj ) : Form :=
+    forall{ P : Form( Obj ) }:
+      [ strict(P) ] lst. isclosed(D, P) -> P(x) ;
+
+def good( lst : List ) : Form :=
+   ( forall{ d1, d2 : Obj, l1, l2 : Obj } :
+      lst. cons( d1, l1 ) == lst. cons( d2, l2 ) -> d1 == d2 & l1 == l2 ) & 
+   ( forall{ d, l : Obj } : 
+      lst. cons( d, l ) == lst. nil -> false ) ;
+
+     
+def reflexive( rel: BinRel ) : Form :=
+   forall{ d : Obj } :
+      [ rel.D(d) ] rel.R( d, d );
+
+def total( rel: BinRel ) : Form :=
+   forall{ d1, d2 : Obj } :
+      [ rel.D(d1) & rel.D(d2) ] rel.R(d1,d2) & rel.R(d2,d1) -> d1 == d2 ;
+
+def symmetric( rel : BinRel ) : Form :=
+   forall{ d1, d2 : Obj } :
+      [ rel.D( d1 ) & rel. D( d2 ) ] rel.R( d1, d2 ) -> rel.R( d2, d1 );
+
+

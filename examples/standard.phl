@@ -14,6 +14,15 @@ def stricton( P, Q : Form( Obj, Obj )) : Form :=
 def stricton( P, Q : Form( Obj, Obj, Obj )) : Form :=
    forall{ x1, x2, x3 : Obj } : P(x1,x2,x3) -> # Q(x1,x2,x3);
 
+def implies( P1,P2 : Form ) : Form :=
+      P1 -> P2;
+def implies( P1,P2 : Form( Obj )) : Form :=
+      forall{ x1 : Obj } : P1(x1) -> P2(x1);
+def implies( P1,P2 : Form( Obj, Obj )) : Form :=
+      forall{ x1, x2 : Obj } : P1(x1,x2) -> P2(x1,x2);
+def implies( P1,P2 : Form( Obj, Obj, Obj )) : Form :=
+      forall{ x1, x2, x3 : Obj } : P1(x1,x2,x3) -> P2(x1,x2,x3);
+
 def prod( P1,P2 : Form( Obj )) ( x1, x2 : Obj ) : Form := P1(x1) & P2(x2);
 def prod( P1,P2,P3 : Form( Obj )) ( x1, x2, x3 : Obj ) : Form :=
    P1(x1) & P2(x2) & P3(x3);
@@ -25,6 +34,8 @@ def extend( P : Form(Obj,Obj)) ( x1, x2, x3 : Obj ) : Form :=
 def extend( P : Form(Obj,Obj,Obj)) ( x1, x2, x3, x4 : Obj ) : Form 
    := P(x1,x2,x3);
 
+def univ( x : Obj ) : Form := true ;
+   
 def and( P1,P2 : Form ) : Form := 
       P1 & P2;
 def and( P1,P2 : Form( Obj ))( x1 : Obj ) : Form := 
@@ -53,15 +64,6 @@ def or( P1,P2 : Form( Obj, Obj ))( x1, x2 : Obj ) : Form :=
 def or( P1,P2 : Form( Obj, Obj, Obj ))( x1, x2, x3 : Obj ) : Form :=
       P1(x1,x2,x3) | P2(x1,x2,x3 );
 
-def implies( P1,P2 : Form ) : Form :=
-      P1 -> P2;
-def implies( P1,P2 : Form( Obj ))( x1 : Obj ) : Form :=
-      P1(x1) -> P2(x1);
-def implies( P1,P2 : Form( Obj, Obj ))( x1, x2 : Obj ) : Form :=
-      P1(x1,x2) -> P2(x1,x2);
-def implies( P1,P2 : Form( Obj, Obj, Obj ))( x1, x2, x3 : Obj ) : Form :=
-      P1(x1,x2,x3) -> P2(x1,x2,x3);
-
 def equiv( P1,P2 : Form ) : Form :=
    P1 <-> P2;
 def equiv( P1,P2 : Form( Obj ))( x1 : Obj ) :Form :=
@@ -85,15 +87,17 @@ def isuniv( P : Form( Obj, Obj )) : Form :=
 def isuniv( P : Form( Obj, Obj, Obj )) : Form :=
       forall { x1, x2, x3 : Obj } : P(x1,x2,x3 );
 
-def serial( Q : Form( Obj )) : Form := exists{ y : Obj } : Q(y);
+
+def serial( Q : Form( Obj )) : Form := 
+   exists{ y : Obj } : Q(y);
 def serial( P : Form( Obj ), Q : Form( Obj, Obj )) : Form :=
-   forall{ x1 : Obj }: P(x1) -> exists{ y : Obj }: < P(x1) > Q(x1,y);
+   forall{ x1 : Obj }: [ P(x1) ] exists{ y : Obj }: Q(x1,y);
 def serial( P : Form( Obj, Obj ), Q : Form( Obj, Obj, Obj )) : Form :=
-   forall{ x1, x2 : Obj }: P(x1,x2) -> 
-      exists{ y : Obj } : < P(x1,x2) > Q(x1,x2,y);
+   forall{ x1, x2 : Obj }: [ P(x1,x2) ]
+      exists{ y : Obj } : Q(x1,x2,y);
 def serial( P : Form( Obj, Obj, Obj ), Q : Form( Obj, Obj, Obj, Obj )) : Form 
-   := forall{ x1, x2, x3 : Obj }: P(x1,x2,x3) -> 
-         exists{ y : Obj } : < P(x1,x2,x3) > Q(x1,x2,x3,y); 
+   := forall{ x1, x2, x3 : Obj }: [ P(x1,x2,x3) ]
+         exists{ y : Obj } : Q(x1,x2,x3,y); 
 
 def linear( Q : Form( Obj )) : Form :=
    forall{ y1, y2 : Obj }: Q(y1) & Q(y2) -> y1 == y2; 
@@ -106,7 +110,7 @@ def linear( P : Form( Obj, Obj ), Q : Form( Obj, Obj, Obj )) : Form :=
 def linear( P : Form( Obj, Obj, Obj ), Q : Form( Obj, Obj, Obj, Obj )) : Form 
    := forall{ x1, x2, x3 : Obj }: [ P(x1,x2,x3) ]
          forall{ y1, y2 : Obj }: Q(x1,x2,x3,y1) & Q(x1,x2,x3,y2) 
-                                               -> y1 == y2;
+                                       -> y1 == y2;
 
 def functional( Q : Form( Obj )) : Form :=
       serial(Q) & linear(Q);
@@ -119,14 +123,32 @@ symbol find : Obj( Form(Obj) );
 axiom find : 
    forall{ Q : Form( Obj ) } : [ strict(Q) ] functional(Q) -> Q( find(Q)); 
 
+def from_to( P : Form( Obj ), Q : Form( Obj, Obj ))
+       ( f : Obj( Obj )) : Form :=
+   forall{ x : Obj }: P(x) -> Q( x,f(x));
+
+def from_to( P : Form( Obj, Obj ), Q : Form( Obj, Obj, Obj ))
+       ( f : Obj( Obj, Obj )) : Form :=
+   forall{ x1, x2 : Obj }: P(x1, x2) -> Q( x1, x2,f(x1, x2));
+
+def from_to( P : Form( Obj ), Q : Form( Obj ))( f : Obj( Obj )) : Form :=
+   forall{ x : Obj } : P(x) -> Q(f(x)) ; 
+
+def from_to( P : Form( Obj, Obj ), Q : Form( Obj ))
+           ( f : Obj( Obj, Obj )) : Form :=
+   forall{ x1,x2 : Obj } : P(x1, x2) -> Q(f(x1,x2)) ;
+
+
+
 thm find2 :
    forall{ P : Form( Obj ), Q : Form( Obj, Obj ) } :
          strict(P) -> [ stricton( extend(P), Q ) ]
             functional( P, Q ) -> forall{ x1 : Obj }: [ P(x1) ]
-   let partial := lambda{ P : Form( Obj, Obj ) }: lambda{ x1 : Obj }: 
-           lambda{ y : Obj }: P(x1,y) : Form( Obj )( Obj )( Form( Obj, Obj )),
-       QQQ := Q : Form( Obj, Obj )
-    in Q( x1, find( partial( QQQ, x1 ))) ;
+   let{ partial : Form( Obj )( Obj )( Form( Obj, Obj )) := 
+           lambda{ P : Form( Obj, Obj ) }: lambda{ x1 : Obj }: 
+              lambda{ y : Obj }: P(x1,y),
+        QQQ : Form( Obj, Obj ) := Q 
+      }: Q( x1, find( partial( QQQ, x1 ))) ;
 
 def minimal( P : Form( Obj ), C : Form( Form( Obj )) ) ( x1 : Obj ) : Form :=
    forall{ R : Form( Obj ) }: [ stricton(P,R) ] C(R) -> R(x1);

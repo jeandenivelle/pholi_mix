@@ -116,6 +116,9 @@ int main( int argc, char* argv[] )
    includefile( blfs, seen, "examples/standard.phl", err ); 
    includefile( blfs, seen, "aa1", err );
    includefile( blfs, seen, "examples/natural.phl", err );
+   includefile( blfs, seen, "examples/orders.phl", err );
+   includefile( blfs, seen, "examples/multiset.phl", err );
+
    // includefile( blfs, seen, "examples/automata.phl", err );
 
    seen. print( std::cout );

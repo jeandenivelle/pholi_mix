@@ -62,7 +62,6 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "exists" ), symbolval::sym_EXISTS );
    cls.insert( word( "lambda" ), symbolval::sym_LAMBDA );
    cls.insert( word( "let" ), symbolval::sym_LET );
-   cls.insert( word( "in" ), symbolval::sym_IN );
    cls.insert( word( "eof" ), symbolval::sym_EOF );
 
    cls.insert( ( just( ' ' ) | just( '\f' ) | just( '\n' ) | just( '\r' ) | 

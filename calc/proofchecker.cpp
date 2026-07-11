@@ -909,8 +909,6 @@ logic::term calc::proofchecker::replacedebruijn( logic::term tm )
       throw std::logic_error( "replacedebruijn: Sizes differ" );
    }
 
-   std::cout << "term = " << tm << "\n\n";
-   std::cout << "replacedebruijn " << db << "\n";
    return logic::replace_debruijn( db, tm );
 }
 
