@@ -13,15 +13,24 @@ def gen( lst : List, D : Form( Obj ))( x : Obj ) : Form :=
       [ strict(P) ] lst. isclosed(D, P) -> P(x) ;
 
 def good( lst : List ) : Form :=
-   ( forall{ d1, d2 : Obj, l1, l2 : Obj } :
-      lst. cons( d1, l1 ) == lst. cons( d2, l2 ) -> d1 == d2 & l1 == l2 ) & 
-   ( forall{ d, l : Obj } : 
-      lst. cons( d, l ) == lst. nil -> false ) ;
+   let{ nil : Obj := lst. nil,  cons : Obj( Obj, Obj ) := lst. cons } :
+      ( forall{ d1, d2 : Obj, l1, l2 : Obj } :
+         cons( d1, l1 ) == cons( d2, l2 ) -> d1 == d2 & l1 == l2 ) & 
+      ( forall{ d, l : Obj } : cons( d, l ) == nil -> false ) ;
 
-     
-def reflexive( rel: BinRel ) : Form :=
-   forall{ d : Obj } :
-      [ rel.D(d) ] rel.R( d, d );
+struct MultiSet :=
+   lst : List;
+   proj : Obj( Obj );
+end;
+
+def good( mult : MultiSet ) : Form :=
+   [ good( mult. lst ) ]
+   forall{ d1, d2 : Obj, l : Obj } :
+      [ mult. lst. gen( univ, d1 ) & mult. lst. gen( univ, d2 ) ] 
+            mult. proj( mult. lst. cons( d1, mult. lst. cons( d2, l )) ) ==
+            mult. proj( mult. lst. cons( d2, mult. lst. cons( d1, l )) ) ;
+
+def aa::cons : Form := false ;
 
 def total( rel: BinRel ) : Form :=
    forall{ d1, d2 : Obj } :
