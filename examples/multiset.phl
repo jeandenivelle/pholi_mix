@@ -1,43 +1,44 @@
 
-struct List :=
-   nil : Obj ; 
-   cons : Obj( Obj, Obj ) ;
+struct MultiSet :=
+   empty : Obj ;
+   insert : Obj( Obj, Obj ) ;
 end ;
 
-def isclosed( lst : List, D : Form( Obj ), P : Form( Obj )) : Form :=
-   let{ nil : Obj := lst. nil, cons : Obj( Obj, Obj ) := lst. cons } : 
-      P( nil ) & implies( D, P ) & from_to( prod( D, P ), P, cons );
+def isclosed( mlt : MultiSet, D : Form( Obj )) ( P : Form( Obj )) : Form :=
+   P( mlt. empty ) & from_to( prod( D, P ), P, mlt. insert );
 
-def gen( lst : List, D : Form( Obj ))( x : Obj ) : Form :=
+def gen( mlt : MultiSet ) ( D : Form( Obj ))( x : Obj ) : Form :=
     forall{ P : Form( Obj ) }:
-      [ strict(P) ] lst. isclosed(D, P) -> P(x) ;
+      [ strict(P) ] mlt. isclosed(D,P) -> P(x) ;
 
-def good( lst : List ) : Form :=
-   let{ nil : Obj := lst. nil,  cons : Obj( Obj, Obj ) := lst. cons } :
-      ( forall{ d1, d2 : Obj, l1, l2 : Obj } :
-         cons( d1, l1 ) == cons( d2, l2 ) -> d1 == d2 & l1 == l2 ) & 
-      ( forall{ d, l : Obj } : cons( d, l ) == nil -> false ) ;
+def equations( mlt : MultiSet, D : Form( Obj )) : Form :=
+   let{ empty : Obj := mlt. empty,  insert : Obj( Obj, Obj ) := mlt. insert,
+        gen : Form( Obj )( Form( Obj )) := mlt. gen } : 
+      forall{ d1, d2 : Obj, s : Obj } :
+         [ D(d1) & D(d2) ] [ gen(D,s) ] 
+         insert( d1, insert( d2, s )) == insert( d2, insert( d1, s )) ;
 
-struct MultiSet :=
-   lst : List;
-   proj : Obj( Obj );
-end;
+def homrel( ms1, ms2 : MultiSet, D1, D2 : Form( Obj ),
+            B : Form( Obj, Obj )) ( R: Form( Obj, Obj )) : Form :=
+   R( ms1. empty, ms2. empty ) & 
+   forall{ d1,d2: Obj }: [ D1(d1) & D2(d1) ] 
+   forall{ s1,s2: Obj }: [ ms1.gen( D1, s1 ) & ms2.gen( D2, s2 ) ] 
+      B( d1, d2 ) & R( s1, s2 ) -> 
+         R( ms1.insert( d1, s2 ), ms2.insert( d2, s2 ));
 
-def good( mult : MultiSet ) : Form :=
-   [ good( mult. lst ) ]
-   forall{ d1, d2 : Obj, l : Obj } :
-      [ mult. lst. gen( univ, d1 ) & mult. lst. gen( univ, d2 ) ] 
-            mult. proj( mult. lst. cons( d1, mult. lst. cons( d2, l )) ) ==
-            mult. proj( mult. lst. cons( d2, mult. lst. cons( d1, l )) ) ;
+def freegen( ms1 : MultiSet, D1 : Form( Obj )) : Form :=
+   equations( ms1, D1 ) & 
+   forall{ ms2 : MultiSet, D2 : Form(Obj), B : Form( Obj, Obj ) }: 
+      [ strict(D2) ] [ stricton( prod( D1, D2 ), B ) ] 
+         exists{ R : Form( Obj, Obj ) }:
+            < stricton( prod( ms1. gen(D1), ms2. gen(D2)), R ) >
+               homrel( ms1, ms2, D1, D2, B ) (R) & linear( ms1. gen(D1),
+                  lambda{ s1, s2 : Obj }: < ms2. gen(D2, s2) > R( s1, s2 ));
+ 
+def minhomrel( ms1, ms2 : MultiSet, D1, D2 : Form( Obj ),
+               B : Form( Obj, Obj )) : Form( Obj, Obj ) 
+   := minimal( prod( ms1. gen(D1), ms2. gen(D2)), homrel( ms1, ms2, D1,D2,B));
 
-def aa::cons : Form := false ;
-
-def total( rel: BinRel ) : Form :=
-   forall{ d1, d2 : Obj } :
-      [ rel.D(d1) & rel.D(d2) ] rel.R(d1,d2) & rel.R(d2,d1) -> d1 == d2 ;
-
-def symmetric( rel : BinRel ) : Form :=
-   forall{ d1, d2 : Obj } :
-      [ rel.D( d1 ) & rel. D( d2 ) ] rel.R( d1, d2 ) -> rel.R( d2, d1 );
-
+thm func:
+   :q
 

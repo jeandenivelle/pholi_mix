@@ -139,7 +139,6 @@ def from_to( P : Form( Obj, Obj ), Q : Form( Obj ))
    forall{ x1,x2 : Obj } : P(x1, x2) -> Q(f(x1,x2)) ;
 
 
-
 thm find2 :
    forall{ P : Form( Obj ), Q : Form( Obj, Obj ) } :
          strict(P) -> [ stricton( extend(P), Q ) ]

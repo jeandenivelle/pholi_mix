@@ -2,7 +2,7 @@
 %dir calc
 %namespace calc
 
-%define fitch ( tab_empty ) 
+%define fitch_diag ( tab_empty ) 
 
 %option empty { tab_empty } => 
 
