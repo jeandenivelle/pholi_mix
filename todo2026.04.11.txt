@@ -71,3 +71,12 @@ As a consequence, one must introduce variables more than once.
 
 The flattening introduces extra steps. In principle, these can be easily removed.
 
+14th of July:
+   Replace 'Form' by 'Prop' ?
+
+   Allow unique witnesses of Structural Types? example/inhabit? 
+   (For example Pair, or Natural Number)
+
+   Names in the beliefstate should store the file and the line number?
+
+

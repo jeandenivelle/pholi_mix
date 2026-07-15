@@ -2,15 +2,15 @@
 %dir calc
 %namespace calc
 
-%define fitch_diag ( tab_empty ) 
+%define fitch_diagram ( tab_empty ) 
 
 %option empty { tab_empty } => 
 
 %option assume { tab_assume } => aaaa: std::vector< logic::vartype >,
-                                 [ sub : fitch ] 
+                                 [ sub : fitch_diagram ] 
 %option define { tab_define } => var : logic::vartype, val : logic::term,
-                                 [ sub : fitch ]
-%option decide { tab_decide } => fm : logic::term, [ sub : fitch ]  
+                                 [ sub : fitch_diagram ]
+%option decide { tab_decide } => fm : logic::term, [ sub : fitch_diagram ]  
 %option conclusion { tab_concl } => lab : label, fm : logic::term, 
                                     comment : std::string
 %option importance { tab_imp } => imp : int 

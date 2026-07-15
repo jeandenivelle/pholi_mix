@@ -114,10 +114,10 @@ int main( int argc, char* argv[] )
    filehasher seen;
 
    includefile( blfs, seen, "examples/standard.phl", err ); 
-   includefile( blfs, seen, "aa1", err );
    includefile( blfs, seen, "examples/natural.phl", err );
    includefile( blfs, seen, "examples/orders.phl", err );
    includefile( blfs, seen, "examples/multiset.phl", err );
+   includefile( blfs, seen, "examples/prolog.phl", err );
 
    // includefile( blfs, seen, "examples/automata.phl", err );
 

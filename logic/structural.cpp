@@ -215,7 +215,7 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
                bld << "Declared :   "; 
                pretty::print( bld, everything, def. tp( ), {0,0} );
                bld << "\n";
-               bld << "True :   ";
+               bld << "True     :   ";
                pretty::print( bld, everything, tp. value( ), {0,0} ); 
                err. push( std::move( bld ));   
             }
@@ -962,7 +962,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             auto err = errorheader( blfs, ctxt, t );
             err << "cannot apply function of type ";
             pretty::print( err, blfs, ftype. value( ), {0,0} ); 
-            err << " on argument(s)\n";
+            err << " on argument(s) of type\n";
             for( size_t i = 0; i != argtypes. size( ); ++ i )
             {
                err << "   "; 
