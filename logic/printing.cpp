@@ -10,8 +10,8 @@ void logic::type::print( std::ostream& out ) const
 {
    switch( sel( ))
    {
-   case type_form:
-      out << "Form";
+   case type_prop:
+      out << "Prop";
       break;
 
    case type_obj:

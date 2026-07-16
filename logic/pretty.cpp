@@ -88,7 +88,7 @@ void logic::pretty::print( std::ostream& out, const beliefstate& blfs,
    switch( tp. sel( ))
    {
    case type_obj:
-   case type_form:
+   case type_prop:
       out << tp; 
       return;
 

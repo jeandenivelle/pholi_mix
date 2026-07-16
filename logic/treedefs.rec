@@ -10,8 +10,8 @@
 // In Dec. 2024, I changed the implementation: We will also
 // resolve names in structural types.
 
-%define type ( type_form ) 
-%option prim { type_form, type_obj } =>
+%define type ( type_prop ) 
+%option prim { type_prop, type_obj } =>
 %option struct { type_struct } => # def : exact
 %option unchecked { type_unchecked } => # id : identifier
 %option func { type_func } => result : type, [ arg : type ]  
@@ -101,7 +101,7 @@
 %option empty { bel_empty } => 
 %option struct { bel_struct } => def : structdef 
 %option symbol { bel_symbol } => tp : type 
-%option def { bel_def } => val : term, tp : type
+%option def { bel_def } => tp : type, val : term 
 
 %option form { bel_axiom, bel_thm } => 
    fm : term, proven : int, dependencies : exact::unordered_set, [ tp : type ] 

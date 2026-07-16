@@ -4,36 +4,36 @@ struct MultiSet :=
    ins : Obj( Obj, Obj ) ;
 end ;
 
-def isclosed( ms : MultiSet, D : Form( Obj )) ( P : Form( Obj )) : Form :=
+def isclosed( ms : MultiSet; D : Prop( Obj )) ( P : Prop( Obj )) : Prop :=
    P( ms. empty ) & from_to( prod( D, P ), P, ms. ins );
 
-def gen( ms : MultiSet ) ( D : Form( Obj ))( x : Obj ) : Form :=
-    forall{ P : Form( Obj ) }:
+def gen( ms : MultiSet ) ( D : Prop( Obj ))( x : Obj ) : Prop :=
+    forall{ P : Prop( Obj ) }:
       [ strict(P) ] ms. isclosed(D,P) -> P(x) ;
 
-def eq( ms : MultiSet, D : Form( Obj )) : Form :=
-   let{ empty : Obj := ms. empty,  
-        ins : Obj( Obj, Obj ) := ms. ins,
-        gen : Form( Obj )( Form( Obj )) := ms. gen } : 
-      forall{ d1, d2 : Obj, s : Obj } :
+def equations( ms : MultiSet; D : Prop( Obj )) : Prop :=
+   let{ empty : Obj := ms. empty;  
+        ins : Obj( Obj, Obj ) := ms. ins;
+        gen : Prop( Obj )( Prop( Obj )) := ms. gen } : 
+      forall{ d1, d2 : Obj; s : Obj } :
          [ D(d1) & D(d2) ] [ D. gen(s) ] 
          ins( d1, ins( d2, s )) == ins( d2, ins( d1, s )) ;
 
-def diff( ms : MultiSet, D : Form( Obj )) : Form := 
-    let{ empty : Obj := ms. empty,  
-        ins : Obj( Obj, Obj ) := ms. ins,
-        gen : Form( Obj )( Form( Obj )) := ms. gen } : 
-           ( forall{ d : Obj, s : Obj } : D(d) & D. gen(s) -> ins( d, s ) != empty ) &
-           ( forall{ d1, d2 : Obj, s1, s2 : Obj } : 
+def differences( ms : MultiSet; D : Prop( Obj )) : Prop := 
+    let{ empty : Obj := ms. empty;  
+         ins : Obj( Obj, Obj ) := ms. ins;
+         gen : Prop( Obj )( Prop( Obj )) := ms. gen } : 
+           ( forall{ d : Obj; s : Obj } : D(d) & D. gen(s) -> ins( d, s ) != empty ) &
+           ( forall{ d1, d2 : Obj; s1, s2 : Obj } : 
               D(d1) & D(d2) & D. gen(s1) & D. gen(s2) ->
                  ins( d1, s1 ) == ins( d2, s2 ) ->
                     ( d1 == d2 & s1 == s2 ) | 
                     exists{ ss : Obj } : < D. gen( ss ) >
                        ins( d2, ss ) == s1 & ins( d1, ss ) == s2 );
             
-def size( ms : MultiSet, D : Form( Obj ), nt : Nat ) : Form( Obj, Obj ) :=
+def size( ms : MultiSet; D : Prop( Obj ); nt : Nat ) : Prop( Obj, Obj ) :=
    minimal( prod( ms. gen(D), nt. gen ), 
-      lambda{ R : Form( Obj, Obj ) } :
+      lambda{ R : Prop( Obj, Obj ) } :
          forall{ s, n : Obj } :
             [ ms.gen(D,s) & nt. gen(n ) ]
                 R( s,n ) <->
@@ -43,9 +43,9 @@ def size( ms : MultiSet, D : Form( Obj ), nt : Nat ) : Form( Obj, Obj ) :=
                    s == ms. ins( d1, s1 ) & R( s1,n1 ) &
                    n == nt. succ( n1 )); 
                        
-def union( ms : MultiSet, D : Form( Obj )) : Form( Obj, Obj, Obj ) :=
+def union( ms : MultiSet; D : Prop( Obj )) : Prop( Obj, Obj, Obj ) :=
    minimal( prod( ms. gen(D), ms. gen(D), ms. gen(D)),
-      lambda{ R : Form( Obj, Obj, Obj ) } :
+      lambda{ R : Prop( Obj, Obj, Obj ) } :
          forall{ s1, s2, s3 : Obj } :
             [ ms. gen(D,s1) & ms. gen(D,s2) & ms. gen(D,s3 ) ]
                R( s1, s2, s3 ) <->

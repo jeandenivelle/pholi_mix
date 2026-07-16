@@ -1,27 +1,29 @@
 
+// Not sure if this file is any good at all.
+
 struct Tuples :=
    empty : Obj ;
    cons : Obj( Obj, Obj ) ; 
 end;
 
-axiom cons : forall{ tp : Tuples, x1, y1, x2, y2 : Obj } :
+axiom cons : forall{ tp : Tuples; x1, y1, x2, y2 : Obj } :
    tp. cons( x1, y1 ) == tp. cons( x2, y2 ) -> x1 == x2 & y1 == y2;
 
 // Replace by minimal:
 
-def isTuple( tp : Tuples ) ( t : Obj ) : Form :=
+def isTuple( tp : Tuples ) ( t : Obj ) : Prop :=
    ( t == tp. empty ) | 
    exists{ x, y : Obj } : t == tp. cons( x, y );
 
 struct Prog := 
-   state : Form( Obj ); 
-   delta : Form( Obj, Obj, Obj, Obj ); 
+   state : Prop( Obj ); 
+   delta : Prop( Obj, Obj, Obj, Obj ); 
       // State * Vars * State * Vars  
    initial : Obj ;
    final : Obj ;
 end;
 
-def good( p : Prog, tp : Tuples ) : Form :=
+def good( p : Prog; tp : Tuples ) : Prop :=
    strict( p. state ) & 
    stricton( prod( p. state, tp. isTuple, p. state, tp. isTuple ), p. delta ) & 
    p. state( p. initial ) &
@@ -32,9 +34,9 @@ eof
 // I need to check what can be specified? Can one specify
 // append?
 
-def computes( p : Prog, input : Obj, output : Obj ) : Form :=
+def computes( p : Prog, input : Obj, output : Obj ) : Prop :=
    minimal( prod( p. state, tp. isTuple ),
-      lambda{ Pred : Form( Obj, Obj ) } :
+      lambda{ Pred : Prop( Obj, Obj ) } :
              
                            
                    
@@ -46,7 +48,7 @@ thm justification : forall{ s1,s2: Nat,  x1,x2: Obj }:
                 x1 == s1. succ(y1) & x2 == s2. succ(y2);
 
 thm resolve : 
-   forall{ P,Q,R : Form( Obj ) }: 
+   forall{ P,Q,R : Prop( Obj ) }: 
       [ forall{ x : Obj }: #P(x) & #Q(x) & #R(x) ]
          ( forall{ x : Obj }: P(x) | Q(x) ) &
             ( forall{ y : Obj }: !P(y) | R(y) ) ->

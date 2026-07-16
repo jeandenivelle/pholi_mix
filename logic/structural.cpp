@@ -13,7 +13,7 @@ logic::checkformula( const beliefstate& blfs,
    fm = replace_debruijn( std::move( fm ));
    auto tp = checkandresolve( blfs, err, fm );
 
-   if( tp. has_value( ) && tp. value( ). sel( ) != type_form )
+   if( tp. has_value( ) && tp. value( ). sel( ) != type_prop )
    {
       errorstack::builder bld;
       bld << "Formula " << name << " does not have type Form. ";
@@ -71,7 +71,7 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
    // We check that certain identifiers are not used as
    // struct:
 
-   const static identifier F = identifier( ) + "Form";
+   const static identifier P = identifier( ) + "Prop";
    const static identifier O = identifier( ) + "Obj";
 
    for( const auto& blf : everything )
@@ -79,7 +79,7 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
       if( blf. sel( ) == bel_struct )
       {
          const auto& id = blf. ident( );
-         if( id == F || id == O )
+         if( id == P || id == O )
          {
             errorstack::builder bld;
             bld << "identifier cannot be used for a struct def: " << id;
@@ -410,12 +410,12 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors, type& tp )
       std::cout << "\n";
    }
 
-   const static identifier F = identifier( ) + "Form";
+   const static identifier P = identifier( ) + "Prop";
    const static identifier O = identifier( ) + "Obj";
  
    switch( tp. sel( ))
    {
-   case type_form:
+   case type_prop:
    case type_obj:
       return true;
  
@@ -430,9 +430,9 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors, type& tp )
             return true;
          }
 
-         if( id. id( ) == F )
+         if( id. id( ) == P )
          {
-            tp = type( type_form );
+            tp = type( type_prop );
             return true;
          }
  
@@ -604,7 +604,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
    case op_false:
    case op_error:
    case op_true:
-      return type( type_form );
+      return type( type_prop );
 
    case op_not:
    case op_prop:
@@ -618,7 +618,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             un. update_sub( sub );
          }
 
-         if( tp. has_value( ) && tp. value( ). sel( ) != type_form )
+         if( tp. has_value( ) && tp. value( ). sel( ) != type_prop )
          {
             auto err = errorheader( blfs, ctxt, t );
             err << "argument of logical operator has wrong type ";
@@ -626,7 +626,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             errors. push( std::move( err ));
          }
 
-         return type( type_form );
+         return type( type_prop );
       }
 
    case op_and:
@@ -653,7 +653,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             bin. update_sub2( sub2 );
          }
 
-         if( tp1. has_value( ) && tp1. value( ). sel( ) != type_form )
+         if( tp1. has_value( ) && tp1. value( ). sel( ) != type_prop )
          {
             auto err = errorheader( blfs, ctxt, t );
             err << "first argument of logical operator has wrong type ";
@@ -661,7 +661,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             errors. push( std::move( err ));
          }
 
-         if( tp2. has_value( ) && tp2. value( ). sel( ) != type_form )
+         if( tp2. has_value( ) && tp2. value( ). sel( ) != type_prop )
          {
             auto err = errorheader( blfs, ctxt, t );
             err << "second argument of logical operator has wrong type ";
@@ -669,7 +669,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             errors. push( std::move( err ));
          }
 
-         return type( type_form ); 
+         return type( type_prop ); 
       }
 
    case op_equals:
@@ -707,7 +707,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             errors. push( std::move( err ));
          }
 
-         return type( type_form ); 
+         return type( type_prop ); 
       }
 
    case op_forall:
@@ -736,7 +736,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             auto err = errorheader( blfs, ctxt, t );  
             err << "In structural type of quantifier:";
             errors. addheader( errstart, std::move( err ));
-            return type( type_form ); 
+            return type( type_prop ); 
          }
 
          for( size_t i = 0; i != quant. size( ); ++ i )
@@ -756,7 +756,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
          // complain:
 
          if( bodytype. has_value( ) &&
-             bodytype. value( ). sel( ) != type_form )
+             bodytype. value( ). sel( ) != type_prop )
          {
             auto err = errorheader( blfs, ctxt, t );
             err << "body of quantifier does have type Form. Instead it is: ";
@@ -766,7 +766,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
 
          // Whatever happened, the result is always form:
 
-         return type_form; 
+         return type_prop; 
       }
 
    case op_let:

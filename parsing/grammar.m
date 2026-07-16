@@ -119,7 +119,7 @@ File =>
        { 
           tm = abstract( abstr, std::move(tm) ); 
           tp = abstract( abstr, std::move(tp) );
-          blfs. append( logic::belief( logic::bel_def, id, tm, tp )); 
+          blfs. append( logic::belief( logic::bel_def, id, tp, tm )); 
        }
     | File SYMBOL Identifier : id ParSeqSeq : abstr COLON 
       StructType : tp SEMICOLON 
@@ -180,7 +180,7 @@ LetDefSeq => LetDef : def
    res. push_back( std::move( def ));
    return res;
 }
-| LetDefSeq : defs COMMA LetDef : def  
+| LetDefSeq : defs SEMICOLON LetDef : def  
 {
    defs. push_back(  std::move( def ));
    return std::move( defs ); 
@@ -224,7 +224,7 @@ VarTypeSeq => VarsOneType : vot
 { 
    return std::move( vot ); 
 }
-| VarTypeSeq : seq COMMA VarsOneType : vot
+| VarTypeSeq : seq SEMICOLON VarsOneType : vot
 {
    for( auto& v : vot )
       seq. push_back( std::move(v) );

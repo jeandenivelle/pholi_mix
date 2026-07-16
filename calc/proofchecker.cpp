@@ -79,7 +79,7 @@ void calc::proofchecker::setgoal( logic::exact fname )
    case logic::bel_thm:
       {
          define( "goal", blf. view_form( ). fm( ),
-                         logic::type( logic::type_form ));
+                         logic::type( logic::type_prop ));
          break;
       }
 
@@ -95,7 +95,7 @@ calc::proofchecker::cut( const label& lab, logic::term fm )
    if( !tp. has_value( ))
       return { }; 
    
-   if( tp. value( ). sel( ) != logic::type_form )
+   if( tp. value( ). sel( ) != logic::type_prop )
    {
       errorstack::builder bld;
       auto prt = pretty_printer( bld, blfs ); 
@@ -787,7 +787,7 @@ calc::proofchecker::fake( logic::term trmp, label name )
    if( !tp. has_value( ))
       return { } ;  // Error is already created by checktype. 
 
-   if( tp. value( ). sel( ) != logic::type_form )
+   if( tp. value( ). sel( ) != logic::type_prop )
    {
       errorstack::builder bld;
       auto prt = pretty_printer( bld, blfs, seq. ctxt );

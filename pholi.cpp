@@ -135,7 +135,7 @@ int main( int argc, char* argv[] )
 
    // tests::truthtables( );
 
-   tests::smallproofs( blfs, err );
+   // tests::smallproofs( blfs, err );
    tests::bigproof( blfs, err );
 
    std::cout << err << "\n";

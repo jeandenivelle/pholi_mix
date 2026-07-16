@@ -24,39 +24,39 @@ void tests::add_settheory( logic::beliefstate& blfs )
    using namespace logic;
 
    type O = type( logic::type_obj );
-   type T = type( logic::type_form );
+   type P = type( logic::type_prop );
 
    type O2O = type( type_func, O, { O } );
-   type O2T = type( type_func, T, { O } );
+   type O2P = type( type_func, P, { O } );
 
    logic::structdef setdef;
    setdef. append( fielddecl( identifier( ) + "setlike", 
-                              type( type_func, T, { O2T } )));
+                              type( type_func, P, { O2P } )));
    setdef. append( fielddecl( identifier( ) + "mat", 
-                              type( type_func, O, { O2T } )));
+                              type( type_func, O, { O2P } )));
 
    blfs. append( belief( bel_struct, identifier( ) + "Settheory", setdef ));
 
-   auto typed = forall( {{ "P", O2T }}, 
+   auto typed = forall( {{ "P", O2P }}, 
       implies( apply( "strict"_unchecked, { 0_db } ), 
          prop( apply( "setlike"_unchecked, { 1_db, 0_db } )) ) );
 
    auto empty = 
-      forall( {{ "P", O2T }},
+      forall( {{ "P", O2P }},
          lazy_implies( apply( "strict"_unchecked, { 0_db } ),
                implies( 
                   forall( {{ "x", O }}, ! apply( 1_db, { 0_db } )),
                   apply( "setlike"_unchecked, { 1_db, 0_db } ))) );
 
    auto singleton =
-      forall( {{ "P", O2T }},
+      forall( {{ "P", O2P }},
          lazy_implies( apply( "strict"_unchecked, { 0_db } ),
             implies( exists( {{ "x", O }}, forall( {{ "x1", O }},
                 implies( apply( 2_db, { 0_db } ), 0_db == 1_db ))),
                 apply( "setlike"_unchecked, { 1_db, 0_db } ) )));
         
    auto setunion =
-      forall( {{ "P1", O2T }, { "P2", O2T }, { "Q", O2T }},
+      forall( {{ "P1", O2P }, { "P2", O2P }, { "Q", O2P }},
          lazy_implies(
             apply( "strict"_unchecked, { 2_db } ) &&
             apply( "strict"_unchecked, { 1_db } ) &&
@@ -95,9 +95,9 @@ void tests::add_settheory( logic::beliefstate& blfs )
       repl = lazy_implies( f1, repl );
       repl = lazy_implies( apply( "strict"_unchecked, { 2_db } ), repl );
 
-      repl = forall( {{ "Q", O2T }}, repl );
-      repl = forall( {{ "F", type( type_func, O2T, { O } ) }}, repl );
-      repl = forall( {{ "P", O2T }}, repl );
+      repl = forall( {{ "Q", O2P }}, repl );
+      repl = forall( {{ "F", type( type_func, O2P, { O } ) }}, repl );
+      repl = forall( {{ "P", O2P }}, repl );
    }
 
    auto ext = apply( "mat"_unchecked, { 2_db, 1_db } ) == 
@@ -110,7 +110,7 @@ void tests::add_settheory( logic::beliefstate& blfs )
       ext = implies( eq, ext );
       ext = lazy_implies( apply( "strict"_unchecked, { 1_db } ) &&
                           apply( "strict"_unchecked, { 0_db } ), ext );
-      ext = forall( {{ "P1", O2T }, { "P2", O2T }}, ext );
+      ext = forall( {{ "P1", O2P }, { "P2", O2P }}, ext );
    }
 
    auto bij =  forall( {{ "x", O }}, equiv( apply( 2_db, { 0_db } ),
@@ -121,9 +121,9 @@ void tests::add_settheory( logic::beliefstate& blfs )
                   apply( "setlike"_unchecked, { 2_db, 0_db } ), bij );
    bij = lazy_implies( apply( "strict"_unchecked, { 1_db } ) &&
                        apply( "strict"_unchecked, { 0_db } ), bij ); 
-   bij = forall( {{ "P1", O2T }, { "P2", O2T }}, bij ); 
+   bij = forall( {{ "P1", O2P }, { "P2", O2P }}, bij ); 
 
-   auto powset = exists( {{ "P1", O2T }}, apply( "strict"_unchecked, { 0_db } ) &&
+   auto powset = exists( {{ "P1", O2P }}, apply( "strict"_unchecked, { 0_db } ) &&
       forall( {{ "x", O }}, implies( apply( 1_db, { 0_db } ), apply( 3_db, { 0_db } )) &&
           2_db == apply( "mat"_unchecked, { 5_db, 1_db } )));
 
@@ -133,15 +133,14 @@ void tests::add_settheory( logic::beliefstate& blfs )
    powset = implies( apply( "setlike"_unchecked, { 2_db, 1_db } ) &&
                      apply( "setlike"_unchecked, { 2_db, 0_db } ), powset );
    powset = lazy_implies( apply( "strict"_unchecked, { 1_db } ), powset );
-   powset = forall( {{ "P", O2T }, { "Q", O2T }}, powset );
+   powset = forall( {{ "P", O2P }, { "Q", O2P }}, powset );
 
    auto settheory = lambda( {{ "t", type( type_unchecked, identifier( ) + "Settheory" ) }}, 
       lazy_and( typed, empty && singleton && setunion && repl && ext && bij && powset ));
 
-   blfs. append( belief( bel_def, identifier( ) + "settheory", settheory, 
-                                     type( type_func, T, 
-                                     { type( type_unchecked, 
-                                             identifier( ) + "Settheory" ) } ) ));
+   blfs. append( belief( bel_def, identifier( ) + "settheory", 
+            type( type_func, P, { type( type_unchecked, 
+                        identifier( ) + "Settheory" ) } ), settheory ));
 }
 
 
@@ -150,7 +149,7 @@ void tests::flatten( )
    using namespace logic;
 
    auto O = type( type_obj );
-   auto T = type( type_form );
+   auto P = type( type_prop );
 
    {
       auto fm = ( "aaaa"_unchecked && "bbbb"_unchecked )
@@ -169,15 +168,15 @@ void tests::flatten( )
       return; 
    }
 
-   auto N2T = type( type_func, T, { } );
+   auto N2P = type( type_func, P, { } );
 
-   auto O2T = type( type_func, T, { O } );
+   auto O2P = type( type_func, P, { O } );
    auto O2O = type( type_func, O, { O } );
-   auto OO2T = type( type_func, T, { O, O } );
-   auto OOO2T = type( type_func, T, { O, type( type_struct, exact(44)), O } );
+   auto OO2P = type( type_func, P, { O, O } );
+   auto OOO2P = type( type_func, P, { O, type( type_struct, exact(44)), O } );
 
    term tm =  lazy_implies( "left"_unchecked, "right"_unchecked );
-   tm = term( op_exists, tm, { { "x", O }, { "y", T }} );
+   tm = term( op_exists, tm, { { "x", O }, { "y", P }} );
 
    auto cnf_pos = calc::conjunction( { calc::forall( prop( tm )) } ); 
    auto dnf_pos = calc::disjunction( { calc::exists( ! ! prop( tm )) } );
@@ -213,19 +212,19 @@ void tests::pretty( const logic::beliefstate& blfs )
    using namespace logic;
 
    auto O = type( type_obj );
-   auto T = type( type_form );
+   auto P = type( type_prop );
 
-   auto N2T = type( type_func, T, { } );
+   auto N2P = type( type_func, P, { } );
 
-   auto O2T = type( type_func, T, { O } );
+   auto O2P = type( type_func, P, { O } );
    auto O2O = type( type_func, O, { O } );
-   auto OO2T = type( type_func, T, { O, O } );
-   auto OOO2T = type( type_func, T, { O, type( type_struct, exact(44)), O } );
+   auto OO2P = type( type_func, P, { O, O } );
+   auto OOO2P = type( type_func, P, { O, type( type_struct, exact(44)), O } );
  
    term tm = ( 0_db && 1_db ) || ( 0_db != 1_db );
    tm = term( op_meta_implies, "xxxx"_unchecked, 4_db || 5_db ) && term( op_exact, exact(23) );
 
-   tm = lambda( {{ "x1", OOO2T }, { "x2", O2T }, { "y1", O }, { "s", O }}, tm );
+   tm = lambda( {{ "x1", OOO2P }, { "x2", O2P }, { "y1", O }, { "s", O }}, tm );
    tm = forall( {{ "yy", O2O }, { "zz", O }}, tm );
    tm = apply( tm, { term( op_exact, exact(21)), term( op_false ) } );
 
@@ -244,10 +243,10 @@ void tests::saturate( )
    using namespace logic;
 
    type O = type( logic::type_obj );
-   type T = type( logic::type_form );
-   type O2T = type( type_func, T, { O } );
+   type P = type( logic::type_prop );
+   type O2P = type( type_func, P, { O } );
    type O2O = type( type_func, O, { O } );
-   type OT2O = type( type_func, O, { O, T } );
+   type OP2O = type( type_func, O, { O, P } );
 
    calc::saturation sat;
 
@@ -289,19 +288,19 @@ void tests::cmp( )
    std::cout << ( ( 1_db == 3_db ) <=> ( 1_db == 3_db ) ) << "\n";
 
    type O = type( logic::type_obj );
-   type T = type( logic::type_form );
-   type O2T = type( type_func, T, { O } );
+   type P = type( logic::type_prop );
+   type O2P = type( type_func, P, { O } );
    type O2O = type( type_func, O, { O } );
-   type OT2O = type( type_func, O, { O, T } );
+   type OP2O = type( type_func, O, { O, P } );
 
    type Seq = type( type_unchecked, identifier( ) + "Seq" );
    type X = type( type_unchecked, identifier( ) + "X" );
 
    auto tm1 = "aba"_unchecked || 3_db;
-   tm1 = term( op_lambda, tm1, { { "x", T }, { "y", Seq }, { "z", O }} );
+   tm1 = term( op_lambda, tm1, { { "x", P }, { "y", Seq }, { "z", O }} );
 
    auto tm2 = "aba"_unchecked || 3_db;
-   tm2 = term( op_lambda, tm2, { { "x", T }, { "y", Seq }, { "t", O }} );
+   tm2 = term( op_lambda, tm2, { { "x", P }, { "y", Seq }, { "t", O }} );
  
    tm1 = apply( tm2, { 2_db, "bba"_unchecked, 1_db } );
    tm2 = apply( tm1, { 2_db, "bba"_unchecked, term( op_exact, exact(12)) } );
@@ -338,16 +337,16 @@ void tests::betareduction( logic::beliefstate& blfs, errorstack& err )
    using namespace logic;
 
    type O = type( type_obj );
-   type T = type( type_form );
+   type P = type( type_prop );
 
    type O2O = type( type_func, O, { O } );
-   type O2T = type( type_func, T, { O } );
+   type O2P = type( type_func, P, { O } );
    
    logic::betareduction beta;
    std::cout << beta << "\n";
 
    term body = term( op_apply, "func"_unchecked, { 0_db, 1_db, 2_db, 3_db } );
-   body = term( op_forall, body, {{ "haha", T }} ); 
+   body = term( op_forall, body, {{ "haha", P }} ); 
    term lambda = term( op_lambda, body, { { "x", O }, { "y", O } } );
 
    auto first = term( op_apply, "first"_unchecked, { 1_db } ); 
@@ -370,7 +369,7 @@ void tests::betareduction( logic::beliefstate& blfs, errorstack& err )
 void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 {
    auto O = logic::type( logic::type_obj );
-   auto F = logic::type( logic::type_form );
+   auto P = logic::type( logic::type_prop );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
    auto Net = logic::type( logic::type_unchecked, identifier( ) + "Net" );
       // So that we can test generation of error messages.
@@ -392,7 +391,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       auto seq = sequent( );
 
       nr = seq. ctxt_def( "goal", blfs. at( f. front( )). view_form( ). fm( ),
-                          logic::type( logic::type_form ));
+                          logic::type( logic::type_prop ));
       seq. push_back( "start" );
  
       auto prf = chain( 
@@ -695,7 +694,7 @@ void
 tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 {
    auto O = logic::type( logic::type_obj );
-   auto T = logic::type( logic::type_form );
+   auto P = logic::type( logic::type_prop );
    auto Nat = logic::type( logic::type_unchecked, identifier( ) + "Nat" );
 
    using namespace calc;
@@ -1067,34 +1066,34 @@ void tests::natded( )
    using namespace logic;
 
    auto O = type( type_obj );
-   auto T = type( type_form );
+   auto P = type( type_prop );
 
-   auto O2T = type( type_func, T, { O } );
+   auto O2P = type( type_func, P, { O } );
    auto O2O = type( type_func, O, { O } );
 
-   auto OO2T = type( type_func, T, { O, O } );
-   auto OOO2T = type( type_func, T, { O, O, O } );
-   auto tp = type( type_func, T, {O} );
+   auto OO2P = type( type_func, P, { O, O } );
+   auto OOO2P = type( type_func, P, { O, O, O } );
+   auto tp = type( type_func, P, {O} );
 
    std::vector< std::pair< logic::term, logic::term >> check;
 
    check. push_back( { logic::term( logic::op_true ),
-                       logic::forall( {{ "P", T }}, lazy_implies( prop( 0_db ), implies( 0_db, 0_db ) )) } );
+                       logic::forall( {{ "P", P }}, lazy_implies( prop( 0_db ), implies( 0_db, 0_db ) )) } );
 
    check. push_back( { logic::term( logic::op_false ),
-                       logic::forall( {{ "P", T }}, lazy_implies( prop( 0_db ), 0_db )) } );
+                       logic::forall( {{ "P", P }}, lazy_implies( prop( 0_db ), 0_db )) } );
 
    check. push_back( { ! 0_db, implies( 0_db, logic::term( logic::op_false )) } );
    
-   check. push_back( { 1_db && 0_db, logic::forall( {{ "R", T }}, 
+   check. push_back( { 1_db && 0_db, logic::forall( {{ "R", P }}, 
                    lazy_implies( prop( 0_db ),
                       implies( implies( 2_db, implies( 1_db, 0_db )), 0_db ))) } );
 
-   check. push_back( { lazy_and( 1_db, 0_db ), logic::forall( {{ "R", T }},
+   check. push_back( { lazy_and( 1_db, 0_db ), logic::forall( {{ "R", P }},
                    lazy_implies( prop( 0_db ),
                       implies( lazy_implies( 2_db, implies( 1_db, 0_db )), 0_db ))) } );
 
-   check. push_back( { 1_db || 0_db, logic::forall( {{ "R", T }},
+   check. push_back( { 1_db || 0_db, logic::forall( {{ "R", P }},
                   lazy_implies( prop( 0_db ),
                      implies( implies( 2_db, 0_db ),
                         implies( implies( 1_db, 0_db ), 0_db )))) } );
@@ -1104,7 +1103,7 @@ void tests::natded( )
  
    for( const auto& p : check )
    {
-      auto fm = logic::forall( {{ "P", T }, { "Q", T }}, p. first == p. second );
+      auto fm = logic::forall( {{ "P", P }, { "Q", P }}, p. first == p. second );
       natded::interpretation intp;
       std::cout << eval( intp, fm ) << "\n"; 
    }

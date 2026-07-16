@@ -6,7 +6,7 @@ logic::weight_type logic::weight( const type& tp )
 {
    switch( tp. sel( )) 
    {
-   case type_form:
+   case type_prop:
    case type_obj:
       return 1;
    case type_struct:
@@ -78,7 +78,7 @@ logic::operator <=> ( const type& tp1, const type& tp2 )
 
    switch( tp1. sel()) 
    {
-   case type_form:
+   case type_prop:
    case type_obj:
       return std::strong_ordering::equal;
 

@@ -99,10 +99,10 @@ namespace natded
       {
          if( pos < q. size( ))
          {
-            if( q. var( pos ). tp. sel( ) != logic::type_form )
+            if( q. var( pos ). tp. sel( ) != logic::type_prop )
             {
                std::cout << q. var( pos ). tp << "\n";
-               throw std::logic_error( "eval : type is not F" );
+               throw std::logic_error( "eval : type is not P" );
             }
 
             size_t ss = intp. size( ); 
