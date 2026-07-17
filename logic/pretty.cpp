@@ -30,9 +30,6 @@ logic::pretty::getattractions( logic::selector sel )
    case op_equiv:
       return { 110, 110 };
 
-   case op_meta_implies:
-      return { 101, 100 }; 
-
    case op_lazy_and:
    case op_lazy_implies:
    case op_forall:
@@ -180,7 +177,7 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
          ++ e;
 
       if(v)
-         out << ", ";
+         out << "; ";
       else
          out << " ";
 
@@ -275,7 +272,6 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
    case op_or:
    case op_implies:
    case op_equiv:
-   case op_meta_implies:
    case op_equals:
    {
       auto bin = t. view_binary( );
@@ -294,7 +290,6 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
       case op_or:            out << " | "; break;
       case op_implies:       out << " -> "; break;
       case op_equiv:         out << " <-> "; break;
-      case op_meta_implies:  out << " -> "; break;
       case op_equals:        out << " == "; break;
 
       default: out << " ??? "; break;
@@ -350,15 +345,14 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
          par. opening( out );
 
          if( t. sel( ) == op_forall )
-            out << "FORALL";
+            out << "forall{";
          if( t. sel( ) == op_exists )
-            out << "EXISTS";
-         out << "(";
+            out << "exists{";
 
          auto qq = t. view_quant( );
          print( out, blfs, names,
                 [&qq]( size_t i ) { return qq. var(i); }, qq. size( ));
-         out << " ) : ";
+         out << " }: ";
 
          print(out, blfs, names, qq. body(), between( ourattr, env ));
          par. closing( out );
@@ -405,12 +399,12 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
 
          par.opening( out );
 
-         out << "LAMBDA("; 
+         out << "lambda{"; 
 
          auto lamb = t. view_lambda( );
          print( out, blfs, names,
                 [&lamb]( size_t i ) { return lamb. var(i); }, lamb. size( ));
-         out << " ) : ";
+         out << " }: ";
 
          print(out, blfs, names, lamb.body(), between( ourattr, env ));
          par. closing( out );
@@ -429,7 +423,7 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
 
          par. opening( out );
 
-         out << "let";
+         out << "let{";
 
          size_t nr = 0;
 
@@ -441,7 +435,7 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
             auto let = p -> view_let( );  
 
             if( nr ) 
-               out << ", ";
+               out << "; ";
             else
                out << " ";
 
@@ -455,11 +449,11 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
             out << names. extend( let. var(). pref ); 
             names. restore( names. size( ) - 1 );
 
+            out << " : "; 
+            print( out, blfs, let. var(). tp, {0,0} ); 
+
             out << " := ";
             print( out, blfs, names, let. val( ), {0,0} );
-
-            out << ": "; 
-            print( out, blfs, let. var(). tp, {0,0} ); 
 
             names. extend( let. var(). pref );
   
@@ -467,7 +461,7 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
             ++ nr;
          }
 
-         out << " in ";
+         out << " }: ";
          print( out, blfs, names, *p, between( ourattr, env )); 
          par. closing( out );
          names. restore( ss );
@@ -584,8 +578,7 @@ logic::pretty::print( std::ostream& out,
          auto form = bel. view_form( );
          context ctxt;
          pretty::print( out, blfs, ctxt, form. fm( ));
-         // pretty::print( out, names, thm. proof( ) );
-         out << "\n";
+         out << "   " << form. status( ) << "\n";
          return; 
       }
 

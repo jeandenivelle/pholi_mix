@@ -230,13 +230,6 @@ natded::eval( interpretation& intp, const logic::term& fm )
                               eval( intp, bin. sub2( )) );
       }
 
-   case logic::op_meta_implies:
-      {
-         auto bin = fm. view_binary( );
-         return meta_implies( eval( intp, bin. sub1( )),
-                              eval( intp, bin. sub2( )) );
-      }
-
    case logic::op_equals: 
       {
          // Equality is not type correct, but useful to have:

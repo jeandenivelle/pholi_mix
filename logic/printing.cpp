@@ -93,7 +93,6 @@ void logic::term::print( std::ostream& out ) const
    case op_equiv:
    case op_lazy_and:
    case op_lazy_implies:
-   case op_meta_implies:
    case op_equals:
       {
          auto p = view_binary( );
@@ -219,6 +218,7 @@ void logic::belief::print( std::ostream& out ) const
             out << f. tp(i);
          }
          out << " ) : " << view_form( ). fm( );
+         out << "   " << view_form( ). status( ); 
       }
       return;
 

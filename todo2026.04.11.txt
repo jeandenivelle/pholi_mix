@@ -69,14 +69,14 @@ You lose your way in sequent proofs.
 the rule exists x. p(x) | q(x) --> exists x. p(x) | exists x. q(x) is frequently not helpful.
 As a consequence, one must introduce variables more than once.
 
-The flattening introduces extra steps. In principle, these can be easily removed.
-
+--------------------------------------------------------------
 14th of July:
-   Replace 'Form' by 'Prop' ?
+   Renamed 'Form' into 'Prop'. I think that initially, it was
+   called 'Form' because there existed a 'prop' iterator, which
+   now is called '#'.
 
-   Allow unique witnesses of Structural Types? example/inhabit? 
-   (For example Pair, or Natural Number)
+   Names in the beliefstate should contain source information.
 
-   Names in the beliefstate should store the file and the line number?
+   
 
 

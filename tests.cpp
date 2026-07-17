@@ -222,7 +222,7 @@ void tests::pretty( const logic::beliefstate& blfs )
    auto OOO2P = type( type_func, P, { O, type( type_struct, exact(44)), O } );
  
    term tm = ( 0_db && 1_db ) || ( 0_db != 1_db );
-   tm = term( op_meta_implies, "xxxx"_unchecked, 4_db || 5_db ) && term( op_exact, exact(23) );
+   tm = term( op_implies, "xxxx"_unchecked, 4_db || 5_db ) && term( op_exact, exact(23) );
 
    tm = lambda( {{ "x1", OOO2P }, { "x2", O2P }, { "y1", O }, { "s", O }}, tm );
    tm = forall( {{ "yy", O2O }, { "zz", O }}, tm );

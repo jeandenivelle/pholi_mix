@@ -35,7 +35,7 @@
 %option nullary { op_false, op_error, op_true } =>
 %option unary { op_not, op_prop } => sub : term  
 %option binary { op_and, op_or, op_implies, op_equiv, 
-                 op_lazy_and, op_lazy_implies, op_meta_implies, 
+                 op_lazy_and, op_lazy_implies, 
                  op_equals } => sub1: term, sub2: term 
 %option quant { op_forall, op_exists }
       => body : term, [ var : vartype ]
@@ -104,10 +104,9 @@
 %option def { bel_def } => tp : type, val : term 
 
 %option form { bel_axiom, bel_thm } => 
-   fm : term, proven : int, dependencies : exact::unordered_set, [ tp : type ] 
-      // tp is intended for overload resolution. If proven does not
-      // have the magic value, then prem may be incomplete. 
-      // Contrary to the original approach, we are not storing the proof.
+   fm : term, proven : int, status : proofstatus, [ tp : type ] 
+      // tp is intended for overload resolution.
+      // Contrary to earlier versions, we are not trying to store the proof.
 
 %option field { bel_fld } => sdef : exact, offset : size_t 
    // The meanings are:
@@ -121,6 +120,7 @@
 %h_incl {
    #include "tvm/includes.h"
    #include "structdef.h" 
+   #include "proofstatus.h"
    #include "term.h"
 }
 

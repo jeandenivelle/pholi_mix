@@ -34,6 +34,7 @@
    uniquenamestack.cpp
    pretty.cpp
    printing.cpp
+   proofstatus.cpp
 
 %dir Source/calc
 %sources
@@ -51,7 +52,7 @@
    saturation.cpp
    truthset.cpp
    structural.cpp
-   
+    
 %dir Source/labeled
 %sources
    truthval.cpp

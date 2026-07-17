@@ -1,5 +1,6 @@
 
-// Not sure if this file is any good at all.
+// Not sure if this file is good for anything at all.
+// Computation is a very mysterious thing.
 
 struct Tuples :=
    empty : Obj ;
@@ -23,6 +24,8 @@ struct Prog :=
    final : Obj ;
 end;
 
+/*
+
 def good( p : Prog; tp : Tuples ) : Prop :=
    strict( p. state ) & 
    stricton( prod( p. state, tp. isTuple, p. state, tp. isTuple ), p. delta ) & 
@@ -30,17 +33,18 @@ def good( p : Prog; tp : Tuples ) : Prop :=
    p. state( p. final );
 
 eof
+*/
 
 // I need to check what can be specified? Can one specify
 // append?
 
-def computes( p : Prog, input : Obj, output : Obj ) : Prop :=
+/*
+def computes( p : Prog; input : Obj; output : Obj ) : Prop :=
    minimal( prod( p. state, tp. isTuple ),
       lambda{ Pred : Prop( Obj, Obj ) } :
-             
-                           
-                   
-thm justification : forall{ s1,s2: Nat,  x1,x2: Obj }: 
+*/        
+
+thm justification : forall{ s1,s2: Nat;  x1,x2: Obj }: 
    [ s1. gen(x1) & s2.gen(x2) ] minhomrel( s1, s2, x1, x2 ) -> 
          x1 == s1.0 & x2 == s2.0 | 
          exists{ y1,y2: Obj }: < s1. gen(y1) & s2. gen(y2) >

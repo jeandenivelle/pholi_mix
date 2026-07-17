@@ -1,7 +1,7 @@
 
 struct Nat := 
-   0 : Obj;
-   succ : Obj( Obj );
+   0 : Obj ;
+   succ : Obj( Obj ) ;
 end;
 
 def isclosed( s: Nat ) ( P: Prop(Obj) ) : Prop :=
@@ -15,22 +15,37 @@ def gen( s: Nat ) : Prop( Obj ) :=
 
 thm gen_prop : forall{ s : Nat; x : Obj }: # s. gen(x) ; 
 
-thm gen_0 :    forall{ s : Nat }: s. gen( s. 0 ) ; 
-thm gen_succ : forall{ s : Nat; x : Obj }: s. gen(x) -> s. gen( s. succ(x)) ;
+thm gen_0 :    forall{ s : Nat }: 
+   from_to( s. gen, s. 0 ); 
+thm gen_succ : forall{ s : Nat; x : Obj }: 
+   from_to( s.gen, s.gen, s.succ );
+
+// gen contains a quantifier over all strict predicates.
+// In general, we want to use predicates on gen only:
 
 thm induction : forall{ s : Nat; P : Prop( Obj ) }: 
    [ stricton( s. gen, P ) ] P( s.0 ) -> 
       ( forall{ x: Obj }: [ s. gen(x) ] P(x) -> P( s. succ(x)) ) -> 
          forall{ x: Obj }: [ s. gen(x) ] P(x);
 
-def equations( s: Nat ) : Prop := true;
+def equations( n: Nat ) : Prop := true;
    // Natural numbers are freely generated, hence there are no equations.
 
-def differences( s : Nat ) : Prop :=
-   let{ 0 : Obj := s. 0; succ : Obj( Obj ) := s. succ } :
-      ( forall{ x : Obj } : succ(x) != 0 ) &
-      ( forall{ x1, x2 : Obj } : succ(x1) == succ(x2) -> x1 == x2 );
+// But we have a lot of differences.
+// (These are the Peano axioms): 
 
+def differences( n : Nat ) : Prop :=
+   let{ 0 : Obj := n. 0; 
+        succ : Obj( Obj ) := n. succ;
+        gen : Prop( Obj ) := n. gen 
+   } :
+      ( forall{ x : Obj } : gen(x) -> succ(x) != 0 ) &
+      ( forall{ x1, x2 : Obj } : 
+           gen(x1) & gen(x2) -> succ(x1) == succ(x2) -> x1 == x2 );
+
+def axioms( n : Nat ) : Prop := equations(n) & differences(n); 
+
+ 
 def homrel( s1,s2: Nat )( R: Prop(Obj,Obj) ) : Prop :=
    R( s1.0, s2.0 ) & forall{ x1,x2: Obj }: [ s1. gen(x1) & s2. gen(x2) ] 
        R( x1, x2 ) -> R( s1. succ(x1), s2. succ(x2) ); 

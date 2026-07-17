@@ -320,7 +320,6 @@ logic::replace_debruijn( indexedstack< std::string, size_t > & db, term t )
    case op_equiv:
    case op_lazy_and:
    case op_lazy_implies: 
-   case op_meta_implies:
    case op_equals:
       {
          auto bin = t. view_binary( );
@@ -635,7 +634,6 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
    case op_equiv:
    case op_lazy_and:
    case op_lazy_implies:
-   case op_meta_implies:
       {
          auto bin = t. view_binary( );
 

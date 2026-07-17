@@ -36,9 +36,6 @@ namespace logic
    inline term lazy_implies( const term& t1, const term& t2 )
       { return term( op_lazy_implies, t1, t2 ); }
 
-   inline term meta_implies( const term& t1, const term& t2 )
-      { return term( op_meta_implies, t1, t2 ); }
-
    inline term operator == ( const term& t1, const term& t2 )
       { return term( op_equals, t1, t2 ); }
 

@@ -54,7 +54,6 @@ def with( P1,P2 : Prop( Obj, Obj ))( x1, x2 : Obj ) : Prop :=
 def with( P1,P2 : Prop( Obj, Obj, Obj ))( x1, x2, x3 : Obj ) : Prop :=
       < P1(x1,x2,x3) > P2(x1,x2,x3);
 
-
 def or( P1,P2 : Prop ) : Prop :=
       P1 | P2;
 def or( P1,P2 : Prop( Obj ))( x1 : Obj ) : Prop :=
@@ -122,6 +121,12 @@ def functional( P : Prop( Obj, Obj ); Q : Prop( Obj, Obj, Obj )) : Prop :=
 symbol find : Obj( Prop(Obj) ); 
 axiom find : 
    forall{ Q : Prop( Obj ) } : [ strict(Q) ] functional(Q) -> Q( find(Q)); 
+
+
+// Domain and range of functions:
+
+def from_to( Q : Prop( Obj ); c : Obj ) : Prop := 
+   Q(c);
 
 def from_to( P : Prop( Obj ); Q : Prop( Obj, Obj ))
        ( f : Obj( Obj )) : Prop :=

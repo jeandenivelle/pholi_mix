@@ -159,7 +159,6 @@ logic::operator <=> ( const term& t1, const term& t2 )
    case op_equiv:
    case op_lazy_and:
    case op_lazy_implies:
-   case op_meta_implies:
       {
          auto bin1 = t1. view_binary( );
          auto bin2 = t2. view_binary( );
@@ -327,7 +326,6 @@ logic::equal( const term& t1, size_t lift1,
    case op_equiv:
    case op_lazy_and:
    case op_lazy_implies:
-   case op_meta_implies:
       {
          auto bin1 = t1. view_binary( );
          auto bin2 = t2. view_binary( );

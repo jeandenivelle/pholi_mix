@@ -48,7 +48,6 @@ namespace logic
       case op_equiv:
       case op_lazy_and:
       case op_lazy_implies:
-      case op_meta_implies:
       case op_equals:
          {
             auto bin = t. view_binary( );
