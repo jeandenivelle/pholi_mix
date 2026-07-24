@@ -1,0 +1,10 @@
+
+%seqwiden kt::minisfixedpoint 
+   Prop( Obj, Obj ); Prop( Obj, Obj )( Prop( Obj, Obj )) )
+%begin
+   cut goal;
+   branch 
+
+%end
+
+

@@ -1,4 +1,6 @@
 
+// The standard definitions:
+
 def strict( P : Prop ) : Prop := # P ;
 def strict( P : Prop( Obj )) : Prop := 
    forall{ x1 : Obj } : # P( x1 );
@@ -154,19 +156,18 @@ thm find2 :
               QQQ : Prop( Obj, Obj ) := Q }: 
                  Q( x1, find( partial( QQQ, x1 ))) ;
 
-def minimal( P : Prop( Obj ); C : Prop( Prop( Obj )) ) ( x1 : Obj ) : Prop :=
-   forall{ R : Prop( Obj ) }: [ stricton(P,R) ] C(R) -> R(x1);
+def minimal( D : Prop( Obj ); C : Prop( Prop( Obj )) ) ( x1 : Obj ) : Prop :=
+   forall{ R : Prop( Obj ) }: [ stricton(D,R) ] C(R) -> R(x1);
 
-def minimal( P : Prop( Obj, Obj ); C : Prop( Prop( Obj, Obj )) )
+def minimal( D : Prop( Obj, Obj ); C : Prop( Prop( Obj, Obj )) )
            ( x1, x2 : Obj ) : Prop :=
    forall{ R : Prop( Obj, Obj ) }:
-      [ stricton( P, R ) ] C(R) -> R(x1,x2);
+      [ stricton( D, R ) ] C(R) -> R(x1,x2);
 
-def minimal( P : Prop( Obj, Obj, Obj ); C : Prop( Prop( Obj, Obj, Obj )) )
+def minimal( D : Prop( Obj, Obj, Obj ); C : Prop( Prop( Obj, Obj, Obj )) )
            ( x1, x2, x3 : Obj ) : Prop :=
    forall{ R : Prop( Obj, Obj, Obj ) }:
-      [ stricton( P, R ) ] C(R) -> R(x1,x2,x3); 
-
+      [ stricton( D, R ) ] C(R) -> R(x1,x2,x3); 
 
 eof
 

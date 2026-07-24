@@ -1,7 +1,8 @@
-%startsymbol File EOF
 
-%symbol File
-%symbol{} Statement Expr
+%startsymbol BeliefSeq EOF
+
+%symbol BeliefSeq
+%symbol{ } Statement Expr
 
 %symbol{ logic::term } Term DotTerm ApplTerm EqTerm
 %symbol{ logic::term } UnTermWith UnTermWithout
@@ -108,34 +109,34 @@
 //------------------------- file --------------------------------
 
 
-File => 
-    | File STRUCT Identifier : id ASSIGN 
+BeliefSeq => 
+    | BeliefSeq STRUCT Identifier : id ASSIGN 
       FieldDeclSeq : def END SEMICOLON
        { 
           blfs. append( logic::belief( logic::bel_struct, id, def ));
        }
-    | File DEF Identifier : id ParSeqSeq : abstr COLON StructType : tp 
+    | BeliefSeq DEF Identifier : id ParSeqSeq : abstr COLON StructType : tp 
       ASSIGN Term : tm SEMICOLON
        { 
           tm = abstract( abstr, std::move(tm) ); 
           tp = abstract( abstr, std::move(tp) );
           blfs. append( logic::belief( logic::bel_def, id, tp, tm )); 
        }
-    | File SYMBOL Identifier : id ParSeqSeq : abstr COLON 
+    | BeliefSeq SYMBOL Identifier : id ParSeqSeq : abstr COLON 
       StructType : tp SEMICOLON 
       {
          tp = abstract( abstr, std::move(tp) ); 
          blfs. append( logic::belief( logic::bel_symbol, id, tp ));
       }
-    | File AXIOM Identifier : id COLON Term : f SEMICOLON 
+    | BeliefSeq AXIOM Identifier : id COLON Term : f SEMICOLON 
        { 
           blfs. append( logic::belief( logic::bel_axiom, id, f, 0, { }, { } )); 
        } 
-    | File THM Identifier : id COLON Term : f SEMICOLON
+    | BeliefSeq THM Identifier : id COLON Term : f SEMICOLON
        { 
           blfs. append( logic::belief( logic::bel_thm, id, f, 0, { }, { } ));
        } 
-    | File _recover_ SEMICOLON
+    | BeliefSeq _recover_ SEMICOLON
        { std::cout << "recovered!!!\n"; } 
     ;
 
@@ -424,6 +425,7 @@ ArgSeq => ArgSeq : args COMMA Term : t
      return res;
    } 
 ;
+
 
 %end
  

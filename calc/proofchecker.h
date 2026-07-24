@@ -1,6 +1,6 @@
 
 // Written by Hans de Nivelle, May/June 2026.
-// This will become the trusted core.
+// This class will become the trusted core.
 
 #ifndef CALC_PROOFCHECKER_
 #define CALC_PROOFCHECKER_

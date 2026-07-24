@@ -28,11 +28,12 @@ thm induction : forall{ s : Nat; P : Prop( Obj ) }:
       ( forall{ x: Obj }: [ s. gen(x) ] P(x) -> P( s. succ(x)) ) -> 
          forall{ x: Obj }: [ s. gen(x) ] P(x);
 
+// Natural numbers are freely generated, hence there are no equations:
+
 def equations( n: Nat ) : Prop := true;
-   // Natural numbers are freely generated, hence there are no equations.
 
 // But we have a lot of differences.
-// (These are the Peano axioms): 
+// (These are in fact the Peano axioms): 
 
 def differences( n : Nat ) : Prop :=
    let{ 0 : Obj := n. 0; 
@@ -61,7 +62,7 @@ def minhomrel( s1,s2: Nat ) : Prop( Obj, Obj ) :=
 
 thm minhomrel_prop :
    forall{ s1, s2 : Nat; x1, x2 : Obj }:
-      [ s1. gen(x1) & s2. gen(x2) ]  # minhomrel( s1, s2, x1, x2 );
+      [ s1. gen(x1) & s2. gen(x2) ] # minhomrel( s1, s2, x1, x2 );
 
 thm minhomrel_zero :
    forall{ s1, s2 : Nat }: minhomrel( s1, s2, s1. 0, s2. 0 );
@@ -78,4 +79,4 @@ thm justification : forall{ s1,s2: Nat; x1,x2: Obj }:
              minhomrel( s1, s2, y1, y2 ) & 
                 x1 == s1. succ(y1) & x2 == s2. succ(y2);
 
-
+def sum::pred( 

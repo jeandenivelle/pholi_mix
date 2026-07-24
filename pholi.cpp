@@ -13,12 +13,13 @@
 #include "logic/cmp.h"
 
 #include "parsing/parser.h"
+#include "calc/parser.h"
 
 
 void
-includefile( logic::beliefstate& blfs, 
-             filehasher& seen, const std::filesystem::path& file,
-             errorstack& err ) 
+includebeliefs( logic::beliefstate& blfs, 
+                filehasher& seen, const std::filesystem::path& file,
+                errorstack& err ) 
 {
    if( !exists( file ))
    {
@@ -29,13 +30,15 @@ includefile( logic::beliefstate& blfs,
    }
 
    // If the file was read already, we ignore it:
+   // (I supppose this mechanism can be deleted. We are
+   //  not using it. It doesn't fit into the general design.) 
 
    if( !seen. insert( file ))
       return;
  
    std::cout << "file " << file << " is new and will be read\n";
 
-   // We checked existence of file, but one never knows ...
+   // We already checked existence of file, but one never knows ...
 
    std::ifstream in( file );
    if( !in )
@@ -56,7 +59,7 @@ includefile( logic::beliefstate& blfs,
 
    errorstack::builder bld;
 
-   auto res = prs. parse( parsing::sym_File, bld );
+   auto res = prs. parse( parsing::sym_BeliefSeq, bld );
 
    if( bld. view( ). size( ))
    {
@@ -113,13 +116,13 @@ int main( int argc, char* argv[] )
    logic::beliefstate blfs;  
    filehasher seen;
 
-   includefile( blfs, seen, "examples/standard.phl", err ); 
-   includefile( blfs, seen, "examples/natural.phl", err );
-   includefile( blfs, seen, "examples/orders.phl", err );
-   includefile( blfs, seen, "examples/multiset.phl", err );
-   includefile( blfs, seen, "examples/prolog.phl", err );
+   includebeliefs( blfs, seen, "examples/standard.phl", err ); 
+   includebeliefs( blfs, seen, "examples/natural.phl", err );
+   includebeliefs( blfs, seen, "examples/orders.phl", err );
+   includebeliefs( blfs, seen, "examples/multiset.phl", err );
+   includebeliefs( blfs, seen, "examples/knaster_tarski.phl", err );
 
-   // includefile( blfs, seen, "examples/automata.phl", err );
+   // includebeliefs( blfs, seen, "examples/automata.phl", err );
 
    seen. print( std::cout );
 

@@ -1,71 +1,44 @@
 
+// I can at least formulate it. My feeling that I am getting grip on
+// the thing, and that I am only a small automatic procedure away
+// from usability. I also need a parsable proof language. 
 
-def ismonotonic : Prop( Prop( Obj, Obj ) ( Prop( Obj, Obj ) )) := 
-   lambda{ P :  Prop( Obj, Obj ) }:
-      
-thm gen_prop : forall{ s : Nat; x : Obj }: # s. gen(x) ; 
+// This is only a binary version:
 
-thm gen_0 :    forall{ s : Nat }: 
-   from_to( s. gen, s. 0 ); 
-thm gen_succ : forall{ s : Nat; x : Obj }: 
-   from_to( s.gen, s.gen, s.succ );
+def kt::implies( D, P1, P2 : Prop( Obj, Obj )) : Prop :=
+   forall{ x1, x2 : Obj } : [ D(x1,x2) ] P1(x1,x2) -> P2(x1,x2) ;
 
-// gen contains a quantifier over all strict predicates.
-// In general, we want to use predicates on gen only:
-
-thm induction : forall{ s : Nat; P : Prop( Obj ) }: 
-   [ stricton( s. gen, P ) ] P( s.0 ) -> 
-      ( forall{ x: Obj }: [ s. gen(x) ] P(x) -> P( s. succ(x)) ) -> 
-         forall{ x: Obj }: [ s. gen(x) ] P(x);
-
-def equations( n: Nat ) : Prop := true;
-   // Natural numbers are freely generated, hence there are no equations.
-
-// But we have a lot of differences.
-// (These are the Peano axioms): 
-
-def differences( n : Nat ) : Prop :=
-   let{ 0 : Obj := n. 0; 
-        succ : Obj( Obj ) := n. succ;
-        gen : Prop( Obj ) := n. gen 
-   } :
-      ( forall{ x : Obj } : gen(x) -> succ(x) != 0 ) &
-      ( forall{ x1, x2 : Obj } : 
-           gen(x1) & gen(x2) -> succ(x1) == succ(x2) -> x1 == x2 );
-
-def axioms( n : Nat ) : Prop := equations(n) & differences(n); 
+thm kt::implies::prop :
+   forall{ D : Prop( Obj, Obj );
+           P1, P2 : Prop( Obj, Obj ) } :
+   [ strict(D) ] [ stricton( D, P1 ) & stricton( D, P2 ) ] 
+      # kt::implies( D, P1, P2 ) ;
 
  
-def homrel( s1,s2: Nat )( R: Prop(Obj,Obj) ) : Prop :=
-   R( s1.0, s2.0 ) & forall{ x1,x2: Obj }: [ s1. gen(x1) & s2. gen(x2) ] 
-       R( x1, x2 ) -> R( s1. succ(x1), s2. succ(x2) ); 
+def kt::ismonotonic( D : Prop( Obj, Obj );
+                     T : Prop( Obj, Obj ) ( Prop( Obj, Obj ) )) : Prop := 
+      forall{ P1,P2: Prop( Obj, Obj ) } :
+         [ stricton( D, P1 ) & stricton( D, P2 ) ] 
+         kt :: implies( D, P1, P2 ) -> kt :: implies( D, T(P1), T(P2));
 
-def freegen( s1 : Nat ) : Prop :=
-   forall{ s2 : Nat }: exists{ R : Prop( Obj, Obj ) }: 
-      < stricton( prod( s1. gen, s2. gen ), R ) >
-         homrel( s1, s2, R ) & linear( s1. gen, 
-            lambda{ n1, n2 : Obj }: < s2. gen(n2) > R( n1, n2 ));
+def kt::isfixedpoint( D : Prop( Obj, Obj );
+                    P : Prop( Obj, Obj );
+                    T : Prop( Obj, Obj ) ( Prop( Obj, Obj ) ) ) : Prop :=
+   [ strict(D) ] 
+   kt::implies( D, P, T(P)) & kt::implies( D, T(P), P );
 
-def minhomrel( s1,s2: Nat ) : Prop( Obj, Obj ) :=
-   minimal( prod( s1. gen, s2. gen ), homrel( s1, s2 )); 
+def kt::minimal( D : Prop( Obj, Obj );
+          T : Prop( Obj, Obj ) ( Prop( Obj, Obj ) ) ) : Prop( Obj, Obj ) :=
+   minimal( D,
+         lambda{ P : Prop( Obj, Obj ) }:
+            kt::implies( D, T(P), P ));
 
-thm minhomrel_prop :
-   forall{ s1, s2 : Nat; x1, x2 : Obj }:
-      [ s1. gen(x1) & s2. gen(x2) ]  # minhomrel( s1, s2, x1, x2 );
+// Intersection of all P for which F(P) subseteq P is a fixed point:
 
-thm minhomrel_zero :
-   forall{ s1, s2 : Nat }: minhomrel( s1, s2, s1. 0, s2. 0 );
-
-thm minhomrel_succ : 
-   forall{ s1, s2 : Nat; x1, x2: Obj } :
-      [ s1. gen( x1 ) & s2. gen( x2 ) ] minhomrel( s1, s2, x1, x2 ) 
-          -> minhomrel( s1, s2, s1. succ( x1 ), s2. succ( x2 ));
-
-thm justification : forall{ s1,s2: Nat; x1,x2: Obj }: 
-   [ s1. gen(x1) & s2.gen(x2) ] minhomrel( s1, s2, x1, x2 ) -> 
-         x1 == s1.0 & x2 == s2.0 | 
-         exists{ y1,y2: Obj }: < s1. gen(y1) & s2. gen(y2) >
-             minhomrel( s1, s2, y1, y2 ) & 
-                x1 == s1. succ(y1) & x2 == s2. succ(y2);
-
+thm kt::minisfixedpoint :
+   forall{ D : Prop( Obj, Obj );
+           T : Prop( Obj, Obj ) ( Prop( Obj, Obj ) ) }:  
+      [ strict(D) ] kt::ismonotonic( D, T ) ->
+      kt::isfixedpoint( D, kt::minimal( D, T ), T ); 
+            
 

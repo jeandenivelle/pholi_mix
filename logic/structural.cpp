@@ -561,7 +561,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
          if( overcands. size( ) == 0 )
          { 
             auto err = errorheader( blfs, ctxt, t );
-            err << "unknown identifier " << ident << " used without arguments";
+            err << "use of unknown identifier " << ident;
             errors. push( std::move( err ));
             return { };
          } 

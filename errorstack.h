@@ -15,7 +15,6 @@
 
 #include "util/indentation.h"
 
-
 struct error
 {
    enum seriousness { warning, serious, header };
