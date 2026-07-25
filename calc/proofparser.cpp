@@ -64,13 +64,6 @@ bool
 calc::checkfile( logic::beliefstate& blfs, errorstack& err, 
                  const std::filesystem::path& file )
 {
-   if( !exists( file ))
-   {
-      errorstack::builder bld;
-      bld << "file " << file. string( ) << " does not exist";
-      err. push( std::move( bld ));
-      return false;
-   }
 
    std::ifstream in( file );
    if( !in )

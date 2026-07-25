@@ -1,8 +1,9 @@
 
 %startsymbol BeliefSeq EOF
+%startsymbol ProofSeq EOF
 
 %symbol BeliefSeq
-%symbol{ } Statement Expr
+%symbol ProofSeq
 
 %symbol{ logic::term } Term DotTerm ApplTerm EqTerm
 %symbol{ logic::term } UnTermWith UnTermWithout
@@ -56,13 +57,16 @@
 %symbol{ } SEQCALC BEGIN CUT
 %symbol{ std::string } LABEL 
 
+%symbol{ } SequentProof
+
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }
 %symbolcode_h { #include <string> }
 %symbolcode_h { #include "logic/type.h" }
 %symbolcode_h { #include "identifier.h" }
-%symbolcode_h { #include "logic/beliefstate.h"}
+%symbolcode_h { #include "logic/beliefstate.h" }
 
+%symbolcode_h { #include "calc/proofchecker.h" } 
 %parsercode_cpp
 {
    namespace
@@ -104,6 +108,7 @@
 
 %parameter { tokenizer }              tok
 %parameter { logic::beliefstate }     blfs
+%parameter { calc::proofchecker* }    checker
 
 %source{ tok. read( ); }
 
@@ -428,6 +433,12 @@ ArgSeq => ArgSeq : args COMMA Term : t
      return res;
    } 
 ;
+
+ProofSeq =>  | 
+   ProofSeq SEQCALC Identifier 
+
+
+SequentProof => CUT Term ;
 
 %end
  

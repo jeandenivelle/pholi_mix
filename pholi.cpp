@@ -51,8 +51,9 @@ includebeliefs( logic::beliefstate& blfs,
 
    lexing::filereader inp( &in, file );
 
-   parsing::tokenizer tok( std::move( inp ));
-   parsing::parser prs( tok, blfs );
+   parsing::tokenizer tok( std::move( inp )); 
+   calc::proofchecker* noproofchecker = nullptr;
+   parsing::parser prs( tok, blfs, noproofchecker );
 
    prs. debug = 0;
    prs. checkattrtypes = 0;
@@ -71,6 +72,24 @@ includebeliefs( logic::beliefstate& blfs,
              << file. string( ) << ": ";
       err. addheader( s, std::move( header ));       
    }
+
+}
+
+
+bool
+checkproofs( logic::beliefstate& blfs,  
+             const std::filesystem::path& file,
+             errorstack& err )
+{
+   if( !exists( file ))
+   {
+      errorstack::builder bld;
+      bld << "file " << file. string( ) << " does not exist";
+      err. push( std::move( bld ));
+      return false;
+   }
+
+
 
 }
 
@@ -99,11 +118,6 @@ bool compare( const T& t1, const T& t2 )
 
 int main( int argc, char* argv[] )
 {
-
-   logic::beliefstate bla; 
-   errorstack errs; 
-   calc::checkfile( bla, errs, "examples/knaster_tarski.prf" );
-   return 0;
 
 #if 0
    logic::vartype var1 = { "aaaa", logic::type_obj };
@@ -144,8 +158,8 @@ int main( int argc, char* argv[] )
 
    // tests::truthtables( );
 
-   // tests::smallproofs( blfs, err );
-   // tests::bigproof( blfs, err );
+   tests::smallproofs( blfs, err );
+   tests::bigproof( blfs, err );
 
    std::cout << err << "\n";
 

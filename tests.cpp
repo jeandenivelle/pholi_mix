@@ -321,8 +321,9 @@ void tests::cmp( )
 void tests::parser( logic::beliefstate& blfs ) {
    lexing::filereader inp( &std::cin, "std::cin" );
 
-   parsing::tokenizer tok( std::move( inp ));
-   parsing::parser prs( tok, blfs );  
+   parsing::tokenizer tok( std::move( inp ));\
+   calc::proofchecker* noproofchecker = nullptr;
+   parsing::parser prs( tok, blfs, noproofchecker );  
 
    prs. debug = 0;
    prs. checkattrtypes = 0;

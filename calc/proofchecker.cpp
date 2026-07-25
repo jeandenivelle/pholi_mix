@@ -63,8 +63,8 @@ namespace
 
       return f;
    }
-
 }
+
 
 void calc::proofchecker::setgoal( logic::exact fname )
 {
@@ -72,8 +72,11 @@ void calc::proofchecker::setgoal( logic::exact fname )
 
    seq = sequent( );
    db. restore(0);
-   nrfakes = 0;
 
+   status. calcname = "seq_preceq";
+   status. nrsteps = 0;
+   status. nrfakes = 0;
+ 
    switch( blf. sel( ))
    {
    case logic::bel_thm:
@@ -804,7 +807,7 @@ calc::proofchecker::fake( logic::term trmp, label name )
       err. push( std::move( bld ));
 
       name = seq. append( name, disjunction( { exists( std::move( trmp )) } ));
-      ++ nrfakes;
+      ++ status. nrfakes;
       return name;
    }
 }

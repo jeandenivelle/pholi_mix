@@ -25,8 +25,7 @@
 
 %h_before {
    bool very_equal( const std::vector< logic::vartype > & v1, 
-                  const std::vector< logic::vartype > & v2 );
+                    const std::vector< logic::vartype > & v2 );
 }
 
 
- 

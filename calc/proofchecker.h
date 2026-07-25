@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "logic/beliefstate.h"
+#include "logic/proofstatus.h"
 #include "errorstack.h"
 #include "sequent.h"
 
@@ -33,17 +34,15 @@ namespace calc
 
       sequent seq;
       indexedstack< std::string, size_t > db;
-      uint64_t nrfakes;  
+
+      logic::proofstatus status; 
 
       explicit proofchecker( const logic::beliefstate& blfs,
                              errorstack& err )
-         : blfs( blfs ), err( err ),
-           nrfakes(0) 
+         : blfs( blfs ), err( err )
       { }
 
       void setgoal( logic::exact fname ); 
-
-      // The functions that follow return a label if they succeed.
 
       std::optional< label > cut( const label& lab, logic::term fm );
 
@@ -131,6 +130,8 @@ namespace calc
       bool is_unf( const label& lab, size_t ind, std::string_view descr );
    }; 
 
+
+      
 } 
 
 #endif
