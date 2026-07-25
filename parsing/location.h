@@ -3,22 +3,19 @@
 #define PARSING_LOCATION_
 
 #include <iostream>
+#include <cstdint>
 
 namespace parsing
 {
 
    struct location
    {
-      // Note that using 'long' on microsoft compilers
-      // is useless, because it is just 'unsigned int'.
-
-      long unsigned int line;
-      long unsigned int column;
+      uint64_t line;
+      uint64_t column;
 
       location() = delete; 
 
-      location( long unsigned int line,
-                long unsigned int column )
+      location( uint64_t line, uint64_t column )
          : line( line ),
            column( column )
       { }

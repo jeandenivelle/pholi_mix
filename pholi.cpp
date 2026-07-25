@@ -13,7 +13,7 @@
 #include "logic/cmp.h"
 
 #include "parsing/parser.h"
-#include "calc/filechecker.h"
+#include "calc/proofparser.h"
 
 
 void
@@ -99,10 +99,10 @@ bool compare( const T& t1, const T& t2 )
 
 int main( int argc, char* argv[] )
 {
-   calc::filechecker check( "examples/knaster_tarski.prf" );
 
    logic::beliefstate bla; 
-   check. check( bla, "hallo" );
+   errorstack errs; 
+   calc::checkfile( bla, errs, "examples/knaster_tarski.prf" );
    return 0;
 
 #if 0

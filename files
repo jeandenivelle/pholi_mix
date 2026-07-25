@@ -52,7 +52,7 @@
    saturation.cpp
    truthset.cpp
    structural.cpp
-   filechecker.cpp
+   proofparser.cpp
  
 %dir Source/labeled
 %sources
