@@ -13,7 +13,7 @@
 #include "logic/cmp.h"
 
 #include "parsing/parser.h"
-#include "calc/parser.h"
+#include "calc/filechecker.h"
 
 
 void
@@ -29,9 +29,9 @@ includebeliefs( logic::beliefstate& blfs,
       return;
    }
 
-   // If the file was read already, we ignore it:
-   // (I supppose this mechanism can be deleted. We are
-   //  not using it. It doesn't fit into the general design.) 
+   // If the file was seen already, we ignore it:
+   // (I think this mechanism can be deleted. We are
+   //  not using it. It doesn't fit into the asynchronous general design.) 
 
    if( !seen. insert( file ))
       return;
@@ -99,6 +99,12 @@ bool compare( const T& t1, const T& t2 )
 
 int main( int argc, char* argv[] )
 {
+   calc::filechecker check( "examples/knaster_tarski.prf" );
+
+   logic::beliefstate bla; 
+   check. check( bla, "hallo" );
+   return 0;
+
 #if 0
    logic::vartype var1 = { "aaaa", logic::type_obj };
    logic::vartype var2 = { "bbbb", logic::type_obj };

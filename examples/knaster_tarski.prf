@@ -1,5 +1,5 @@
 
-%seqwiden kt::minisfixedpoint 
+%seqcalc kt::minisfixedpoint 
    Prop( Obj, Obj ); Prop( Obj, Obj )( Prop( Obj, Obj )) )
 %begin
    cut goal;

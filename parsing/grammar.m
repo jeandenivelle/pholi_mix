@@ -53,6 +53,9 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
+%symbol{ } SEQCALC BEGIN CUT
+%symbol{ std::string } LABEL 
+
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }
 %symbolcode_h { #include <string> }
@@ -425,7 +428,6 @@ ArgSeq => ArgSeq : args COMMA Term : t
      return res;
    } 
 ;
-
 
 %end
  
