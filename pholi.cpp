@@ -1,6 +1,7 @@
 
+#include <filesystem>
+
 #include "errorstack.h"
-#include "filehasher.h"
 
 #include "identifier.h"
 #include "tests.h"
@@ -13,12 +14,10 @@
 #include "logic/cmp.h"
 
 #include "parsing/parser.h"
-#include "calc/proofparser.h"
-
 
 void
 includebeliefs( logic::beliefstate& blfs, 
-                filehasher& seen, const std::filesystem::path& file,
+                const std::filesystem::path& file,
                 errorstack& err ) 
 {
    if( !exists( file ))
@@ -28,15 +27,6 @@ includebeliefs( logic::beliefstate& blfs,
       err. push( std::move( bld ));
       return;
    }
-
-   // If the file was seen already, we ignore it:
-   // (I think this mechanism can be deleted. We are
-   //  not using it. It doesn't fit into the asynchronous general design.) 
-
-   if( !seen. insert( file ))
-      return;
- 
-   std::cout << "file " << file << " is new and will be read\n";
 
    // We already checked existence of file, but one never knows ...
 
@@ -52,8 +42,8 @@ includebeliefs( logic::beliefstate& blfs,
    lexing::filereader inp( &in, file );
 
    parsing::tokenizer tok( std::move( inp )); 
-   calc::proofchecker* noproofchecker = nullptr;
-   parsing::parser prs( tok, blfs, noproofchecker );
+   std::optional< calc::proofchecker > nothing;
+   parsing::parser prs( tok, blfs, nothing );
 
    prs. debug = 0;
    prs. checkattrtypes = 0;
@@ -84,20 +74,46 @@ checkproofs( logic::beliefstate& blfs,
    if( !exists( file ))
    {
       errorstack::builder bld;
-      bld << "file " << file. string( ) << " does not exist";
+      bld << "proof file " << file. string( ) << " does not exist";
       err. push( std::move( bld ));
       return false;
    }
 
+   std::ifstream in( file );
+   if( !in )
+   {
+      errorstack::builder bld;
+      bld << "could not open proof file " << file. string( ) << "\n";
+      err. push( std::move( bld ));
+      return false;
+   }
 
+   parsing::tokenizer tok( lexing::filereader( &in, file. string( )) );
+   std::optional< calc::proofchecker > check = calc::proofchecker( blfs, err ); 
+   parsing::parser prs( tok, blfs, check );
 
+   prs. debug = 0;
+   prs. checkattrtypes = 0;
+
+   errorstack::builder bld;
+
+   auto res = prs. parse( parsing::sym_ProofSeq, bld );
+
+   if( bld. view( ). size( ))
+   {
+      size_t s = err. size( );
+      err. push( std::move( bld ));
+
+      errorstack::builder header;
+      header << "there were parse errors in proof file "
+             << file. string( ) << ": ";
+      err. addheader( s, std::move( header ));
+      return false; 
+   }
+
+   return true;
 }
 
-
-#include "calc/quantifiers.h"
-#include "calc/propositional.h"
-#include "calc/saturation.h"
-#include "calc/truthform.h"
 
 #include "calc/pretty.h"
 #include "calc/fitch_diagram.h"
@@ -134,17 +150,14 @@ int main( int argc, char* argv[] )
 
    errorstack err;
    logic::beliefstate blfs;  
-   filehasher seen;
 
-   includebeliefs( blfs, seen, "examples/standard.phl", err ); 
-   includebeliefs( blfs, seen, "examples/natural.phl", err );
-   includebeliefs( blfs, seen, "examples/orders.phl", err );
-   includebeliefs( blfs, seen, "examples/multiset.phl", err );
-   includebeliefs( blfs, seen, "examples/knaster_tarski.phl", err );
+   includebeliefs( blfs, "examples/standard.phl", err ); 
+   includebeliefs( blfs, "examples/natural.phl", err );
+   includebeliefs( blfs, "examples/orders.phl", err );
+   includebeliefs( blfs, "examples/multiset.phl", err );
+   includebeliefs( blfs, "examples/knaster_tarski.phl", err );
 
-   // includebeliefs( blfs, seen, "examples/automata.phl", err );
-
-   seen. print( std::cout );
+   // includebeliefs( blfs, "examples/automata.phl", err );
 
    std::cout << "(before type checking)\n";
    std::cout << blfs << "\n";
@@ -160,6 +173,8 @@ int main( int argc, char* argv[] )
 
    tests::smallproofs( blfs, err );
    tests::bigproof( blfs, err );
+
+   checkproofs( blfs, "examples/knaster_tarski.prf", err );
 
    std::cout << err << "\n";
 

@@ -79,4 +79,3 @@ thm justification : forall{ s1,s2: Nat; x1,x2: Obj }:
              minhomrel( s1, s2, y1, y2 ) & 
                 x1 == s1. succ(y1) & x2 == s2. succ(y2);
 
-def sum::pred( 

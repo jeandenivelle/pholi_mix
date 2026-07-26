@@ -31,6 +31,7 @@ namespace calc
    {
       const logic::beliefstate& blfs; 
       errorstack& err;
+      size_t errstart;
 
       sequent seq;
       indexedstack< std::string, size_t > db;

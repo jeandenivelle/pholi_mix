@@ -1,10 +1,7 @@
 
-%seqcalc kt::minisfixedpoint::hans::de::nivelle
-   Prop( Obj, Obj ); Prop( Obj, Obj )( Prop( Obj, Obj )) )
-%begin
-   cut goal;
-   branch 
-
-%end
+%sequent
+kt::minisfixedpoint{ Prop( Obj, Obj ), Prop( Obj, Obj )( Prop( Obj, Obj )) } :
+   %cut goal;
+   %branch 0 { a, b c }
 
 

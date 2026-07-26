@@ -108,7 +108,7 @@
 
 %parameter { tokenizer }              tok
 %parameter { logic::beliefstate }     blfs
-%parameter { calc::proofchecker* }    checker
+%parameter { std::optional< calc::proofchecker > }    checker
 
 %source{ tok. read( ); }
 
@@ -435,10 +435,9 @@ ArgSeq => ArgSeq : args COMMA Term : t
 ;
 
 ProofSeq =>  | 
-   ProofSeq SEQCALC Identifier 
+   ProofSeq SEQCALC Identifier LPAR StructTypeSeq RPAR  
 
-
-SequentProof => CUT Term ;
+SequentScript => CUT Term ;
 
 %end
  
