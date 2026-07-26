@@ -434,10 +434,20 @@ ArgSeq => ArgSeq : args COMMA Term : t
    } 
 ;
 
-ProofSeq =>  | 
-   ProofSeq SEQCALC Identifier LPAR StructTypeSeq RPAR  
+SequentProofStart => 
+   PCT_SEQUENT Identifier LBRACE TypeSeq RBRACE COLON
+|
+   PCT_SEQUENT Identifier COLON 
+;
 
-SequentScript => CUT Term ;
+ProofSequence => 
+   | ProofSequence SequentProof PCT_END 
+   ;
 
+SequentProof => SequentProofStart 
+| SequentProof PCT_CUT Term SEMICOLON
+| SequentProof 
+
+ 
 %end
  
