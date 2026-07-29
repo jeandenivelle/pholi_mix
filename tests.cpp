@@ -322,8 +322,7 @@ void tests::parser( logic::beliefstate& blfs ) {
    lexing::filereader inp( &std::cin, "std::cin" );
 
    parsing::tokenizer tok( std::move( inp ));
-   std::optional< calc::proofchecker > noproofchecker;
-   parsing::parser prs( tok, blfs, noproofchecker );  
+   parsing::parser prs( tok, blfs );  
 
    prs. debug = 0;
    prs. checkattrtypes = 0;
@@ -478,7 +477,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
 
       if( name. has_value( ))
       {
-         calc::proofchecker check( blfs, err );
+         calc::proofchecker check( &blfs, &err );
          check. setgoal( name. value( ));
          check. show( "initial" );
          check. cut( label( "initial" ), 
@@ -704,7 +703,7 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 
    if( name. has_value( ))
    {
-      calc::proofchecker check( blfs, err );
+      calc::proofchecker check( &blfs, &err );
       check. setgoal( name. value( ));
       check. show( "initial" );
 

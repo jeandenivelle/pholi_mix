@@ -11,7 +11,7 @@ namespace calc
 
    bool
    applicable( const logic::belief& blf,
-               const std::vector< logic::type > & tps );
+               const std::vector< logic::type > & types );
 
    std::optional< logic::exact > 
    findformula( const logic::beliefstate& blfs, errorstack& err, 

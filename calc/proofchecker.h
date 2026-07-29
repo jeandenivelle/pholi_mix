@@ -29,17 +29,16 @@ namespace calc
 
    struct proofchecker
    {
-      const logic::beliefstate& blfs; 
-      errorstack& err;
-      size_t errstart;
+      const logic::beliefstate* blfs; 
+      errorstack* err;
 
       sequent seq;
       indexedstack< std::string, size_t > db;
 
       logic::proofstatus status; 
 
-      explicit proofchecker( const logic::beliefstate& blfs,
-                             errorstack& err )
+      explicit proofchecker( const logic::beliefstate* blfs,
+                             errorstack* err )
          : blfs( blfs ), err( err )
       { }
 
@@ -131,8 +130,6 @@ namespace calc
       bool is_unf( const label& lab, size_t ind, std::string_view descr );
    }; 
 
-
-      
 } 
 
 #endif

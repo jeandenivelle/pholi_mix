@@ -54,10 +54,10 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
-%symbol{ } SEQCALC BEGIN CUT
 %symbol{ std::string } LABEL 
+%symbol{ } PCT_BEGIN PCT_END PCT_SEQUENT PCT_CUT 
 
-%symbol{ } SequentProof
+%symbol{ calc::beliefproof } SequentProof SequentProofStart
 
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }
@@ -65,8 +65,10 @@
 %symbolcode_h { #include "logic/type.h" }
 %symbolcode_h { #include "identifier.h" }
 %symbolcode_h { #include "logic/beliefstate.h" }
-
+%symbolcode_h { #include "calc/beliefproof.h" }
 %symbolcode_h { #include "calc/proofchecker.h" } 
+
+
 %parsercode_cpp
 {
    namespace
@@ -108,7 +110,6 @@
 
 %parameter { tokenizer }              tok
 %parameter { logic::beliefstate }     blfs
-%parameter { std::optional< calc::proofchecker > }    checker
 
 %source{ tok. read( ); }
 
@@ -434,20 +435,43 @@ ArgSeq => ArgSeq : args COMMA Term : t
    } 
 ;
 
-SequentProofStart => 
-   PCT_SEQUENT Identifier LBRACE TypeSeq RBRACE COLON
-|
-   PCT_SEQUENT Identifier COLON 
-;
-
-ProofSequence => 
-   | ProofSequence SequentProof PCT_END 
+ProofSeq => 
+   | ProofSeq SequentProof : prf END 
    ;
 
-SequentProof => SequentProofStart 
-| SequentProof PCT_CUT Term SEMICOLON
-| SequentProof 
+SequentProofStart => 
+   PCT_SEQUENT Identifier : id LBRACE StructTypeSeq : tps RBRACE COLON
+{
+   errorstack err;
+   auto prf = calc::beliefproof( std::move( id ), std::move( tps ),
+                                 &blfs, &err );
+   prf. init( );
+   if( prf. has_errors( ))
+   {
 
+
+   }
+   return prf; 
+}
+
+|
+   PCT_SEQUENT Identifier : id COLON 
+{
+   errorstack err;
+   auto prf = calc::beliefproof( std::move( id ), { }, &blfs, &err );
+   prf. init( );
+   if( prf. has_errors( ))
+   {
+
+
+   }
+}
+;
+
+SequentProof 
+   => SequentProofStart : prf { return std::move( prf ); } 
+   |  SequentProof : prf PCT_CUT Term SEMICOLON { return std::move( prf ); } 
+;
  
 %end
  

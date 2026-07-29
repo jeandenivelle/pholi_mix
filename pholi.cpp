@@ -15,6 +15,8 @@
 
 #include "parsing/parser.h"
 
+#include "calc/beliefproof.h"
+
 void
 includebeliefs( logic::beliefstate& blfs, 
                 const std::filesystem::path& file,
@@ -42,8 +44,7 @@ includebeliefs( logic::beliefstate& blfs,
    lexing::filereader inp( &in, file );
 
    parsing::tokenizer tok( std::move( inp )); 
-   std::optional< calc::proofchecker > nothing;
-   parsing::parser prs( tok, blfs, nothing );
+   parsing::parser prs( tok, blfs );
 
    prs. debug = 0;
    prs. checkattrtypes = 0;
@@ -89,8 +90,7 @@ checkproofs( logic::beliefstate& blfs,
    }
 
    parsing::tokenizer tok( lexing::filereader( &in, file. string( )) );
-   std::optional< calc::proofchecker > check = calc::proofchecker( blfs, err ); 
-   parsing::parser prs( tok, blfs, check );
+   parsing::parser prs( tok, blfs );
 
    prs. debug = 0;
    prs. checkattrtypes = 0;

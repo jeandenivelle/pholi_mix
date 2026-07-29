@@ -14,19 +14,19 @@ namespace calc
 
    struct pretty_printer
    {
-      std::ostream& out;
-      const logic::beliefstate& blfs;
+      std::ostream* out;
+      const logic::beliefstate* blfs;
       logic::pretty::uniquenamestack names;
 
-      pretty_printer( std::ostream& out,
-                      const logic::beliefstate& blfs )
+      pretty_printer( std::ostream* out,
+                      const logic::beliefstate* blfs )
          : out( out ),
            blfs( blfs ) 
       { }  
 
-      pretty_printer( std::ostream& out,
-                       const logic::beliefstate& blfs,
-                       const logic::context& ctxt )
+      pretty_printer( std::ostream* out,
+                      const logic::beliefstate* blfs,
+                      const logic::context& ctxt )
          : out( out ),
            blfs( blfs ),
            names( logic::pretty::getnames( ctxt, ctxt. size( )) ) 
@@ -35,12 +35,12 @@ namespace calc
 
    };
 
-   // Default is to print into print. out:
+   // Default is to print into print -> out:
 
    template< typename T >
    pretty_printer& operator << ( pretty_printer& print, const T& t )
    {
-      print. out << t;
+      *print. out << t;
       return print;
    }
 
@@ -54,7 +54,7 @@ namespace calc
       if( vars. size( ))
       {
          print << qname << '(';
-         logic::pretty::print( print. out, print. blfs, print. names,
+         logic::pretty::print( *print. out, *print. blfs, print. names,
             [&vars]( size_t i ) { return vars. at(i); }, vars. size( ));
          print << " ): ";
       }
@@ -66,14 +66,14 @@ namespace calc
    inline pretty_printer&
    operator << ( pretty_printer& print, const logic::type& tp )
    {
-      logic::pretty::print( print. out, print. blfs, tp, {0,0} );
+      logic::pretty::print( *print. out, *print. blfs, tp, {0,0} );
       return print;
    }
 
    inline pretty_printer&
    operator << ( pretty_printer& print, const logic::term& tm )
    {
-      logic::pretty::print( print. out, print. blfs, print. names, 
+      logic::pretty::print( *print. out, *print. blfs, print. names, 
                             tm, {0,0} );
       return print;
    }
