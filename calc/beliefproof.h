@@ -18,23 +18,22 @@ namespace calc
    {
       identifier name;
       std::vector< logic::type > types; 
-      size_t errstart;
 
       proofchecker check;
 
-      beliefproof( identifier&& name, std::vector< logic::type > && types,
-                   const logic::beliefstate* blfs, errorstack* err )
+      beliefproof( identifier&& name, 
+                   std::vector< logic::type > && types,
+                   const logic::beliefstate* blfs )
          : name( std::move( name )),
            types( std::move( types )),
-           errstart( err -> size( )), 
-           check( blfs, err ) 
+           check( blfs ) 
       { }
 
       bool init( ) { return true; }
         // Resolve types, look up the name, return true if it succeeded.
 
       bool has_errors( ) const 
-         { return check. err -> size( ) != errstart; }
+         { return check. err. size( ); }
 
    };
 

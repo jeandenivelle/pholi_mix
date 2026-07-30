@@ -4,7 +4,7 @@
 
 #include <optional>
 #include "logic/beliefstate.h"
-#include "errorstack.h"
+#include "errortree.h"
 
 namespace calc 
 {
@@ -14,7 +14,7 @@ namespace calc
                const std::vector< logic::type > & types );
 
    std::optional< logic::exact > 
-   findformula( const logic::beliefstate& blfs, errorstack& err, 
+   findformula( const logic::beliefstate& blfs, errorvector& errs, 
                 const identifier& ident,
                 const std::vector< logic::type > & argtypes ); 
 }

@@ -9,7 +9,7 @@
 #include <vector>
 #include <variant>
 
-#include "errorstack.h"
+#include "errortree.h"
 #include "indexedstack.h"
 #include "logic/beliefstate.h"
 #include "logic/context.h"

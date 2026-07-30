@@ -2,7 +2,7 @@
 #ifndef TESTS_
 #define TESTS_   
 
-#include "errorstack.h"
+#include "errortree.h"
 #include "logic/context.h"
 #include "logic/beliefstate.h"
 
@@ -16,12 +16,14 @@ namespace tests
 
    void cmp( );
 
-   void betareduction( logic::beliefstate& blfs, errorstack& err );
+   void betareduction( logic::beliefstate& blfs, errorvector& err );
       // Test beta reduction, using Church numerals.
       // I am also interested in performance.
 
-   void smallproofs( const logic::beliefstate& blfs, errorstack& err );
-   void bigproof( logic::beliefstate& blfs, errorstack& err );
+   void 
+   smallproofs( const logic::beliefstate& blfs, errorvector& err );
+
+   void bigproof( logic::beliefstate& blfs, errorvector& err );
 
    void pretty( const logic::beliefstate& blfs );
 

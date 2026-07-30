@@ -10,7 +10,7 @@
 
 #include "logic/beliefstate.h"
 #include "logic/proofstatus.h"
-#include "errorstack.h"
+#include "errortree.h"
 #include "sequent.h"
 
 namespace calc
@@ -30,16 +30,15 @@ namespace calc
    struct proofchecker
    {
       const logic::beliefstate* blfs; 
-      errorstack* err;
+      errorvector err;
 
       sequent seq;
       indexedstack< std::string, size_t > db;
 
       logic::proofstatus status; 
 
-      explicit proofchecker( const logic::beliefstate* blfs,
-                             errorstack* err )
-         : blfs( blfs ), err( err )
+      explicit proofchecker( const logic::beliefstate* blfs )
+         : blfs( blfs )
       { }
 
       void setgoal( logic::exact fname ); 

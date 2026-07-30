@@ -8,7 +8,7 @@
 #include <iostream>
 #include <optional>
 
-#include "errorstack.h"
+#include "errortree.h"
 #include "term.h"
 #include "beliefstate.h"
 #include "context.h"
@@ -19,12 +19,13 @@ namespace logic
 
    void checkformula( const beliefstate& blfs, 
                       const identifier& name, term& fm,
-                      const char* descr, errorstack& err );
+                      const char* descr, errorvector& err );
       // blfs is const, but at the same time fm occurs in
       // blfs, which is not const. 
       // descr is used when an error is produced.
 
-   void checkandresolve( beliefstate& everything, errorstack& err );
+   void 
+   checkandresolve( beliefstate& everything, errorvector& err );
 
    void uncheck( type& tp );
       // Make type tp unchecked again.
@@ -46,10 +47,11 @@ namespace logic
    // This is a bit overdone, so we just use bool.
 
    bool
-   checkandresolve( const beliefstate& blfs, errorstack& errors, type& tp );
+   checkandresolve( const beliefstate& blfs, errorvector& errors, 
+                    type& tp );
     
    std::optional< type > 
-   checkandresolve( const beliefstate& blfs, errorstack& errors,
+   checkandresolve( const beliefstate& blfs, errorvector& errors,
                     context& ctxt, term& t );
       // Check and resolve overloads. 
       // We won't look at dependencies. Dependencies are checked by a separate
@@ -57,7 +59,8 @@ namespace logic
       // We don't throw exceptions.
 
    std::optional<type >
-   checkandresolve( const beliefstate& blfs, errorstack& errors, term& t );
+   checkandresolve( const beliefstate& blfs, errorvector& errors, 
+                    term& t );
    
    std::optional< type >
    try_apply( type ftype, const std::vector< type > & argtypes, size_t pos );

@@ -11,7 +11,7 @@
 #include <map>
 #include <filesystem>
 
-#include "errorstack.h"
+#include "errortree.h"
 #include "logic/beliefstate.h"
 
 struct filehasher

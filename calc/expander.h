@@ -2,7 +2,7 @@
 #ifndef CALC_EXPANDER_
 #define CALC_EXPANDER_
 
-#include "errorstack.h"
+#include "errortree.h"
 #include "logic/beliefstate.h"
 
 namespace calc
@@ -15,14 +15,13 @@ namespace calc
       size_t repl;     // The occurrence that will be replaced.
       uint64_t used;   // Number of replacements made, one at most.
  
-      const logic::beliefstate& blfs; 
-      errorstack& err; 
+      const logic::beliefstate* blfs; 
+      errorvector errs; 
 
       expander( identifier ident, size_t repl, 
-                const logic::beliefstate& blfs, errorstack& err ) noexcept
+                const logic::beliefstate* blfs ) noexcept
          : ident( ident ), i(0), repl( repl ), used(0),
-           blfs( blfs ),
-           err( err )
+           blfs( blfs )
       { } 
 
       logic::term operator( ) ( logic::term tm, size_t vardepth );

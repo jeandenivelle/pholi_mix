@@ -33,7 +33,7 @@ calc::applicable( const logic::belief& blf,
 
 
 std::optional< logic::exact >
-calc::findformula( const logic::beliefstate& blfs, errorstack& err,
+calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
                    const identifier& ident,
                    const std::vector< logic::type > & types )
 {

@@ -15,7 +15,7 @@
    pholi.cpp
    identifier.cpp
    tests.cpp
-   errorstack.cpp
+   errortree.cpp
    filehasher.cpp
 
 %dir Source/logic 

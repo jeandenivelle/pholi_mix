@@ -1,6 +1,5 @@
 
 #include "tests.h"
-#include "errorstack.h"
 
 #include "logic/replacements.h" 
 #include "logic/pretty.h"
@@ -332,7 +331,8 @@ void tests::parser( logic::beliefstate& blfs ) {
 }
 
 
-void tests::betareduction( logic::beliefstate& blfs, errorstack& err ) 
+void 
+tests::betareduction( logic::beliefstate& blfs, errorvector& errs ) 
 {
    using namespace logic;
 
@@ -366,7 +366,9 @@ void tests::betareduction( logic::beliefstate& blfs, errorstack& err )
 }
 
 
-void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
+void 
+tests::smallproofs( const logic::beliefstate& blfs, 
+                    errorvector& errs )
 {
    auto O = logic::type( logic::type_obj );
    auto P = logic::type( logic::type_prop );
@@ -464,7 +466,7 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       });
       prf. print( indentation( ), std::cout );
 
-      checkproof( blfs, prf, seq, err, calc::prf_fake( op_false ));
+      checkproof( blfs, prf, seq, errs, calc::prf_fake( op_false ));
       std::cout << "FINAL STATE" << id << " :\n";
       seq. ugly( std::cout );
    }
@@ -473,11 +475,11 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
    if constexpr( true )
    {
       auto id = identifier( ) + "induction";
-      auto name = calc::findformula( blfs, err, id, { } ); 
+      auto name = calc::findformula( blfs, errs, id, { } ); 
 
       if( name. has_value( ))
       {
-         calc::proofchecker check( &blfs, &err );
+         calc::proofchecker check( &blfs );
          check. setgoal( name. value( ));
          check. show( "initial" );
          check. cut( label( "initial" ), 
@@ -682,16 +684,16 @@ void tests::smallproofs( const logic::beliefstate& blfs, errorstack& err )
       }
       else
       { 
-         errorstack::builder bld;
+         errortree::builder bld;
          bld << "no formula with name " << id << " was found"; 
-         err. push( std::move( bld ));
+         errs. push_back( errortree( std::move( bld )));
       } 
    }
 }
 
 
 void 
-tests::bigproof( logic::beliefstate& blfs, errorstack& err )
+tests::bigproof( logic::beliefstate& blfs, errorvector& errs )
 {
    auto O = logic::type( logic::type_obj );
    auto P = logic::type( logic::type_prop );
@@ -699,11 +701,11 @@ tests::bigproof( logic::beliefstate& blfs, errorstack& err )
 
    using namespace calc;
    auto id = identifier( ) + "justification";
-   auto name = calc::findformula( blfs, err, id, { } );
+   auto name = calc::findformula( blfs, errs, id, { } );
 
    if( name. has_value( ))
    {
-      calc::proofchecker check( &blfs, &err );
+      calc::proofchecker check( &blfs );
       check. setgoal( name. value( ));
       check. show( "initial" );
 

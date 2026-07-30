@@ -1,8 +1,6 @@
 
 #include <filesystem>
 
-#include "errorstack.h"
-
 #include "identifier.h"
 #include "tests.h"
 
@@ -20,13 +18,13 @@
 void
 includebeliefs( logic::beliefstate& blfs, 
                 const std::filesystem::path& file,
-                errorstack& err ) 
+                errorvector& errs ) 
 {
    if( !exists( file ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "file " << file. string( ) << " does not exist";
-      err. push( std::move( bld ));
+      errs. push_back( errortree( std::move( bld )));
       return;
    }
 
@@ -35,9 +33,9 @@ includebeliefs( logic::beliefstate& blfs,
    std::ifstream in( file );
    if( !in )
    {
-      errorstack::builder bld; 
+      errortree::builder bld; 
       bld << "could not open file " << file. string( ) << "\n";
-      err. push( std::move( bld ));  
+      errs. push_back( errortree( std::move( bld )));  
       return; 
    }
 
@@ -49,43 +47,40 @@ includebeliefs( logic::beliefstate& blfs,
    prs. debug = 0;
    prs. checkattrtypes = 0;
 
-   errorstack::builder bld;
+   errortree::builder parse_err;
 
-   auto res = prs. parse( parsing::sym_BeliefSeq, bld );
+   auto res = prs. parse( parsing::sym_BeliefSeq, parse_err );
 
-   if( bld. view( ). size( ))
+   if( parse_err. view( ). size( ))
    {
-      size_t s = err. size( );
-      err. push( std::move( bld ));
-
-      errorstack::builder header;
+      errortree::builder header;
       header << "there were parse errors in file "
-             << file. string( ) << ": ";
-      err. addheader( s, std::move( header ));       
+             << file. string( ) << ":\n\n"; 
+      header << parse_err. str( ); 
+      errs. push_back( errortree( std::move( header ))); 
    }
-
 }
 
 
 bool
 checkproofs( logic::beliefstate& blfs,  
              const std::filesystem::path& file,
-             errorstack& err )
+             errorvector& errs )
 {
    if( !exists( file ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "proof file " << file. string( ) << " does not exist";
-      err. push( std::move( bld ));
+      errs. push_back( errortree( std::move( bld )));
       return false;
    }
 
    std::ifstream in( file );
    if( !in )
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "could not open proof file " << file. string( ) << "\n";
-      err. push( std::move( bld ));
+      errs. push_back( errortree( std::move( bld )));
       return false;
    }
 
@@ -95,19 +90,17 @@ checkproofs( logic::beliefstate& blfs,
    prs. debug = 0;
    prs. checkattrtypes = 0;
 
-   errorstack::builder bld;
+   errortree::builder parse_err;
 
-   auto res = prs. parse( parsing::sym_ProofSeq, bld );
+   auto res = prs. parse( parsing::sym_ProofSeq, parse_err );
 
-   if( bld. view( ). size( ))
+   if( parse_err. view( ). size( ))
    {
-      size_t s = err. size( );
-      err. push( std::move( bld ));
-
-      errorstack::builder header;
+      errortree::builder header;
       header << "there were parse errors in proof file "
-             << file. string( ) << ": ";
-      err. addheader( s, std::move( header ));
+             << file. string( ) << ":\n\n";
+      header << parse_err. str( ); 
+      errs. push_back( errortree( std::move( header )));
       return false; 
    }
 
@@ -148,7 +141,7 @@ int main( int argc, char* argv[] )
    return 0;
 #endif
 
-   errorstack err;
+   errorvector err;
    logic::beliefstate blfs;  
 
    includebeliefs( blfs, "examples/standard.phl", err ); 
