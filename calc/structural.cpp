@@ -40,9 +40,9 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
    const auto& candidates = blfs. getformulas( ident );   
    if( candidates. size( ) == 0 )
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "Import: Identifier " << ident << " does not occur as formula"; 
-      err. push( std::move( bld ));
+      errs. push_back( std::move( bld ));
       return { };
    }
 
@@ -60,17 +60,17 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
 
    if( nrfits == 0 )
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "Import: No suitable formula found for identifier " << ident;
-      err. push( std::move( bld ));
+      errs. push_back( std::move( bld ));
       return { };
    }
 
    if( nrfits > 1 )
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "Import: More than suitable formula found for " << ident;
-      err. push( std::move( bld ));
+      errs. push_back( std::move( bld ));
       return { };
    }
   

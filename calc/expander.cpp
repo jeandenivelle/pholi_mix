@@ -7,7 +7,7 @@ calc::expander::operator( ) ( logic::term tm, size_t vardepth )
    if( tm. sel( ) == logic::op_exact )
    {
       auto ex = tm. view_exact( ). ex( );
-      const auto& bl = blfs. at( ex );
+      const auto& bl = blfs -> at( ex );
          // We get the belief of t, and check if it an overload
          // of id:
 
@@ -24,10 +24,10 @@ calc::expander::operator( ) ( logic::term tm, size_t vardepth )
             }
             else
             {
-               errorstack::builder bld;
+               errortree::builder bld;
                bld << "cannot expand identifer " << ident;
                bld << ", it is not a definition"; 
-               err. push( std::move( bld ));                     
+               errs. push_back( std::move( bld ));                     
             }
          }
       }
@@ -42,9 +42,9 @@ calc::expander::operator( ) ( logic::term tm, size_t vardepth )
       {
          if( i == repl )
          {
-            errorstack::builder bld;
+            errortree::builder bld;
             bld << "cannot expand unchecked identifier " << ident;
-            err. push( std::move( bld ));  
+            errs. push_back( std::move( bld ));  
          }
 
          ++ i;

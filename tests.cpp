@@ -496,46 +496,45 @@ tests::smallproofs( const logic::beliefstate& blfs,
          check. normalize( check. labelof(-1));
 
          res = check. flatten( check. labelof(-1));
-         res = check. branch( res. value( ), 0, { "yy" } ); 
+         check. branch( res. value( ), 0, { "yy" } ); 
 
-         res = check. import( identifier( ) + "gen_prop", { Nat, O },
-                              label( "gen_prop" ));
+         check. import( identifier( ) + "gen_prop", { Nat, O },
+                        label( "gen_prop" ));
          check. flatten( label( "gen_prop" )); 
          {
             auto tm1 = check. replacedebruijn( "s"_unchecked );
             auto tm2 = check. replacedebruijn( "yy"_unchecked );
-            res = check. instantiate( label( "gen_prop1" ), { tm1, tm2 } );
+            check. instantiate( label( "gen_prop1" ), { tm1, tm2 } );
          }
 
-         res = check. simplify( label( "simplified" ));
+         check. simplify( label( "simplified" ));
          res = check. merge( );
          res = check. merge( );
 
-         res = check. branch( label( "flatten2" ), 0, { "s", "P" } );
+         check. branch( label( "flatten2" ), 0, { "s", "P" } );
          res = check. flatten( label( "flatten3" ));
 
          res = check. rename( label( "flatten4" ), label( "propP" ));
-         res = check. expand( check. labelof( -1 ), identifier( ) + "stricton", 0 );
+         check. expand( check. labelof( -1 ), identifier( ) + "stricton", 0 );
          res = check. normalize( check. labelof( -1 ));
          res = check. flatten( check. labelof( -1 )); 
 
          res = check. flatten( label( "flatten5" ));
-         res = check. branch( label( "flatten6" ), 0, {} );
+         check. branch( label( "flatten6" ), 0, {} );
 
          {
             auto tm = apply( "0"_unchecked, { "s"_unchecked } );
             tm =  check. replacedebruijn( tm );
-            res = res = check. instantiate( label( "propP3" ), { tm } ); 
+            check. instantiate( label( "propP3" ), { tm } ); 
          }
 
-         res = check. import( identifier( ) + "gen_0", { Nat },
-                              label( "gen_0" ));
+         check. import( identifier( ) + "gen_0", { Nat }, label( "gen_0" ));
  
          {
             auto tm = "s"_unchecked;
             tm =  check. replacedebruijn( tm );
-            res = check. flatten( res. value( ));  
-            res = check. instantiate( label( "gen_1" ), { tm } );
+            res = check. flatten( check. labelof( -1 ));  
+            check. instantiate( label( "gen_1" ), { tm } );
          }
          check. flatten( label( "propP4" ));
  
@@ -552,14 +551,14 @@ tests::smallproofs( const logic::beliefstate& blfs,
 
             tm1 = check. replacedebruijn( tm1 );
             tm2 = check. replacedebruijn( tm2 ); 
-            res = check. instantiate( check. labelof( -1 ), { tm1, tm2 } );
+            auto b = check. instantiate( check. labelof( -1 ), { tm1, tm2 } );
+
+            if( !b )
+                throw std::logic_error( "instantation failed" ); 
          }
 
          check. simplify( label( "close" )); 
          check. merge( );
-
-         if( !res. has_value( ))
-            std::cout << "failed\n"; 
 
          check. branch( label( "flatten8" ), 0, { "x" } );
          check. flatten( label( "flatten9" ));

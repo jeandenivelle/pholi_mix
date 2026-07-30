@@ -24,7 +24,7 @@ includebeliefs( logic::beliefstate& blfs,
    {
       errortree::builder bld;
       bld << "file " << file. string( ) << " does not exist";
-      errs. push_back( errortree( std::move( bld )));
+      errs. push_back( std::move( bld ));
       return;
    }
 
@@ -35,7 +35,7 @@ includebeliefs( logic::beliefstate& blfs,
    {
       errortree::builder bld; 
       bld << "could not open file " << file. string( ) << "\n";
-      errs. push_back( errortree( std::move( bld )));  
+      errs. push_back( std::move( bld ));  
       return; 
    }
 
@@ -57,7 +57,7 @@ includebeliefs( logic::beliefstate& blfs,
       header << "there were parse errors in file "
              << file. string( ) << ":\n\n"; 
       header << parse_err. str( ); 
-      errs. push_back( errortree( std::move( header ))); 
+      errs. push_back( std::move( header )); 
    }
 }
 
@@ -71,7 +71,7 @@ checkproofs( logic::beliefstate& blfs,
    {
       errortree::builder bld;
       bld << "proof file " << file. string( ) << " does not exist";
-      errs. push_back( errortree( std::move( bld )));
+      errs. push_back( std::move( bld ));
       return false;
    }
 
@@ -80,7 +80,7 @@ checkproofs( logic::beliefstate& blfs,
    {
       errortree::builder bld;
       bld << "could not open proof file " << file. string( ) << "\n";
-      errs. push_back( errortree( std::move( bld )));
+      errs. push_back( std::move( bld ));
       return false;
    }
 
@@ -100,7 +100,7 @@ checkproofs( logic::beliefstate& blfs,
       header << "there were parse errors in proof file "
              << file. string( ) << ":\n\n";
       header << parse_err. str( ); 
-      errs. push_back( errortree( std::move( header )));
+      errs. push_back( std::move( header ));
       return false; 
    }
 
@@ -169,7 +169,8 @@ int main( int argc, char* argv[] )
 
    checkproofs( blfs, "examples/knaster_tarski.prf", err );
 
-   std::cout << err << "\n";
+   for( auto& e : err )
+      e. report( std::cout ); 
 
    return 0;
 }

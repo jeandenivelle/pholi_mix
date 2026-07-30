@@ -11,7 +11,6 @@ uint8_t errortree::limit99( uint8_t ser )
       return ser;
 }
 
-
 void errortree::printheader( indentation ind, std::ostream& out ) const
 {
    if( ser < 99 )
@@ -44,8 +43,7 @@ void errortree::print( indentation ind, std::ostream& out ) const
    printheader( ind, out );
    for( auto p = sub. begin( ); p != sub. end( ); ++ p )
    {
-      if( p != sub. begin( ))
-         out << '\n';
+      out << '\n';
       (*p) -> print( ind + 6, out );
    }
 }
@@ -55,8 +53,7 @@ void errortree::report( indentation ind, std::ostream& out )
    printheader( ind, out );
    for( auto p = sub. begin( ); p != sub. end( ); ++ p )
    {
-      if( p != sub. begin( ))
-         out << '\n';
+      out << '\n';
       (*p) -> report( ind + 6, out );
    }
 
@@ -68,14 +65,28 @@ errortree::~errortree( )
 {
    if( !reported )
    {
-      report( std::cerr );
-      std::cerr << "\n\n";
-      std::cerr << "unreported errors going out of scope\n";
-      std::abort( );
+      std::cerr << "UNREPORTED ERROR:\n";
+      report( indentation(3), std::cerr );
+      std::cerr << "\n";
    }
 
    for( auto& s : sub )
       delete s; 
+}
+
+void transfer( errorvector from, errorvector& into )
+{
+   for( auto& e : from )
+      into. push_back( std::move(e)); 
+}
+
+void transfer( errortree::builder header,
+               errorvector from, errorvector& into )
+{
+   auto tr = errortree( std::move( header ), 
+                        from. begin( ), from. end( ));
+
+   into. push_back( std::move( tr ));
 }
 
 
@@ -84,4 +95,17 @@ std::ostream& operator << ( std::ostream& out, const errortree& tr )
    tr. print( indentation(0), out );
    return out;
 }
+
+std::ostream& operator << ( std::ostream& out, const errorvector& vect )
+{
+   for( auto p = vect. begin( ); p != vect. end( ); ++ p )
+   {
+      if( p != vect. begin( ))
+         out << '\n';
+      out << *p;
+   }
+   out << '\n';
+   return out;
+}
+
 

@@ -91,49 +91,50 @@ void calc::proofchecker::setgoal( logic::exact fname )
    }
 }
 
-std::optional< calc::label > 
+bool
 calc::proofchecker::cut( const label& lab, logic::term fm )
 {
-   auto tp = gettype( fm );
+   auto tp = checkandresolve( *blfs, errors, seq. ctxt, fm );
    if( !tp. has_value( ))
-      return { }; 
+      return false; 
    
    if( tp. value( ). sel( ) != logic::type_prop )
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs ); 
-      prt << "Type of cut formula is not F, instead it is ";
+      prt << "Type of cut formula is not Prop, instead it is ";
       prt << tp. value( );
-      err -> push( std::move( bld ));
-      return { };
+      errors. push_back( std::move( bld ));
+      return false;
    }
 
    auto f1 = logic::term( logic::op_not,
              logic::term( logic::op_prop, fm ));
    auto f2 = logic::term( logic::op_not, fm );
 
-   return seq. append( lab, 
-      disjunction{ exists(f1), exists(f2), exists(fm) } );
+   seq. append( lab, disjunction{ exists(f1), exists(f2), exists(fm) } );
+
+   return true;
 }
 
-std::optional< calc::label >
+bool
 calc::proofchecker::branch( label disj, size_t choice,
                             const std::vector< std::string > & eigen )
 {
    size_t ind = try2find( disj, "main formula of branch" );
    if( ind == seq. stack. size( ))
-      return { };
+      return false;
 
    if( !is_dnf( disj, ind, "main formula of branch" ))
-      return { }; 
+      return false; 
 
    if( choice >= seq. at( ind ). get_dnf( ). size( ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
       prt << "branch: Choice " << choice;
       prt << " does not exist in " << seq. at( ind );
-      err -> push( std::move( bld ));
+      errors. push_back( std::move( bld ));
       return { };
    }
 
@@ -150,14 +151,14 @@ calc::proofchecker::branch( label disj, size_t choice,
 
    if( eigen. size( ) > ex. vars. size( ))
    { 
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "branch " << disj << " : ";
       bld << "there are too many eigenvariables: ";
       bld << "it is " << eigen. size( );
       bld << ", but the formula has only " << ex. vars. size( );
       bld << " variables";
-      err -> push( std::move( bld ));
-      return { };
+      errors. push_back( std::move( bld ));
+      return false;
    }
    
    seq. pushdecision( ind, choice );
@@ -172,12 +173,13 @@ calc::proofchecker::branch( label disj, size_t choice,
    }
 
    ++ disj; 
-   return seq. append( disj, 
-                       disjunction( { exists( std::move( ex. body )) } ));
+   seq. append( disj, disjunction( { exists( std::move( ex. body )) } ));
+
+   return true;
 }
 
 
-std::optional< calc::label >
+bool
 calc::proofchecker::expand( label lab, 
                             const identifier& ident, size_t occ )
 {
@@ -189,7 +191,7 @@ calc::proofchecker::expand( label lab,
    // for the types with which it is used. We don't need
    // to do anything.
 
-   expander def( ident, occ, *blfs, *err );
+   expander def( ident, occ, blfs );
       // We are using unchecked identifier exp. ident( ).
       // The expander will look only at exact overloads.
       // This guarantees type safety.
@@ -203,40 +205,42 @@ calc::proofchecker::expand( label lab,
    {
       auto res = seq. at( ind ). get_dnf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      return seq. append( lab, outermost( def, std::move( res ), 0 ));
+      seq. append( lab, outermost( def, std::move( res ), 0 ));
+      transfer( std::move( def. errs ), errors );
    }
 
    if( seq. at( ind ). is_unf( ))
    {
       auto res = seq. at( ind ). get_unf( );
       res = lift( std::move( res ), seq. liftdist( ind )); 
-      return seq. append( lab, outermost( def, std::move( res ), 0 )); 
+      seq. append( lab, outermost( def, std::move( res ), 0 )); 
+      transfer( std::move( def. errs ), errors );
    }
 
-   throw std::logic_error( "reached the unreachable" );
+   return true;
 }
 
 
-std::optional< calc::label >
+bool
 calc::proofchecker::expand( label lab, size_t var, size_t occ ) 
 {
 
    if( !seq. ctxt. hasdefinition( var ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
       prt << "expandlocal: variable ";
       prt << logic::term( logic::op_debruijn, var );
       prt << " does not have a definition";
-      err -> push( std::move( bld ));
-      return { };
+      errors. push_back( std::move( bld ));
+      return false;
    }
 
    auto def = localexpander( var, seq. ctxt. getdefinition( var ), occ );
 
    auto ind = try2find( lab, "formula to expand" );
    if( ind == seq. stack. size( ))
-      return { };
+      return false;
 
    // Now we need to look at the type of formula at hand:
 
@@ -247,7 +251,7 @@ calc::proofchecker::expand( label lab, size_t var, size_t occ )
    {
       auto res = seq. at( ind ). get_dnf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      return seq. append( lab, outermost( def, std::move( res ), 0 ));
+      seq. append( lab, outermost( def, std::move( res ), 0 ));
    }
 
    if( seq. at( ind ). is_unf( ))
@@ -256,11 +260,11 @@ calc::proofchecker::expand( label lab, size_t var, size_t occ )
 
    }
 
-   throw std::logic_error( "unreachable" );
+   return true;
 }
 
 
-std::optional< calc::label >
+bool
 calc::proofchecker::import( const identifier& ident, 
                             std::vector< logic::type > argtypes,
                             label name )
@@ -269,30 +273,33 @@ calc::proofchecker::import( const identifier& ident,
 
    for( auto& tp : argtypes )
    {
-      bool b = checkandresolve( *blfs, *err, tp );
+      bool b = checkandresolve( *blfs, errors, tp );
       if( b )
          ++ nrcorrect;
       else
       {
-         errorstack::builder bld; 
+         errortree::builder bld; 
          auto prt = pretty_printer( &bld, blfs );
          prt << "Bad structural type while importing " << ident << " : ";
          prt << tp;
-         err -> push( std::move( bld ));
+         errors. push_back( std::move( bld ));
       }
    }
  
    if( nrcorrect != argtypes. size( ))
       return { };
 
-   auto ex = findformula( *blfs, *err, ident, argtypes );
+   auto ex = findformula( *blfs, errors, ident, argtypes );
    if( !ex. has_value( ))
-      return { };  
+      return false;  
          // We can return quietly because findformula created an error. 
 
    const auto& fm = blfs -> at( ex. value( )). view_form( ). fm( );
-   return seq. append( name, disjunction( { exists( fm ) } ));
+   seq. append( name, disjunction( { exists( fm ) } ));
+
+   return true;
 }
+
 
 std::optional< calc::label > 
 calc::proofchecker::flatten( label lab )
@@ -390,25 +397,16 @@ calc::proofchecker::def( std::string_view name, logic::term val )
 {
    std::cout << "val in define = " << val << "\n";
 
-   size_t errsize = err -> size( );
+   errorvector type_errors;
 
-   auto tp = gettype( val );
+   auto tp = checkandresolve( *blfs, type_errors, seq. ctxt, val );
 
-   if( !tp. has_value( ))
+   if( type_errors. size( ) || !tp. has_value( ))
    {
-      auto bld = errorstack::builder( );
-      auto prt = pretty_printer( &bld, blfs, seq. ctxt );
-      prt << "type checking failed for let " << name << " := " << val;
-      err -> push( std::move( bld )); 
-      return false;
-   }
-
-   if( err -> size( ) != errsize )
-   {
-      auto bld = errorstack::builder( );
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
       prt << "type errors for let " << name << " := " << val;
-      err -> addheader( errsize, std::move( bld )); 
+      transfer( std::move( bld ), std::move( type_errors ), errors ); 
       return false;
    }
 
@@ -424,10 +422,10 @@ calc::proofchecker::removedef( )
 
    if( seq. ctxt. size( ) == 0 || !seq. ctxt. hasdefinition(0))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
       prt << "removedef: Last variable is not definition"; 
-      err -> push( std::move( bld ));
+      errors. push_back( std::move( bld ));
       return false;
    }
 
@@ -460,26 +458,26 @@ calc::proofchecker::removedef( )
 }
 
 
-std::optional< calc::label > 
+bool
 calc::proofchecker::instantiate( label lab,
                                  const std::vector< logic::term > & values )
 {
    size_t ind = try2find( lab, "instantiated formula" );
    if( ind == seq. stack. size( ))   
-      return { };
+      return false;
    
    if( !is_unf( lab, ind, "instantiated formula" ))
-      return { };
+      return false;
  
    if( seq. at( ind ). get_unf( ). vars. size( ) < values. size( ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "forallelim " << lab << " : ";
       bld << "There are " << values. size( ) << " instances, ";
       bld << "while the formula has only ";
       bld << seq. at( ind ). get_unf( ). vars. size( ) << " variables";
-      err -> push( std::move( bld ));
-      return { };
+      errors. push_back( std::move( bld ));
+      return false;
    }
 
    auto mainform = seq. at( ind ). get_unf( );
@@ -491,7 +489,7 @@ calc::proofchecker::instantiate( label lab,
    for( size_t i = 0; i != values. size( ); ++ i )
    {
       auto inst = values. at(i);
-      auto tp = gettype( inst );
+      auto tp = checkandresolve( *blfs, errors, seq. ctxt, inst );
 
       if( tp. has_value( ))
       {
@@ -502,22 +500,22 @@ calc::proofchecker::instantiate( label lab,
          }
          else
          {
-            auto bld = errorstack::builder( );
+            errortree::builder bld;
             auto prt = pretty_printer( &bld, blfs, seq. ctxt );
             prt << "structtype of value " << inst << " is wrong.\n";
             prt << "It is " << tp. value( ) << ", but it must be ";
             prt << mainform. vars. at(i). tp;
-            err -> push( std::move( bld ));
+            errors. push_back( std::move( bld ));
          }
       }
    }
 
    if( nrcorrecttypes != values. size( ))
    {
-      auto bld = errorstack::builder( );
+      errortree::builder bld; 
       bld << "unable to instantiate, typechecking failed";
-      err -> push( std::move( bld ));
-      return { };
+      errors. push_back( std::move( bld ));
+      return false;
    }
 
    // We do not remove the outermost forall, because its
@@ -533,10 +531,12 @@ calc::proofchecker::instantiate( label lab,
    // convert formula into a DNF is the quantification is empty.
 
    ++ lab; 
-   return seq. append( lab, std::move( mainform ) );
+   seq. append( lab, std::move( mainform ) );
+
+   return true;
 }
 
-std::optional< calc::label > 
+bool
 calc::proofchecker::simplify( label names )
 {
    saturation sat; 
@@ -566,18 +566,18 @@ calc::proofchecker::simplify( label names )
    }
 
    if( lab != names )  
-      return names;      // Something was simplified.
+      return true;         // Something was simplified.
    else
-      return { };        // Nothing was simplified.
+      return false;        // Nothing was simplified.
 }
 
 std::optional< calc::label > calc::proofchecker::merge( )
 {  
    if( seq. nrdecisions( ) == 0 )
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "merge: there is no decision";
-      err -> push( std::move( bld ));
+      errors. push_back( std::move( bld ));
       return { };
    }
 
@@ -589,13 +589,13 @@ std::optional< calc::label > calc::proofchecker::merge( )
    {
       if( seq. ctxt. hasdefinition(var)) 
       {
-         errorstack::builder bld;
+         errortree::builder bld;
          auto prt = pretty_printer( &bld, blfs, seq. ctxt );
          prt << "Cannot merge, because ";
          prt << "variable " << logic::term( logic::op_debruijn, var );
          prt << " is defined (while it must be assumed)\n"; 
          prt << seq. ctxt << "\n";
-         err -> push( std::move( bld )); 
+         errors. push_back( std::move( bld )); 
          return { };
       }
    }
@@ -634,11 +634,11 @@ std::optional< calc::label > calc::proofchecker::merge( )
 
    if( !seq. stack. back( ). second. is_dnf( ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
       prt << "Resolve: Last formula is not DNF: ";
       prt << seq. stack. back( ). second;
-      err -> push( std::move( bld )); 
+      errors. push_back( std::move( bld )); 
       return { };
    }
 
@@ -783,32 +783,33 @@ calc::proofchecker::copy( label lab )
 }
 
 
-std::optional< calc::label > 
-calc::proofchecker::fake( logic::term trmp, label name )
+bool
+calc::proofchecker::fake( logic::term donald, label name )
 {
-   auto tp = gettype( trmp );
+   auto tp = checkandresolve( *blfs, errors, seq. ctxt, donald );
    if( !tp. has_value( ))
-      return { } ;  // Error is already created by checktype. 
+      return false;  // Error is already created by checktype. 
 
    if( tp. value( ). sel( ) != logic::type_prop )
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
-      prt << "Type of faked formala is not F, instead it is ";
+      prt << "Type of faked formala is not Prop, instead it is ";
       prt << tp. value( );
-      err -> push( std::move( bld ));
-      return { }; 
+      errors. push_back( std::move( bld ));
+      return false; 
    }
    else
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
-      prt << "Faked proof of " << trmp; 
-      err -> push( std::move( bld ));
+      prt << "Faked proof of " << donald; 
+      errors. push_back( std::move( bld ));
 
-      name = seq. append( name, disjunction( { exists( std::move( trmp )) } ));
+      name = seq. append( name, 
+                     disjunction( { exists( std::move( donald )) } ));
       ++ status. nrfakes;
-      return name;
+      return true;
    }
 }
 
@@ -890,20 +891,6 @@ calc::proofchecker::define( const std::string& name,
 }
 
 
-std::optional< logic::type >
-calc::proofchecker::gettype( logic::term& tm ) 
-{
-   size_t ss = seq. ctxt. size( );
-
-   auto tp = checkandresolve( *blfs, *err, seq. ctxt, tm );
-
-   if( seq. ctxt. size( ) != ss )
-      throw std::logic_error( "context not restored" );
-
-   return tp; 
-}
-
-
 logic::term calc::proofchecker::replacedebruijn( logic::term tm )
 {
    if( db. size( ) != seq. ctxt. size( ))
@@ -944,24 +931,24 @@ size_t calc::proofchecker::try2find( label lab, std::string_view descr )
    size_t ind = seq. find( lab );
    if( ind == seq. stack. size( ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "Unknown label " << lab << " used for " << descr; 
-      err -> push( std::move( bld ));
+      errors. push_back( std::move( bld ));
    }
    return ind;
 }
 
 bool
 calc::proofchecker::is_dnf( const label& lab, size_t ind, 
-                            std::string_view descr )
+                              std::string_view descr )
 {
    if( !seq. at( ind ). is_dnf( ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
       prt << descr << " is not in DNF : ";
       seq. at( ind ). print( prt );
-      err -> push( std::move( bld ));
+      errors. push_back( std::move( bld ));
       return false; 
    }
    else
@@ -974,11 +961,11 @@ calc::proofchecker::is_unf( const label& lab, size_t ind,
 {
    if( !seq. at( ind ). is_unf( ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
       prt << descr << " is not in UNF : ";
       seq. at( ind ). print( prt );
-      err -> push( std::move( bld )); 
+      errors. push_back( std::move( bld )); 
       return false; 
    }
    else

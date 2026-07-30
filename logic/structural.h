@@ -19,13 +19,13 @@ namespace logic
 
    void checkformula( const beliefstate& blfs, 
                       const identifier& name, term& fm,
-                      const char* descr, errorvector& err );
+                      const char* descr, errorvector& errors );
       // blfs is const, but at the same time fm occurs in
       // blfs, which is not const. 
       // descr is used when an error is produced.
 
    void 
-   checkandresolve( beliefstate& everything, errorvector& err );
+   checkandresolve( beliefstate& everything, errorvector& errs );
 
    void uncheck( type& tp );
       // Make type tp unchecked again.
@@ -56,7 +56,7 @@ namespace logic
       // Check and resolve overloads. 
       // We won't look at dependencies. Dependencies are checked by a separate
       // function. In case of error, we return the empty optional.
-      // We don't throw exceptions.
+      // We don't throw exceptions, and always restore the context.
 
    std::optional<type >
    checkandresolve( const beliefstate& blfs, errorvector& errors, 

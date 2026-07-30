@@ -32,8 +32,7 @@ namespace calc
       bool init( ) { return true; }
         // Resolve types, look up the name, return true if it succeeded.
 
-      bool has_errors( ) const 
-         { return check. err. size( ); }
+      bool has_errors( ) const { return check. errors. size( ); }
 
    };
 

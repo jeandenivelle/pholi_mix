@@ -9,7 +9,7 @@
 // one should always put them in a list or container.
 
 // Any error that is unreported will be aggressively printed 
-// when destroyed, and cause the destructor to crash. 
+// when destroyed. 
 
 #ifndef ERRORTREE_
 #define ERRORTREE_
@@ -96,7 +96,7 @@ public:
       push_sub( s1, s2 );
    }
 
-   errortree( builder&& meh, uint8_t ser = 99 )
+   errortree( builder meh, uint8_t ser = 99 )
       : header( std::move( meh ). str( )),
         ser( limit99( ser ))
    { }
@@ -130,9 +130,14 @@ public:
 using errorvector = std::vector< errortree > ;
 
 
-std::ostream& operator << ( std::ostream& out, const errortree& tr );
-std::ostream& operator << ( std::ostream& out, const errorvector& v );
-   // Do not count as reported.
+void transfer( errorvector from, errorvector& into );
+
+void transfer( errortree::builder header,
+               errorvector from, errorvector& into );
+
+std::ostream& operator << ( std::ostream& out, const errortree& );
+std::ostream& operator << ( std::ostream& out, const errorvector& );
+   // Both do not count as reported.
 
 #endif
 

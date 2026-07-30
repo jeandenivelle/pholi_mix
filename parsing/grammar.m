@@ -442,9 +442,8 @@ ProofSeq =>
 SequentProofStart => 
    PCT_SEQUENT Identifier : id LBRACE StructTypeSeq : tps RBRACE COLON
 {
-   errorstack err;
-   auto prf = calc::beliefproof( std::move( id ), std::move( tps ),
-                                 &blfs, &err );
+   errorvector err;
+   auto prf = calc::beliefproof( std::move( id ), std::move( tps ), &blfs );
    prf. init( );
    if( prf. has_errors( ))
    {
@@ -457,8 +456,8 @@ SequentProofStart =>
 |
    PCT_SEQUENT Identifier : id COLON 
 {
-   errorstack err;
-   auto prf = calc::beliefproof( std::move( id ), { }, &blfs, &err );
+   errorvector err;
+   auto prf = calc::beliefproof( std::move( id ), { }, &blfs );
    prf. init( );
    if( prf. has_errors( ))
    {

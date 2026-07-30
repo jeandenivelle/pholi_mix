@@ -10,27 +10,19 @@
 
 #include "logic/beliefstate.h"
 #include "logic/proofstatus.h"
+#include "bar.h"
 #include "errortree.h"
 #include "sequent.h"
 
 namespace calc
 {
 
-   struct bar
-   {
-      size_t len;
-      bar( size_t len = 70 )
-         : len( len )
-      { }
-   };
-
    std::ostream& operator << ( std::ostream& out, bar b );
-
 
    struct proofchecker
    {
       const logic::beliefstate* blfs; 
-      errorvector err;
+      errorvector errors;
 
       sequent seq;
       indexedstack< std::string, size_t > db;
@@ -43,25 +35,22 @@ namespace calc
 
       void setgoal( logic::exact fname ); 
 
-      std::optional< label > cut( const label& lab, logic::term fm );
+      bool cut( const label& lab, logic::term fm );
 
       // If you want to parse expressions, you must set the
       // names of the eigenvariables.
 
-      std::optional< label >  
+      bool 
       branch( label disj, size_t choice, 
               const std::vector< std::string > & eigen = { } );
 
-      std::optional< label > 
-      expand( label fm, const identifier& ident, size_t occ ); 
+      bool expand( label fm, const identifier& ident, size_t occ ); 
 
-      std::optional< label > 
-      expand( label fm, size_t var, size_t occ );
+      bool expand( label fm, size_t var, size_t occ );
          // var must be a De Bruijn index. 
 
-      std::optional< label >
-      import( const identifier& ident, 
-              std::vector< logic::type > argtypes, label name );
+      bool import( const identifier& ident, 
+                   std::vector< logic::type > argtypes, label name );
          // Imported formula will be called 'name'.
 
       std::optional< label > flatten( label fm );
@@ -73,10 +62,10 @@ namespace calc
       bool removedef( );
          // Remove the last local definition by substituting it away.
 
-      std::optional< label > 
+      bool
       instantiate( label lab, const std::vector< logic::term > & values );
 
-      std::optional< label > simplify( label names );
+      bool simplify( label names );
          // We always simplify everything. The return value
          // is empty if no simplification was possible. 
          // Since we do not know how to resolve names from parents,
@@ -92,8 +81,7 @@ namespace calc
 
       std::optional< label > copy( label lab );
 
-      std::optional< label > 
-      fake( logic::term trmp, label name );
+      bool fake( logic::term donald, label name );
 
       label labelof( ssize_t cnt ) const;
          // >= 0 looks from the beginning,
@@ -107,9 +95,6 @@ namespace calc
       logic::term replacedebruijn( logic::term tm );
 
    private: 
-       
-      std::optional< logic::type > gettype( logic::term& tm );
-
       void assume( const std::string& name, const logic::type& tp );
 
       void define( const std::string& name, 

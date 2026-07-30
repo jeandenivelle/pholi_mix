@@ -2,39 +2,42 @@
 #include "structural.h"
 #include "pretty.h"
 #include "cmp.h"
+#include "bar.h"
 
 void 
 logic::checkformula( const beliefstate& blfs, 
                      const identifier& name, term& fm, 
-                     const char* descr, errorstack& err )
+                     const char* descr, errorvector& errs )
 {
-   const size_t errstart = err. size( );
-
    fm = replace_debruijn( std::move( fm ));
-   auto tp = checkandresolve( blfs, err, fm );
+
+   errorvector ourerrors;
+   auto tp = checkandresolve( blfs, ourerrors, fm );
 
    if( tp. has_value( ) && tp. value( ). sel( ) != type_prop )
    {
-      errorstack::builder bld;
-      bld << "Formula " << name << " does not have type Form. ";
+      errortree::builder bld;
+      bld << "Formula " << name << " does not have type Prop. ";
       bld << "Instead it has type ";
       pretty::print( bld, blfs, tp. value( ), {0,0} );
-      err. push( std::move( bld )); 
+      ourerrors. push_back( std::move( bld )); 
    }
 
-   if( err. size( ) > errstart )
+   if( ourerrors. size( ))
    {
-      errorstack::builder bld;
+      errortree::builder bld;
       bld << "In " << descr << " " << name << ": ";
-      err. addheader( errstart, std::move( bld ));
+      errs. push_back( errortree( std::move( bld ), 
+                       ourerrors. begin( ), ourerrors. end( )));
    }
 }
 
 
-void logic::checkandresolve( beliefstate& everything, errorstack& err )
+void 
+logic::checkandresolve( beliefstate& everything, errorvector& errors )
 {
-   // The identifiers that have a repeated struct definition,
-   // that we already complained about. It is a bit tricky
+   // These are the identifiers that have a repeated struct definition,
+   // and that we already complained about. It is a bit tricky
    // to get out the exact identifier. If it would be easier,
    // we could check that we are the first overload.
 
@@ -50,7 +53,7 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
 
          if( sdef. size( ) > 1 && !complained. contains( id ))
          {
-            errorstack::builder bld;
+            errortree::builder bld;
             bld << "identifier " << id << " has " << sdef. size( ); 
             bld << " struct-defs: ";
             for( auto p = sdef. begin( ); p != sdef. end( ); ++ p )
@@ -59,7 +62,7 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
                   bld << ", ";
                bld << *p;
             }
-            err. push( std::move( bld ));
+            errors. push_back( std::move( bld ));
 
             complained. insert( id );
          }
@@ -81,9 +84,9 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
          const auto& id = blf. ident( );
          if( id == P || id == O )
          {
-            errorstack::builder bld;
+            errortree::builder bld;
             bld << "identifier cannot be used for a struct def: " << id;
-            err. push( std::move( bld ));
+            errors. push_back( std::move( bld ));
          }
       }
    }
@@ -92,7 +95,7 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
 
    for( auto& blf : everything )
    {
-      size_t errstart = err. size( );
+      errorvector blf_errors;    // Errors in blf. 
 
       switch( blf. sel( ))
       {
@@ -103,24 +106,26 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
 
             for( auto& fld : str )
             {
-               size_t errstartfield = err. size( );
+               errorvector fld_errors;    // Errors in this field. 
  
-               checkandresolve( everything, err, fld. tp );
-               if( err. size( ) > errstartfield ) 
+               checkandresolve( everything, fld_errors, fld. tp );
+               if( fld_errors. size( ))
                {
-                  errorstack::builder bld;
-                  bld << "In type of field " << fld. name << ":";
-                  err. addheader( errstartfield, std::move( bld ));
+                  errortree::builder hd;
+                  hd << "In type of field " << fld. name << ":";
+                  blf_errors. push_back( errortree( std::move( hd ), 
+                        fld_errors. begin( ), fld_errors. end( )));
                }
             }
 
             blf. view_struct( ). update_def( std::move( str ));
- 
-            if( err. size( ) > errstart )
+           
+            if( blf_errors. size( ))
             {
-                errorstack::builder bld;
-                bld << "In a definition of struct " << blf. ident( ) << ":";
-                err. addheader( errstart, std::move( bld ));
+                errortree::builder hd;
+                hd << "In a definition of struct " << blf. ident( ) << ":";
+                errors. push_back( errortree( std::move( hd ),
+                      blf_errors. begin( ), blf_errors. end( )));
             }
          }
          break;
@@ -129,14 +134,15 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
          {
             auto sym = blf. view_symbol( );
             auto tp = sym. extr_tp( );
-            checkandresolve( everything, err, tp ); 
+            checkandresolve( everything, blf_errors, tp ); 
             sym. update_tp( tp );
 
-            if( err. size( ) > errstart )
+            if( blf_errors. size( ))
             {
-               errorstack::builder bld;
-               bld << "In a declaration of symbol " << blf. ident( ) << ":";
-               err. addheader( errstart, std::move( bld ));
+               errortree::builder hd;
+               hd << "In a declaration of symbol " << blf. ident( ) << ":";
+               errors. push_back( errortree( std::move( hd ), 
+                     blf_errors. begin( ), blf_errors. end( )));
             }
          }
          break;
@@ -148,15 +154,16 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
             auto def = blf. view_def( );
             {
                auto tp = def. extr_tp( );
-               checkandresolve( everything, err, tp );
+               checkandresolve( everything, blf_errors, tp );
                def. update_tp( tp );
             }
 
-            if( err. size( ) > errstart )
+            if( blf_errors. size( ))
             {
-               errorstack::builder bld;
-               bld << "In a definition of " << blf. ident( ) << ":";
-               err. addheader( errstart, std::move( bld ));
+               errortree::builder hd;
+               hd << "In a definition of " << blf. ident( ) << ":";
+               errors. push_back( errortree( std::move( hd ),
+                     blf_errors. begin( ), blf_errors. end( )));
             }
          }
          break;
@@ -195,7 +202,7 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
 
    for( auto& blf : everything )
    {
-      size_t errstart = err. size( );
+      errorvector blf_errors;   // errors in blf.
 
       switch( blf. sel( ))
       {
@@ -204,27 +211,28 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
             auto def = blf. view_def( );
             auto tm = def. extr_val( );
 
-            tm = replace_debruijn( std::move(tm));
-            auto tp = checkandresolve( everything, err, tm );
+            tm = replace_debruijn( std::move(tm) );
+            auto tp = checkandresolve( everything, blf_errors, tm );
             def. update_val( tm );
 
             if( tp. has_value( ) && !equal( tp. value( ), def. tp( )))
             {
-               errorstack::builder bld;
+               errortree::builder bld;
                bld << "Declared type differs from true type:\n";
                bld << "Declared :   "; 
                pretty::print( bld, everything, def. tp( ), {0,0} );
                bld << "\n";
                bld << "True     :   ";
                pretty::print( bld, everything, tp. value( ), {0,0} ); 
-               err. push( std::move( bld ));   
+               blf_errors. push_back( std::move( bld ));   
             }
 
-            if( err. size( ) > errstart )
+            if( blf_errors. size( )) 
             {
-               errorstack::builder bld;
-               bld << "In a definition of " << blf. ident( ) << ":";
-               err. addheader( errstart, std::move( bld ));
+               errortree::builder hd;
+               hd << "In a definition of " << blf. ident( ) << ":";
+               errors. push_back( errortree( std::move( hd ),
+                     blf_errors. begin( ), blf_errors. end( ))); 
             }
          }
          break; 
@@ -234,7 +242,8 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
          {
             auto f = blf. view_form( ); 
             term fm = f. extr_fm( );
-            checkformula( everything, blf. ident( ), fm, "formula", err );
+            checkformula( everything, blf. ident( ), fm, "formula", 
+                          blf_errors );
             {
                auto univ = fm;
                while( univ. sel( ) == op_forall )
@@ -246,6 +255,14 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
                }
             }
             f. update_fm( fm );
+
+            if( blf_errors. size( ))
+            {
+               errortree::builder hd;
+               hd << "In formula " << blf. ident( ) << ":";
+               errors. push_back( errortree( std::move( hd ),
+                     blf_errors. begin( ), blf_errors. end( )));
+            }
          }
          break; 
 
@@ -254,23 +271,6 @@ void logic::checkandresolve( beliefstate& everything, errorstack& err )
    }
 
 }
-
-
-#if 0
-
-logic::correctness
-logic::checkproofterm( std::ostream& out, const beliefstate& state, 
-                       const term& proof, size_t cutoff )
-{
-   correctness corr;
-
-   checker check( &state, cutoff, proof );
-
-   context ctxt;
-   position pos;
-}
-
-#endif
 
 
 logic::term
@@ -400,7 +400,8 @@ logic::term logic::replace_debruijn( term t )
 }
 
 bool 
-logic::checkandresolve( const beliefstate& blfs, errorstack& errors, type& tp ) 
+logic::checkandresolve( const beliefstate& blfs, 
+                        errorvector& errors, type& tp ) 
 {
    if constexpr( false )
    {
@@ -437,23 +438,23 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors, type& tp )
  
          if( defs. size( ) == 0 ) 
          {
-            errorstack::builder bld;
+            errortree::builder bld;
 
             bld << "identifier without struct-def used as type: ";
             bld << id. id( ); 
-            errors. push( std::move( bld ));
+            errors. push_back( std::move( bld ));
 
             return false;
          }
 
          if( defs. size( ) > 1 )
          {
-            errorstack::builder bld;
+            errortree::builder bld;
 
             bld << "identifier used as type has " << defs. size( );
             bld << " struct-defs: ";
             bld << id. id( ); 
-            errors. push( std::move( bld ));
+            errors. push_back( std::move( bld ));
 
             return false;
          }
@@ -486,12 +487,13 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors, type& tp )
          return correct;
       }
    } 
+
    std::cout << "checkandresolve: " << tp. sel( ) << "\n";
    throw std::runtime_error( "not implemented for this case" );
 }
 
 std::optional< logic::type >
-logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
+logic::checkandresolve( const beliefstate& blfs, errorvector& errors,
                         term& t )
 {
    context ctxt;
@@ -505,20 +507,15 @@ namespace logic
 {
    namespace
    {
-      errorstack::builder errorheader( const beliefstate& blfs,
-                                       context& ctxt, 
-                                       const term& t )
+      errortree::builder 
+      errorheader( const beliefstate& blfs, context& ctxt, const term& t )
       {
-         errorstack::builder res;
-         res << '\n';
-         for( unsigned int i = 0; i != 70; ++ i )
-            res. put( '-' );
-         res. put( '\n' );
+         errortree::builder res;
+         res << bar( 70 ) << '\n'; 
  
          auto un = pretty::print( res, blfs, ctxt );
          res << "Term:\n   ";
          pretty::print( res, blfs, un, t, {0,0} );
-         res << "\n";
          return res; 
       }
    }
@@ -526,7 +523,7 @@ namespace logic
 
 
 std::optional< logic::type > 
-logic::checkandresolve( const beliefstate& blfs, errorstack& errors,  
+logic::checkandresolve( const beliefstate& blfs, errorvector& errors,  
                         context& ctxt, term& t ) 
 {
    if constexpr( false )
@@ -547,7 +544,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
          err << "Can't check an exact identifier!\n";
          err << "(The term must be made unchecked first. ";
          err << "This is an internal problem) \n";
-         errors. push( std::move( err ));
+         errors. push_back( std::move( err ));
          return { };
       }
 
@@ -562,7 +559,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
          { 
             auto err = errorheader( blfs, ctxt, t );
             err << "use of unknown identifier " << ident;
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
             return { };
          } 
 
@@ -571,7 +568,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             auto err = errorheader( blfs, ctxt, t );
             err << "identifier with multiple overloads ";
             err << "used without arguments: " << ident << "\n";
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
             return { };
          }
 
@@ -592,9 +589,9 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             // This means that the data structure is corrupted.
             // We don't try to pretty print, because it would crash.
 
-            errorstack::builder err;  
+            errortree::builder err;  
             err << "De Bruijn index #" << index << " is out of range\n";
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
             return { }; 
          }
          return ctxt. gettype( index ); 
@@ -622,7 +619,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             auto err = errorheader( blfs, ctxt, t );
             err << "argument of logical operator has wrong type ";
             pretty::print( err, blfs, tp. value( ), {0,0} ); 
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
          }
 
          return type( type_prop );
@@ -656,7 +653,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             auto err = errorheader( blfs, ctxt, t );
             err << "first argument of logical operator has wrong type ";
             pretty::print( err, blfs, tp1. value( ), {0,0} ); 
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
          }
 
          if( tp2. has_value( ) && tp2. value( ). sel( ) != type_prop )
@@ -664,7 +661,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             auto err = errorheader( blfs, ctxt, t );
             err << "second argument of logical operator has wrong type ";
             pretty::print( err, blfs, tp2. value( ), {0,0} ); 
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
          }
 
          return type( type_prop ); 
@@ -694,7 +691,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             err << "first argument of equality must be O, but is ";
             pretty::print( err, blfs, tp1. value( ), {0,0} );
             err << "\n";
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
          }
 
          if( tp2. has_value( ) && tp2. value( ). sel( ) != type_obj )
@@ -702,7 +699,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             auto err = errorheader( blfs, ctxt, t );
             err << "second argument of equality must be O, but is ";
             pretty::print( err, blfs, tp2. value( ), {0,0} ); 
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
          }
 
          return type( type_prop ); 
@@ -714,16 +711,15 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
          auto quant = t. view_quant( );
 
          const size_t contextsize = ctxt. size( );
-         const size_t errstart = errors. size( );
-            // If we produce errors, they start here.
 
          bool correct = true;
+         errorvector type_errors;
 
          for( size_t i = 0; i != quant. size( ); ++ i )
          {
             auto vt = quant. extr_var(i);
              
-            if( !checkandresolve( blfs, errors, vt. tp ))
+            if( !checkandresolve( blfs, type_errors, vt. tp ))
                correct = false;
 
             quant. update_var( i, vt );
@@ -731,9 +727,12 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
 
          if( !correct )
          {
-            auto err = errorheader( blfs, ctxt, t );  
-            err << "In structural type of quantifier:";
-            errors. addheader( errstart, std::move( err ));
+            auto hd = errorheader( blfs, ctxt, t );  
+            hd << "In structural type of quantifier:";
+            errors. push_back( 
+               errortree( std::move(hd), 
+                          type_errors. begin( ), type_errors. end( )));
+
             return type( type_prop ); 
          }
 
@@ -757,12 +756,12 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
              bodytype. value( ). sel( ) != type_prop )
          {
             auto err = errorheader( blfs, ctxt, t );
-            err << "body of quantifier does have type Form. Instead it is: ";
+            err << "body of quantifier does have type Prop. Instead it is: ";
             pretty::print( err, blfs, bodytype. value( ), {0,0} );
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
          }
 
-         // Whatever happened, the result is always form:
+         // Whatever happened, the result is always Prop:
 
          return type_prop; 
       }
@@ -785,7 +784,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
          let. update_val( val );
      
          // If we have a declared type, the value has a type,
-         // and these types differ, we create an error message,
+         // and these types differ, we create a nice error message,
          // and replace the declared type by the type of the value. 
 
          if( decltype_ok && valtype. has_value( ) &&
@@ -796,7 +795,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             pretty::print( err, blfs, let. var( ). tp, {0,0} ); 
             err << " differs from true type ";
             pretty::print( err, blfs, valtype. value( ), {0,0} );
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
 
             vt = let. extr_var( );
             vt. tp = valtype. value( );
@@ -811,7 +810,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             auto err = errorheader( blfs, ctxt, t );
             err << "let: replaced ill-formed type by ";
             pretty::print( err, blfs, valtype. value( ), {0,0} );
-            errors. push( std::move( err ));
+            errors. push_back( std::move( err ));
 
             vt = let. extr_var( );
             vt. tp = valtype. value( );
@@ -881,7 +880,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
             {
                auto err = errorheader( blfs, ctxt, t );
                err << "unknown identifier '" << ident << "' used as function";
-               errors. push( std::move( err ));
+               errors. push_back( std::move( err ));
                return { };
             }
 
@@ -917,7 +916,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
                   logic::pretty::print( err, blfs, argtypes[i], {0,0} ); 
                }
 
-               errors. push( std::move( err )); 
+               errors. push_back( std::move( err )); 
                return { };
             }
  
@@ -933,7 +932,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
                   err << results[i]. first;
                }
                err << "\n";
-               errors. push( std::move( err ));
+               errors. push_back( std::move( err ));
                return { };
             }
  
@@ -966,8 +965,7 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
                err << "   "; 
                pretty::print( err, blfs, argtypes[i], {0,0} );
             }
-            errors. push( std::move( err ));
-
+            errors. push_back( std::move( err ));
             return { };
          }
       }
@@ -978,14 +976,13 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
 
          bool correct = true;
 
-         size_t errstart = errors. size( );
-
+         errorvector type_errors;
          for( size_t i = 0; i != lamb. size( ); ++ i ) 
          {
             auto vt = lamb. extr_var(i);
                // We need to extract, because we must resolve overloads.
 
-             if( !checkandresolve( blfs, errors, vt. tp ))
+             if( !checkandresolve( blfs, type_errors, vt. tp ))
                correct = false;
 
             lamb. update_var( i, vt );
@@ -993,10 +990,11 @@ logic::checkandresolve( const beliefstate& blfs, errorstack& errors,
 
          if( !correct )
          {
-            auto err = errorheader( blfs, ctxt, t ); 
-            err << "\n";
-            err << "In structural type of lambda";
-            errors. addheader( errstart, std::move( err ));
+            auto hd = errorheader( blfs, ctxt, t ); 
+            hd << "\n";
+            hd << "In structural type of lambda";
+            errors. push_back( errortree( std::move( hd ),
+                               type_errors. begin( ), type_errors. end( )));
             return { };
          }
 
