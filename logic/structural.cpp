@@ -27,8 +27,7 @@ logic::checkformula( const beliefstate& blfs,
    {
       errortree::builder bld;
       bld << "In " << descr << " " << name << ": ";
-      errs. push_back( errortree( std::move( bld ), 
-                       ourerrors. begin( ), ourerrors. end( )));
+      transfer( std::move( bld ), std::move( ourerrors ), errs );
    }
 }
 
@@ -113,8 +112,8 @@ logic::checkandresolve( beliefstate& everything, errorvector& errors )
                {
                   errortree::builder hd;
                   hd << "In type of field " << fld. name << ":";
-                  blf_errors. push_back( errortree( std::move( hd ), 
-                        fld_errors. begin( ), fld_errors. end( )));
+                  transfer( std::move( hd ), 
+                            std::move( fld_errors ), blf_errors );
                }
             }
 
@@ -124,8 +123,8 @@ logic::checkandresolve( beliefstate& everything, errorvector& errors )
             {
                 errortree::builder hd;
                 hd << "In a definition of struct " << blf. ident( ) << ":";
-                errors. push_back( errortree( std::move( hd ),
-                      blf_errors. begin( ), blf_errors. end( )));
+                transfer( std::move( hd ),
+                          std::move( blf_errors ), errors );
             }
          }
          break;
@@ -141,8 +140,7 @@ logic::checkandresolve( beliefstate& everything, errorvector& errors )
             {
                errortree::builder hd;
                hd << "In a declaration of symbol " << blf. ident( ) << ":";
-               errors. push_back( errortree( std::move( hd ), 
-                     blf_errors. begin( ), blf_errors. end( )));
+               transfer( std::move( hd ), std::move( blf_errors ), errors );
             }
          }
          break;
@@ -162,8 +160,7 @@ logic::checkandresolve( beliefstate& everything, errorvector& errors )
             {
                errortree::builder hd;
                hd << "In a definition of " << blf. ident( ) << ":";
-               errors. push_back( errortree( std::move( hd ),
-                     blf_errors. begin( ), blf_errors. end( )));
+               transfer( std::move( hd ), std::move( blf_errors ), errors );
             }
          }
          break;
@@ -231,8 +228,7 @@ logic::checkandresolve( beliefstate& everything, errorvector& errors )
             {
                errortree::builder hd;
                hd << "In a definition of " << blf. ident( ) << ":";
-               errors. push_back( errortree( std::move( hd ),
-                     blf_errors. begin( ), blf_errors. end( ))); 
+               transfer( std::move( hd ), std::move( blf_errors ), errors );
             }
          }
          break; 
@@ -260,8 +256,7 @@ logic::checkandresolve( beliefstate& everything, errorvector& errors )
             {
                errortree::builder hd;
                hd << "In formula " << blf. ident( ) << ":";
-               errors. push_back( errortree( std::move( hd ),
-                     blf_errors. begin( ), blf_errors. end( )));
+               transfer( std::move( hd ), std::move( blf_errors ), errors );
             }
          }
          break; 
@@ -729,10 +724,7 @@ logic::checkandresolve( const beliefstate& blfs, errorvector& errors,
          {
             auto hd = errorheader( blfs, ctxt, t );  
             hd << "In structural type of quantifier:";
-            errors. push_back( 
-               errortree( std::move(hd), 
-                          type_errors. begin( ), type_errors. end( )));
-
+            transfer( std::move( hd ), std::move( type_errors ), errors );
             return type( type_prop ); 
          }
 
@@ -993,8 +985,7 @@ logic::checkandresolve( const beliefstate& blfs, errorvector& errors,
             auto hd = errorheader( blfs, ctxt, t ); 
             hd << "\n";
             hd << "In structural type of lambda";
-            errors. push_back( errortree( std::move( hd ),
-                               type_errors. begin( ), type_errors. end( )));
+            transfer( std::move( hd ), std::move( type_errors ), errors );
             return { };
          }
 

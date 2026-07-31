@@ -5,8 +5,11 @@
 // the old, stack-based approach was incompatible with value
 // semantics. Now there is a single class, and errors have
 // to be collected in a container of choice first. 
-// As a general rule, one should not collect single errors,
-// one should always put them in a list or container.
+// As a general rule, the user never deals with single errors.
+// one should always put them in a container.
+// We always use vector, and there are some functions that
+// suppport this. In principle, errors should be put in a set, 
+// or perhaps a multiset.
 
 // Any error that is unreported will be aggressively printed 
 // when destroyed. 

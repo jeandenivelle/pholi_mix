@@ -57,7 +57,7 @@
 %symbol{ std::string } LABEL 
 %symbol{ } PCT_BEGIN PCT_END PCT_SEQUENT PCT_CUT 
 
-%symbol{ calc::beliefproof } SequentProof SequentProofStart
+%symbol{ calc::proofcheckerwithname } SequentProof SequentProofStart
 
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }

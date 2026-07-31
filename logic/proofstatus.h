@@ -11,7 +11,7 @@
 namespace logic
 {
    // We don't try to store the proof itself, only the fact
-   // that the formula was proven: 
+   // that the formula was proven. This class must be improved.
 
    struct proofstatus
    {
@@ -29,8 +29,9 @@ namespace logic
       exact::unordered_map< uint64_t > dependencies;
          // Exact identifiers that the proof depends on.
 
-      proofstatus( ) 
-         : nrsteps(0),
+      proofstatus( const char* calcname ) 
+         : calcname( calcname ),
+           nrsteps(0),
            nrfakes(1)
       { }
 

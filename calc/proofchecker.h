@@ -9,15 +9,12 @@
 #include <string_view>
 
 #include "logic/beliefstate.h"
-#include "logic/proofstatus.h"
 #include "bar.h"
 #include "errortree.h"
 #include "sequent.h"
 
 namespace calc
 {
-
-   std::ostream& operator << ( std::ostream& out, bar b );
 
    struct proofchecker
    {
@@ -27,18 +24,22 @@ namespace calc
       sequent seq;
       indexedstack< std::string, size_t > db;
 
-      logic::proofstatus status; 
+      uint64_t nrfakes;
+      logic::exact::unordered_map< uint64_t > dependencies;
+         // Exact identifiers occurring in the proof. 
 
-      explicit proofchecker( const logic::beliefstate* blfs )
+      explicit proofchecker( const logic::beliefstate* blfs,
+                             const logic::term& goal )
          : blfs( blfs )
-      { }
+      { 
 
-      void setgoal( logic::exact fname ); 
+      }
+
 
       bool cut( const label& lab, logic::term fm );
 
       // If you want to parse expressions, you must set the
-      // names of the eigenvariables.
+      // names of the eigenvariables:
 
       bool 
       branch( label disj, size_t choice, 
@@ -94,6 +95,7 @@ namespace calc
 
       logic::term replacedebruijn( logic::term tm );
 
+      bool isfinal( );
    private: 
       void assume( const std::string& name, const logic::type& tp );
 

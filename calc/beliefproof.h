@@ -1,38 +1,31 @@
 
-#ifndef CALC_BELIEFPROOF_
-#define CALC_BELIEFPROOF_
+#ifndef CALC_PROOFCHECKERWITHNAME_
+#define CALC_PROOFCHECKERWITHNAME_
 
 #include <vector>
 
-#include "identifier.h"
+#include "logic/exact.h"
 #include "proofchecker.h"
 
 namespace calc
 {
-   // We are checking a belief. We know its name, and 
-   // its universally quantified types that we used
-   // for overload resolution.
-   // The types are resolved.
+   // One can use this class if one knows the 
+   // name of the formula being proven, and its universal types.  
+   // We assume that the universal types have been checked and resolved.
 
-   struct beliefproof
+   struct proofcheckerwithname : public proofchecker
    {
-      identifier name;
+      logic::exact name;  
       std::vector< logic::type > types; 
 
-      proofchecker check;
-
-      beliefproof( identifier&& name, 
-                   std::vector< logic::type > && types,
+      proofcheckerwithname( logic::exact name, 
+                   const logic::term& goal,
+                   std::vector< logic::type > types,
                    const logic::beliefstate* blfs )
-         : name( std::move( name )),
-           types( std::move( types )),
-           check( blfs ) 
+         : proofchecker( blfs, goal ),
+           name( name ),
+           types( std::move( types )) 
       { }
-
-      bool init( ) { return true; }
-        // Resolve types, look up the name, return true if it succeeded.
-
-      bool has_errors( ) const { return check. errors. size( ); }
 
    };
 
