@@ -55,9 +55,9 @@
 %symbol{ std::string } SCANERROR
 
 %symbol{ std::string } LABEL 
-%symbol{ } PCT_BEGIN PCT_END PCT_SEQUENT PCT_CUT 
+%symbol{ } PCT_BEGIN PCT_END PCT_SEQCALC PCT_CUT 
 
-%symbol{ calc::proofcheckerwithname } SequentProof SequentProofStart
+%symbol{ calc::namedproofchecker } SequentProof SequentProofStart
 
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }
@@ -65,8 +65,7 @@
 %symbolcode_h { #include "logic/type.h" }
 %symbolcode_h { #include "identifier.h" }
 %symbolcode_h { #include "logic/beliefstate.h" }
-%symbolcode_h { #include "calc/beliefproof.h" }
-%symbolcode_h { #include "calc/proofchecker.h" } 
+%symbolcode_h { #include "calc/namedproofchecker.h" }
 
 
 %parsercode_cpp
@@ -105,11 +104,14 @@
 %parserspace parsing
 
 %parsercode_h { #include "tokenizer.h" }
+%parsercode_h { #include "logic/structural.h" } 
+%parsercode_h { #include "calc/structural.h" }
 
 %infotype{ location }
 
 %parameter { tokenizer }              tok
 %parameter { logic::beliefstate }     blfs
+%parameter { errorvector }            errors
 
 %source{ tok. read( ); }
 
@@ -139,11 +141,11 @@ BeliefSeq =>
       }
     | BeliefSeq AXIOM Identifier : id COLON Term : f SEMICOLON 
        { 
-          blfs. append( logic::belief( logic::bel_axiom, id, f, 0, { }, { } )); 
+          blfs. append( logic::belief( logic::bel_axiom, id, f, "", { } )); 
        } 
     | BeliefSeq THM Identifier : id COLON Term : f SEMICOLON
        { 
-          blfs. append( logic::belief( logic::bel_thm, id, f, 0, { }, { } ));
+          blfs. append( logic::belief( logic::bel_thm, id, f, "", { } ));
        } 
     | BeliefSeq _recover_ SEMICOLON
        { std::cout << "recovered!!!\n"; } 
@@ -440,30 +442,38 @@ ProofSeq =>
    ;
 
 SequentProofStart => 
-   PCT_SEQUENT Identifier : id LBRACE StructTypeSeq : tps RBRACE COLON
+   PCT_SEQCALC Identifier : ident LBRACE StructTypeSeq : tps RBRACE COLON
 {
-   errorvector err;
-   auto prf = calc::beliefproof( std::move( id ), std::move( tps ), &blfs );
-   prf. init( );
-   if( prf. has_errors( ))
+   errorvector errors;
+   for( auto& tp : tps )
+      logic::checkandresolve( blfs, errors, tp );
+
+   auto ex = calc::findformula( blfs, errors, ident, tps );
+   if( !ex. has_value( )) 
    {
+      // We don't know what to construct:
 
-
+      return calc::namedproofchecker( &blfs, std::move( tps )); 
    }
-   return prf; 
+
+   auto  
+   check = calc::namedproofchecker( &blfs, ex. value( ), 
+             calc::proofobligation( blfs. at( ex. value( ))), 
+             std::move( tps ));
+
+   return check; 
 }
 
 |
-   PCT_SEQUENT Identifier : id COLON 
+   PCT_SEQCALC Identifier : ident COLON 
 {
-   errorvector err;
-   auto prf = calc::beliefproof( std::move( id ), { }, &blfs );
-   prf. init( );
-   if( prf. has_errors( ))
-   {
-
-
-   }
+   errorvector errors;
+   auto ex = calc::findformula( blfs, errors, ident, { } );
+   if( !ex. has_value( ))
+      return calc::namedproofchecker( &blfs, { } );
+   else
+      return calc::namedproofchecker( &blfs, ex. value( ),
+              calc::proofobligation( blfs. at( ex. value( ))), { } );
 }
 ;
 

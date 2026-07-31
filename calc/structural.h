@@ -17,6 +17,8 @@ namespace calc
    findformula( const logic::beliefstate& blfs, errorvector& errs, 
                 const identifier& ident,
                 const std::vector< logic::type > & argtypes ); 
+
+   logic::term proofobligation( const logic::belief& blf );    
 }
 
 #endif

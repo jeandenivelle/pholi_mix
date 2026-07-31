@@ -320,14 +320,16 @@ void tests::cmp( )
 void tests::parser( logic::beliefstate& blfs ) {
    lexing::filereader inp( &std::cin, "std::cin" );
 
+   errorvector errors;
+
    parsing::tokenizer tok( std::move( inp ));
-   parsing::parser prs( tok, blfs );  
+   parsing::parser prs( tok, blfs, errors );  
+      // Should be none, because proof checking generates errors.
 
    prs. debug = 0;
    prs. checkattrtypes = 0;
 
    auto res = prs. parse( parsing::sym_BeliefSeq, std::cout );
-
 }
 
 
@@ -479,8 +481,9 @@ tests::smallproofs( const logic::beliefstate& blfs,
 
       if( name. has_value( ))
       {
-         calc::proofchecker check( &blfs );
-         check. setgoal( name. value( ));
+         const auto& goal = blfs. at( name. value( )). view_form( ). fm( );
+         auto check = proofchecker( &blfs, goal );
+
          check. show( "initial" );
          check. cut( label( "initial" ), 
                      check. replacedebruijn( "goal"_unchecked ));
@@ -704,8 +707,8 @@ tests::bigproof( logic::beliefstate& blfs, errorvector& errs )
 
    if( name. has_value( ))
    {
-      calc::proofchecker check( &blfs );
-      check. setgoal( name. value( ));
+      const auto& goal = blfs. at( name. value( )). view_form( ). fm( );
+      auto check = proofchecker( &blfs, goal );
       check. show( "initial" );
 
       check. cut( label( "initial" ),

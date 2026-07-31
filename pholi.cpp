@@ -13,7 +13,7 @@
 
 #include "parsing/parser.h"
 
-#include "calc/beliefproof.h"
+#include "calc/namedproofchecker.h"
 
 void
 includebeliefs( logic::beliefstate& blfs, 
@@ -42,7 +42,7 @@ includebeliefs( logic::beliefstate& blfs,
    lexing::filereader inp( &in, file );
 
    parsing::tokenizer tok( std::move( inp )); 
-   parsing::parser prs( tok, blfs );
+   parsing::parser prs( tok, blfs, errs );
 
    prs. debug = 0;
    prs. checkattrtypes = 0;
@@ -85,7 +85,7 @@ checkproofs( logic::beliefstate& blfs,
    }
 
    parsing::tokenizer tok( lexing::filereader( &in, file. string( )) );
-   parsing::parser prs( tok, blfs );
+   parsing::parser prs( tok, blfs, errs );
 
    prs. debug = 0;
    prs. checkattrtypes = 0;

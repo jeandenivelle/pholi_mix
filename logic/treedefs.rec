@@ -104,7 +104,7 @@
 %option def { bel_def } => tp : type, val : term 
 
 %option form { bel_axiom, bel_thm } => 
-   fm : term, proven : int, status : proofstatus, [ tp : type ] 
+   fm : term, status : proofstatus, [ tp : type ] 
       // tp is intended for overload resolution. These are universally 
       // quantified types AFTER CHECKING. Contrary to earlier versions, 
       // we are not trying to store the proof.

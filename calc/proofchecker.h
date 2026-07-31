@@ -25,14 +25,16 @@ namespace calc
       indexedstack< std::string, size_t > db;
 
       uint64_t nrfakes;
+
       logic::exact::unordered_map< uint64_t > dependencies;
          // Exact identifiers occurring in the proof. 
 
       explicit proofchecker( const logic::beliefstate* blfs,
                              const logic::term& goal )
-         : blfs( blfs )
+         : blfs( blfs ),
+           nrfakes(0)
       { 
-
+         define( "goal", goal, logic::type( logic::type_prop ));
       }
 
 

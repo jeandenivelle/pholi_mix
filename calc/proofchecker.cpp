@@ -17,14 +17,6 @@
 
 #include "projection.h"
 
-std::ostream& calc::operator << ( std::ostream& out, bar b )
-{
-   for( size_t i = 0; i != b. len; ++ i )
-      out << '-';
-   return out;
-}
-
-
 namespace
 {
 
@@ -65,31 +57,6 @@ namespace
    }
 }
 
-
-void calc::proofchecker::setgoal( logic::exact fname )
-{
-   auto& blf = blfs -> at( fname );
-
-   seq = sequent( );
-   db. restore(0);
-
-   status. calcname = "seq_preceq";
-   status. nrsteps = 0;
-   status. nrfakes = 0;
- 
-   switch( blf. sel( ))
-   {
-   case logic::bel_thm:
-      {
-         define( "goal", blf. view_form( ). fm( ),
-                         logic::type( logic::type_prop ));
-         break;
-      }
-
-   default:
-      throw std::logic_error( "belief not a formula" );
-   }
-}
 
 bool
 calc::proofchecker::cut( const label& lab, logic::term fm )
@@ -808,7 +775,7 @@ calc::proofchecker::fake( logic::term donald, label name )
 
       name = seq. append( name, 
                      disjunction( { exists( std::move( donald )) } ));
-      ++ status. nrfakes;
+      ++ nrfakes;
       return true;
    }
 }

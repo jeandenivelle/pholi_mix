@@ -63,7 +63,7 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "lambda" ), symbolval::sym_LAMBDA );
    cls.insert( word( "let" ), symbolval::sym_LET );
 
-   cls.insert( word( "%sequent" ), symbolval::sym_PCT_SEQUENT );
+   cls.insert( word( "%seqcalc" ), symbolval::sym_PCT_SEQCALC );
    cls.insert( word( "%cut" ), symbolval::sym_PCT_CUT );
  
    cls.insert( word( "eof" ), symbolval::sym_EOF );

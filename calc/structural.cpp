@@ -78,4 +78,16 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
 }
 
 
+logic::term calc::proofobligation( const logic::belief& blf )
+{
+   switch( blf. sel( ))
+   {
+   case logic::bel_thm:
+      return blf. view_form( ). fm( );
+   case logic::bel_axiom:
+      return logic::term( logic::op_prop, blf. view_form( ). fm( ));
+   }
+
+   throw std::logic_error( "unable to get goal from belief" );
+}
 
