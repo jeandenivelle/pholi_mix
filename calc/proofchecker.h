@@ -38,7 +38,7 @@ namespace calc
       }
 
 
-      bool cut( const label& lab, logic::term fm );
+      bool cut( logic::term fm, const label& lab );
 
       // If you want to parse expressions, you must set the
       // names of the eigenvariables:

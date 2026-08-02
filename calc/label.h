@@ -15,6 +15,7 @@ namespace calc
       uint64_t index;
 
       label( ) = delete;
+
       label( std::string_view str );
 
       explicit label( const char* c ) 

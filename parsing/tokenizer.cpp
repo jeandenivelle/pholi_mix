@@ -14,9 +14,31 @@ parsing::tokenizer::buildclassifier()
 
    auto letter = range( 'a', 'z' ) | range( 'A', 'Z' );
    auto digit = range('0', '9');
-   cls.insert( ( just('_') | letter | digit ).plus(), symbolval::sym_VARIABLE );
+   cls.insert( ( just('_') | letter | digit ). plus( ), 
+                   symbolval::sym_VARIABLE );
 
-   // Single-double char tokens:
+   cls. insert( just( '@' ) * ( just( '_' ) | letter | digit ). plus( ),
+                   symbolval::sym_LABEL );
+
+   // I don't think we will ever need bigger indices.
+
+   auto digit8 = epsilon< char > ( );
+   for( unsigned int i = 0; i != 8; ++ i ) 
+      digit8 *= digit. optional( ); 
+
+   cls. insert( just( '#' ) * 
+                ( just( '0' ) |
+                   ( just( '-' ). optional( ) *
+                     range( '1', '9' ) * digit8 )), 
+                 symbolval::sym_INTEGER );
+                                
+   cls. insert( just( '\"' ) *
+                ( letter | digit | just( ' ' ) | just( '_' ) |
+                  just( '-' ) | just( '=' ) | just( '+' ) | 
+                  just( '$' ) | just( '?' ) | just( '!' )). star( ) * 
+                just( '\"' ), sym_QUOTEDSTRING );
+
+   // Single/double char tokens:
 
    cls.insert( just( ']' ), sym_RBRACKET );
    cls.insert( just( '[' ), sym_LBRACKET );
@@ -31,8 +53,8 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "==" ), symbolval::sym_EQ );
    cls.insert( word( "!=" ), symbolval::sym_NE );
 
-   cls. insert( just('!'), symbolval::sym_NOT );
-   cls. insert( just( '#' ), symbolval::sym_PROP );
+   cls.insert( just( '!' ), symbolval::sym_NOT );
+   cls.insert( just( '#' ), symbolval::sym_PROP );
 
    cls.insert( just( '&' ), symbolval::sym_AND );
    cls.insert( just( '|' ), symbolval::sym_OR ) ;
@@ -63,8 +85,10 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "lambda" ), symbolval::sym_LAMBDA );
    cls.insert( word( "let" ), symbolval::sym_LET );
 
-   cls.insert( word( "%seqcalc" ), symbolval::sym_PCT_SEQCALC );
-   cls.insert( word( "%cut" ), symbolval::sym_PCT_CUT );
+   cls.insert( word( "%seqproof" ), symbolval::sym_PRF_SEQPROOF );
+   cls.insert( word( "%show" ), symbolval::sym_PRF_SHOW );
+   cls.insert( word( "%cut" ), symbolval::sym_PRF_CUT );
+   cls.insert( word( "%branch" ), symbolval::sym_PRF_BRANCH );
  
    cls.insert( word( "eof" ), symbolval::sym_EOF );
    cls.insert( word( "%eof" ), symbolval::sym_EOF );
@@ -117,13 +141,62 @@ restart:
       goto restart; 
    }
 
-   if( p.first == sym_VARIABLE )
+   if( p. first == sym_VARIABLE || p. first == sym_LABEL )
    {
       std::string_view v = inp. view( p. second );      
       std::string attr = std::string(v);
       
       inp.commit( p.second );
-      return symbol( sym_VARIABLE, startloc, attr);
+      return symbol( p. first, startloc, attr );
+   }
+
+   if( p.first == sym_QUOTEDSTRING )
+   {
+      std::string_view v = inp. view( p. second );
+      if( v. size( ) < 2 ) throw std::logic_error( "where are the quotes?" );
+      v. remove_prefix(1);
+      v. remove_suffix(1);
+
+      std::string attr = std::string(v);
+
+      inp. commit( p. second );
+      return symbol( p. first, startloc, attr );
+   }
+
+   if( p.first == sym_INTEGER )
+   {
+      std::string_view v = inp. view( p. second );
+         // There cannot be an overflow, because we have a length
+         // limit.
+
+      bool pos = true; 
+      int32_t val = 0;
+
+      if( v. front( ) != '#' )
+         throw std::logic_error( "this cannot happen" );
+      v. remove_prefix(1);
+      
+      if( v. front( ) == '+' ) 
+         v. remove_prefix(1);
+      else
+      {
+         if( v. front( ) == '-' )
+         {
+            pos = false;
+            v. remove_prefix(1);
+         }
+      }
+ 
+      while( v. size( ))
+      {
+         val = val * 10 + ( v. front( ) - '0' );
+         v. remove_prefix(1);
+      }
+
+      if( pos == false )
+         val = - val;
+
+      return symbol( p. first, startloc, val );
    }
 
    // All the remaining tokens have no attribute:

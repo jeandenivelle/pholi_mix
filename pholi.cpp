@@ -18,13 +18,13 @@
 void
 includebeliefs( logic::beliefstate& blfs, 
                 const std::filesystem::path& file,
-                errorvector& errs ) 
+                errorvector& errors ) 
 {
    if( !exists( file ))
    {
       errortree::builder bld;
       bld << "file " << file. string( ) << " does not exist";
-      errs. push_back( std::move( bld ));
+      errors. push_back( std::move( bld ));
       return;
    }
 
@@ -35,44 +35,45 @@ includebeliefs( logic::beliefstate& blfs,
    {
       errortree::builder bld; 
       bld << "could not open file " << file. string( ) << "\n";
-      errs. push_back( std::move( bld ));  
+      errors. push_back( std::move( bld ));  
       return; 
    }
 
    lexing::filereader inp( &in, file );
 
    parsing::tokenizer tok( std::move( inp )); 
-   parsing::parser prs( tok, blfs, errs );
+   parsing::parser prs( tok, blfs, errors );
 
    prs. debug = 0;
    prs. checkattrtypes = 0;
 
-   errortree::builder parse_err;
+   errortree::builder parse_errors;
 
-   auto res = prs. parse( parsing::sym_BeliefSeq, parse_err );
+   auto res = prs. parse( parsing::sym_BeliefSeq, parse_errors );
 
-   if( parse_err. view( ). size( ))
+   if( parse_errors. view( ). size( ))
    {
+      errorvector vect;
+      vect. push_back( std::move( parse_errors ));
+
       errortree::builder header;
-      header << "there were parse errors in file "
-             << file. string( ) << ":\n\n"; 
-      header << parse_err. str( ); 
-      errs. push_back( std::move( header )); 
+      header << "syntax errors in file " << file. string( ) << " :"; 
+      transfer( std::move( header ), std::move( vect ), errors ); 
    }
 }
 
 
-bool
+void
 checkproofs( logic::beliefstate& blfs,  
              const std::filesystem::path& file,
-             errorvector& errs )
+             errorvector& errors )
 {
    if( !exists( file ))
    {
       errortree::builder bld;
       bld << "proof file " << file. string( ) << " does not exist";
-      errs. push_back( std::move( bld ));
-      return false;
+      errors. push_back( std::move( bld ));
+      return;
    }
 
    std::ifstream in( file );
@@ -80,31 +81,33 @@ checkproofs( logic::beliefstate& blfs,
    {
       errortree::builder bld;
       bld << "could not open proof file " << file. string( ) << "\n";
-      errs. push_back( std::move( bld ));
-      return false;
+      errors. push_back( std::move( bld ));
+      return;
    }
 
    parsing::tokenizer tok( lexing::filereader( &in, file. string( )) );
-   parsing::parser prs( tok, blfs, errs );
+   parsing::parser prs( tok, blfs, errors );
 
-   prs. debug = 0;
-   prs. checkattrtypes = 0;
+   prs. debug = 1;
+   prs. checkattrtypes = 2;
 
-   errortree::builder parse_err;
+   errortree::builder syntax_errors;
 
-   auto res = prs. parse( parsing::sym_ProofSeq, parse_err );
+   auto res = prs. parse( parsing::sym_ProofSeq, syntax_errors );
+ 
+   // errors might contain proof checking errors. 
+   // If there are syntax errors, we merge them into errors. 
 
-   if( parse_err. view( ). size( ))
+   if( syntax_errors. view( ). size( ))
    {
+      errorvector vect;
+      vect. push_back( std::move( syntax_errors ));
+
       errortree::builder header;
-      header << "there were parse errors in proof file "
-             << file. string( ) << ":\n\n";
-      header << parse_err. str( ); 
-      errs. push_back( std::move( header ));
-      return false; 
+      header << "syntax errors in proof file " << file. string( ) << " :";
+      transfer( std::move( header ), std::move( vect ), errors );
    }
 
-   return true;
 }
 
 
@@ -164,13 +167,17 @@ int main( int argc, char* argv[] )
 
    // tests::truthtables( );
 
-   tests::smallproofs( blfs, err );
-   tests::bigproof( blfs, err );
-
    checkproofs( blfs, "examples/knaster_tarski.prf", err );
 
+   // tests::smallproofs( blfs, err );
+   // tests::bigproof( blfs, err );
+
+   std::cout << "Errors:\n";
    for( auto& e : err )
+   {
       e. report( std::cout ); 
+   }
+   std::cout << "\n";
 
    return 0;
 }

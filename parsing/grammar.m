@@ -20,8 +20,9 @@
 %symbol{ logic::type } StructType func 
 %symbol{ std::vector< logic::type > } StructTypeSeq
 
-%symbol{ std::string } VARIABLE
-%symbol{ identifier } Identifier IdentifierStart
+%symbol{ std::string } VARIABLE QUOTEDSTRING LABEL
+%symbol{ int32_t }     INTEGER
+%symbol{ identifier }  Identifier IdentifierStart
 
 %symbol{ std::vector< std::string > } VarSeq
 %symbol{ std::vector< logic::vartype > } VarTypeSeq VarsOneType 
@@ -54,8 +55,7 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
-%symbol{ std::string } LABEL 
-%symbol{ } PCT_BEGIN PCT_END PCT_SEQCALC PCT_CUT 
+%symbol{ } PRF_SEQPROOF PRF_SHOW PRF_CUT PRF_BRANCH
 
 %symbol{ calc::namedproofchecker } SequentProof SequentProofStart
 
@@ -442,7 +442,7 @@ ProofSeq =>
    ;
 
 SequentProofStart => 
-   PCT_SEQCALC Identifier : ident LBRACE StructTypeSeq : tps RBRACE COLON
+   PRF_SEQPROOF Identifier : ident LBRACE StructTypeSeq : tps RBRACE COLON
 {
    errorvector errors;
    for( auto& tp : tps )
@@ -465,7 +465,7 @@ SequentProofStart =>
 }
 
 |
-   PCT_SEQCALC Identifier : ident COLON 
+   PRF_SEQPROOF Identifier : ident COLON 
 {
    errorvector errors;
    auto ex = calc::findformula( blfs, errors, ident, { } );
@@ -479,7 +479,15 @@ SequentProofStart =>
 
 SequentProof 
    => SequentProofStart : prf { return std::move( prf ); } 
-   |  SequentProof : prf PCT_CUT Term SEMICOLON { return std::move( prf ); } 
+   | SequentProof : prf PRF_SHOW QUOTEDSTRING : header SEMICOLON
+      { prf. show( header ); return std::move( prf ); }
+   |  SequentProof : prf PRF_CUT Term : fm COMMA LABEL : lab SEMICOLON 
+      { std::cout << "doing the cut\n"; 
+        prf. cut( prf. replacedebruijn( fm ), calc::label( lab ));
+        return std::move( prf ); } 
+   |  SequentProof : prf PRF_BRANCH INTEGER : disj COMMA
+      { std::cout << "integer " << disj << "\n"; return std::move( prf ); }
+
 ;
  
 %end

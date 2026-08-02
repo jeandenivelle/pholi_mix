@@ -485,8 +485,8 @@ tests::smallproofs( const logic::beliefstate& blfs,
          auto check = proofchecker( &blfs, goal );
 
          check. show( "initial" );
-         check. cut( label( "initial" ), 
-                     check. replacedebruijn( "goal"_unchecked ));
+         check. cut( check. replacedebruijn( "goal"_unchecked ),
+                     label( "initial" ));
          check. branch( check. labelof(-1), 0, { } );
 
          check. expand( check. labelof(-1), 
@@ -711,8 +711,8 @@ tests::bigproof( logic::beliefstate& blfs, errorvector& errs )
       auto check = proofchecker( &blfs, goal );
       check. show( "initial" );
 
-      check. cut( label( "initial" ),
-                     check. replacedebruijn( "goal"_unchecked ));
+      check. cut( check. replacedebruijn( "goal"_unchecked ),
+                  label( "initial" ));
 
       check. branch( check. labelof( -1 ), 1, { } );
       check. expand( check. labelof(-1),

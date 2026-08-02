@@ -1,7 +1,9 @@
 
-%sequent
+%seqproof
 kt::minisfixedpoint{ Prop( Obj, Obj ), Prop( Obj, Obj )( Prop( Obj, Obj )) } :
-   %cut goal;
-   %branch 0 { a, b c }
+   %cut goal, @goal;
+   %show "after initial cut"; 
+   %branch #0, { "aa", "bb", "cc" }; 
+
 
 

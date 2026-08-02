@@ -59,7 +59,7 @@ namespace
 
 
 bool
-calc::proofchecker::cut( const label& lab, logic::term fm )
+calc::proofchecker::cut( logic::term fm, const label& lab )
 {
    auto tp = checkandresolve( *blfs, errors, seq. ctxt, fm );
    if( !tp. has_value( ))
