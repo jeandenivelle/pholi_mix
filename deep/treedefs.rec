@@ -1,0 +1,33 @@
+
+%dir deep
+%namespace deep 
+
+%define yanf ( tab_empty ) 
+
+
+%prefix labels : std::unordered_set< calc::label, 
+                                  calc::label::hash, calc::label::equal_to > 
+
+%option empty { tab_empty } => 
+%option label { yanf_fe, yanf_ft, yanf_e, yanf_t } => fm : logic::term 
+%option nary { yanf_disj, yanf_conj } => fm : logic::term 
+%option quant { yanf_forall, yanf_exists } => body : logic::term, 
+                                              [ var: logic::vartype ]  
+%option delta { yanf_delta } => 
+                  var : logic::vartype, val : logic::term, body : logic::term
+
+
+%h_incl {
+   #include "tvm/concepts.h"
+   #include "tvm/includes.h"
+   #include <unordered_set>
+   #include "logic/term.h"
+   #include "calc/label.h"
+}
+
+%h_before {
+   bool very_equal( const std::vector< logic::vartype > & v1, 
+                    const std::vector< logic::vartype > & v2 );
+}
+
+

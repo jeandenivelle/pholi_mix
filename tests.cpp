@@ -14,7 +14,7 @@
 #include "calc/structural.h"
 #include "calc/proofchecker.h"
 
-#include "labeled/eval.h"
+#include "deep/eval.h"
 
 #include "parsing/parser.h"
 
@@ -1065,7 +1065,7 @@ tests::bigproof( logic::beliefstate& blfs, errorvector& errs )
 }
 
 
-void tests::natded( )
+void tests::deep( )
 {
    using namespace logic;
 
@@ -1109,7 +1109,6 @@ void tests::natded( )
    {
       auto fm = logic::forall( {{ "P", P }, { "Q", P }}, p. first == p. second );
       natded::interpretation intp;
-      std::cout << eval( intp, fm ) << "\n"; 
    }
 }
 

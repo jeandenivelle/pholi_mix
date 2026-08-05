@@ -27,7 +27,7 @@ namespace tests
 
    void pretty( const logic::beliefstate& blfs );
 
-   void natded( );
+   void deep( );
       // check properties that can be checked by truth tables. 
 
    void parser( logic::beliefstate& blfs );

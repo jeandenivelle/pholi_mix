@@ -19,5 +19,11 @@ calc/selector.h
 calc/selector.cpp
 calc/fitch_diagram.h
 calc/fitch_diagram.cpp
+
+deep/selector.h
+deep/selector.cpp
+deep/yanf.h
+deep/yanf.cpp
+
 Makefile
 

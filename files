@@ -53,11 +53,11 @@
    truthset.cpp
    structural.cpp
  
-%dir Source/labeled
+%dir Source/deep
 %sources
    truthval.cpp
    interpretation.cpp
-   eval.cpp
+   yanf.cpp
  
 %dir Source/parsing
 %sources
