@@ -42,7 +42,7 @@ includebeliefs( logic::beliefstate& blfs,
    lexing::filereader inp( &in, file );
 
    parsing::tokenizer tok( std::move( inp )); 
-   parsing::parser prs( tok, blfs, errors );
+   parsing::parser prs( tok, blfs );
 
    prs. debug = 0;
    prs. checkattrtypes = 0;
@@ -86,7 +86,7 @@ checkproofs( logic::beliefstate& blfs,
    }
 
    parsing::tokenizer tok( lexing::filereader( &in, file. string( )) );
-   parsing::parser prs( tok, blfs, errors );
+   parsing::parser prs( tok, blfs );
 
    prs. debug = 1;
    prs. checkattrtypes = 2;
@@ -95,7 +95,6 @@ checkproofs( logic::beliefstate& blfs,
 
    auto res = prs. parse( parsing::sym_ProofSeq, syntax_errors );
  
-   // errors might contain proof checking errors. 
    // If there are syntax errors, we merge them into errors. 
 
    if( syntax_errors. view( ). size( ))
@@ -106,6 +105,15 @@ checkproofs( logic::beliefstate& blfs,
       errortree::builder header;
       header << "syntax errors in proof file " << file. string( ) << " :";
       transfer( std::move( header ), std::move( vect ), errors );
+   }
+
+   // If there are proof errors, we also move them into errors.
+
+   if( prs. prooferrors. size( ))
+   {
+      errortree::builder header;
+      header << "proof errors in proof file " << file. string( ) << " :";
+      transfer( std::move( header ), std::move( prs. prooferrors ), errors );
    }
 
 }

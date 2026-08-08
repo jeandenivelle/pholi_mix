@@ -97,7 +97,8 @@ namespace calc
 
       logic::term replacedebruijn( logic::term tm );
 
-      bool isfinal( );
+      bool isfinal( ) const;
+
    private: 
       void assume( const std::string& name, const logic::type& tp );
 

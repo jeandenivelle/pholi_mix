@@ -17,7 +17,7 @@ parsing::tokenizer::buildclassifier()
    cls.insert( ( just('_') | letter | digit ). plus( ), 
                    symbolval::sym_VARIABLE );
 
-   cls. insert( just( '@' ) * ( just( '_' ) | letter | digit ). plus( ),
+   cls. insert( just( '$' ) * ( just( '_' ) | letter | digit ). plus( ),
                    symbolval::sym_LABEL );
 
    // I don't think we will ever need bigger indices.
@@ -150,7 +150,7 @@ restart:
       return symbol( p. first, startloc, attr );
    }
 
-   if( p.first == sym_QUOTEDSTRING )
+   if( p. first == sym_QUOTEDSTRING )
    {
       std::string_view v = inp. view( p. second );
       if( v. size( ) < 2 ) throw std::logic_error( "where are the quotes?" );
@@ -196,6 +196,7 @@ restart:
       if( pos == false )
          val = - val;
 
+      inp. commit( p. second );
       return symbol( p. first, startloc, val );
    }
 

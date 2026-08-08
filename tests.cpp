@@ -323,8 +323,8 @@ void tests::parser( logic::beliefstate& blfs ) {
    errorvector errors;
 
    parsing::tokenizer tok( std::move( inp ));
-   parsing::parser prs( tok, blfs, errors );  
-      // Should be none, because proof checking generates errors.
+   parsing::parser prs( tok, blfs );  
+      // Should be none, because only proof checking generates errors.
 
    prs. debug = 0;
    prs. checkattrtypes = 0;

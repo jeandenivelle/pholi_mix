@@ -22,7 +22,7 @@
 
 %symbol{ std::string } VARIABLE QUOTEDSTRING LABEL
 %symbol{ int32_t }     INTEGER
-%symbol{ std::variant< int32_t, std::string > } FormRef 
+%symbol{ calc::label } FormRef 
 %symbol{ std::vector< std::string > } QuotedStringSeq EigenSeq
 %symbol{ identifier }  Identifier IdentifierStart
 
@@ -59,7 +59,7 @@
 
 %symbol{ } PRF_SEQPROOF PRF_SHOW PRF_CUT PRF_BRANCH
 
-%symbol{ calc::namedproofchecker } SequentProof SequentProofStart
+%symbol{ } SequentProof SequentProofStart
 
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }
@@ -114,9 +114,8 @@
 
 %parameter { tokenizer }              tok
 %parameter { logic::beliefstate }     blfs
-%parameter { errorvector }            errors
+%localvar  { errorvector }            prooferrors
 %localvar  { std::optional< calc::namedproofchecker > } currentproof
-%localvar  { unsigned int } justanint
 
 %source{ tok. read( ); }
 
@@ -455,18 +454,11 @@ SequentProofStart =>
 
    auto ex = calc::findformula( blfs, errors, ident, tps );
    if( !ex. has_value( )) 
-   {
-      // We don't know what to construct:
-
-      return calc::namedproofchecker( &blfs, std::move( tps )); 
-   }
-
-   auto  
-   check = calc::namedproofchecker( &blfs, ex. value( ), 
+      currentproof. reset( );
+   else
+      currentproof. emplace( &blfs, ex. value( ), 
              calc::proofobligation( blfs. at( ex. value( ))), 
              std::move( tps ));
-
-   return check; 
 }
 
 |
@@ -475,42 +467,64 @@ SequentProofStart =>
    errorvector errors;
    auto ex = calc::findformula( blfs, errors, ident, { } );
    if( !ex. has_value( ))
-      return calc::namedproofchecker( &blfs, { } );
+      currentproof. reset( );
    else
-      return calc::namedproofchecker( &blfs, ex. value( ),
-              calc::proofobligation( blfs. at( ex. value( ))), { } );
+      currentproof. emplace( &blfs, ex. value( ),
+              calc::proofobligation( blfs. at( ex. value( ))), 
+              std::vector< logic::type > ( ));
 }
 ;
 
 SequentProof 
-   => SequentProofStart : prf { return std::move( prf ); } 
+   => SequentProofStart 
    | SequentProof : prf PRF_SHOW QUOTEDSTRING : header SEMICOLON
-      { prf. show( header ); return std::move( prf ); }
-   |  SequentProof : prf PRF_CUT Term : fm COMMA LABEL : lab SEMICOLON 
-      { std::cout << "doing the cut\n"; 
-        prf. cut( prf. replacedebruijn( fm ), calc::label( lab ));
-        return std::move( prf ); } 
-   |  SequentProof : prf PRF_BRANCH FormRef : ref INTEGER : disj COMMA
-      { std::cout << "integer " << disj << "\n"; std::cout << "justanint = " << justanint << "\n"; return std::move( prf ); }
-
+      { if( currentproof. has_value( ))
+           currentproof. value( ). show( header ); 
+      }
+   | SequentProof PRF_CUT Term : fm COMMA LABEL : lab SEMICOLON 
+      { 
+        if( currentproof. has_value( ))
+        {
+           currentproof. value( ). cut( currentproof. value( ). replacedebruijn( fm ), calc::label( lab ));
+        }
+      }
+   | SequentProof PRF_BRANCH FormRef : disj COMMA INTEGER : choice COMMA EigenSeq : eigen SEMICOLON
+      { 
+         if( currentproof. has_value( ))
+         {
+            currentproof. value( ). branch( disj, choice, eigen ); 
+            std::cout << "hallo\n";
+         }
+         std::cout << "choice = " << choice << "\n";
+         for( const auto& e : eigen )
+            std::cout << e << "\n";
+      }
 ;
 
 FormRef 
-   => INTEGER : i { return i; }
-   | LABEL : lab { return lab; }
+   => INTEGER : i 
+      { 
+        if( currentproof. has_value( ))
+           return currentproof. value( ). labelof(i); 
+        else
+           return calc::label( "(no proof)" );
+      }
+   | LABEL : str { return calc::label( str ); }
 ;
 
-%skip
 EigenSeq 
-   => LBRACE RBRACE
-   | LBRACE QuotedStringSeq RBRACE
+   => LBRACE RBRACE 
+              { return std::vector< std::string > ( ); } 
+   | LBRACE QuotedStringSeq : seq RBRACE 
+              { return std::move( seq ); } 
 ;
 
 QuotedStringSeq => 
-   QuotedStringSeq COMMA QUOTEDSTRING 
-   | QUOTEDSTRING 
+   QuotedStringSeq : seq COMMA QUOTEDSTRING : str
+      { seq. push_back( str ); return std::move( seq ); } 
+   | QUOTEDSTRING : str
+      { std::vector< std::string > seq; seq. push_back( str ); return seq; } 
 ;
-%endskip
 
 %end
  
