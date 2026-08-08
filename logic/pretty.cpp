@@ -231,7 +231,7 @@ logic::pretty::print( std::ostream& out, const beliefstate& blfs,
          if( blfs. contains( ex ))
          { 
             const auto& id = blfs. at( ex ). ident( );
-            if( id. size( ) == 1 && !names. issafe( id. at(0)) )
+            if( id. size( ) == 1 && names. contains( id. at(0)) )
                out << "::";
             out << id;
          }

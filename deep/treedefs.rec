@@ -4,16 +4,16 @@
 
 %define yanf ( tab_empty ) 
 
-
-%prefix labels : std::unordered_set< calc::label, 
-                                  calc::label::hash, calc::label::equal_to > 
+%prefix labelset : 
+   std::unordered_set< calc::label, 
+                       calc::label::hash, calc::label::equal_to > 
 
 %option empty { tab_empty } => 
-%option label { yanf_fe, yanf_ft, yanf_e, yanf_t } => fm : logic::term 
-%option nary { yanf_disj, yanf_conj } => fm : logic::term 
+%option label { yanf_fe, yanf_t, yanf_ft, yanf_e } => fm : logic::term 
+%option prop { yanf_disj, yanf_conj } => fm : logic::term 
 %option quant { yanf_forall, yanf_exists } => body : logic::term, 
                                               [ var: logic::vartype ]  
-%option delta { yanf_delta } => 
+%option delta { yanf_let } => 
                   var : logic::vartype, val : logic::term, body : logic::term
 
 

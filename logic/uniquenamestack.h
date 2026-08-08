@@ -1,5 +1,11 @@
 
 // Written by Hans de Nivelle, probably Spring 2023.
+// I made some changes changes on 2026.08.06.
+// Proposed names are always extended, we never use a part of
+// a proposed name as counter.  
+// If the proposed name ends in a digit, we append letters.
+// Otherwise, we append digits.
+
 
 #ifndef LOGIC_PRETTY_UNIQUENAMESTACK_
 #define LOGIC_PRETTY_UNIQUENAMESTACK_
@@ -7,42 +13,26 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
 
 namespace logic {
 namespace pretty   
 {
 
-   struct uniquename
-   {
-      std::string base;
-      size_t index;
-
-      uniquename( ) = delete;
-      uniquename( const std::string& base, size_t index )
-         : base( base ), index( index )
-      { }
-
-      uniquename( std::string&& base, size_t index )
-         : base( std::move( base )), index( index )
-      { }
-
-      void print( std::ostream& out ) const
-      {
-         if( index )
-            out << base << index;
-         else
-            out << base;
-      }
-   };
-
    class uniquenamestack
    {
-      std::vector< uniquename > names; 
-      std::unordered_map< std::string, std::vector< size_t >> indices;
-         // indices[ base ] is a vector of indices that have been used
-         // for base.
-       
+      std::vector< std::pair< std::string, std::string >> names; 
+         // Each first string is the name with which extend was called.
+         // Each second string is the unique string that was added. 
+
+      std::unordered_set< std::string > used; 
+         // Set of all second strings. 
+
+      std::unordered_map< std::string, std::vector< size_t >> renamings; 
+         // For each string, the indices in names, of which it is the
+         // first string of the pair.
+ 
    public:
       uniquenamestack( ) noexcept = default;
       uniquenamestack( uniquenamestack&& ) noexcept = default;
@@ -54,16 +44,13 @@ namespace pretty
 
       // Correctly looks up a De Bruijn index:
 
-      const uniquename& getname( size_t index ) const
-         { return names[ names. size( ) - index - 1 ]; }
+      const std::string& getname( size_t index ) const
+         { return names. at( names. size( ) - index - 1 ). second; }
 
-      const uniquename& extend( std::string name );
+      const std::string& extend( std::string name );
 
-      bool issafe( std::string s ) const;
-         // True if the base of s is not in the indices.
-         // This may sometimes return false for a name that
-         // is safe in principle, but better safe than sorry.
-
+      bool contains( std::string s ) const { return used. contains(s); } 
+      
       void print( std::ostream& out ) const;
    };
 

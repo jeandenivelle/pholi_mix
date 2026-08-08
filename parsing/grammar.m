@@ -22,6 +22,8 @@
 
 %symbol{ std::string } VARIABLE QUOTEDSTRING LABEL
 %symbol{ int32_t }     INTEGER
+%symbol{ std::variant< int32_t, std::string > } FormRef 
+%symbol{ std::vector< std::string > } QuotedStringSeq EigenSeq
 %symbol{ identifier }  Identifier IdentifierStart
 
 %symbol{ std::vector< std::string > } VarSeq
@@ -62,6 +64,7 @@
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }
 %symbolcode_h { #include <string> }
+%symbolcode_h { #include <variant> } 
 %symbolcode_h { #include "logic/type.h" }
 %symbolcode_h { #include "identifier.h" }
 %symbolcode_h { #include "logic/beliefstate.h" }
@@ -112,6 +115,8 @@
 %parameter { tokenizer }              tok
 %parameter { logic::beliefstate }     blfs
 %parameter { errorvector }            errors
+%localvar  { std::optional< calc::namedproofchecker > } currentproof
+%localvar  { unsigned int } justanint
 
 %source{ tok. read( ); }
 
@@ -485,10 +490,27 @@ SequentProof
       { std::cout << "doing the cut\n"; 
         prf. cut( prf. replacedebruijn( fm ), calc::label( lab ));
         return std::move( prf ); } 
-   |  SequentProof : prf PRF_BRANCH INTEGER : disj COMMA
-      { std::cout << "integer " << disj << "\n"; return std::move( prf ); }
+   |  SequentProof : prf PRF_BRANCH FormRef : ref INTEGER : disj COMMA
+      { std::cout << "integer " << disj << "\n"; std::cout << "justanint = " << justanint << "\n"; return std::move( prf ); }
 
 ;
- 
+
+FormRef 
+   => INTEGER : i { return i; }
+   | LABEL : lab { return lab; }
+;
+
+%skip
+EigenSeq 
+   => LBRACE RBRACE
+   | LBRACE QuotedStringSeq RBRACE
+;
+
+QuotedStringSeq => 
+   QuotedStringSeq COMMA QUOTEDSTRING 
+   | QUOTEDSTRING 
+;
+%endskip
+
 %end
  

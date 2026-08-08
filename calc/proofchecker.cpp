@@ -84,6 +84,7 @@ calc::proofchecker::cut( logic::term fm, const label& lab )
    return true;
 }
 
+
 bool
 calc::proofchecker::branch( label disj, size_t choice,
                             const std::vector< std::string > & eigen )
@@ -796,7 +797,7 @@ calc::label calc::proofchecker::labelof( ssize_t cnt ) const
  
          ++ ind;
          if( ind == seq. size( ))
-            return label( "(doesnotexist)" );
+            return label( "(outofrange)" );
       }
       return seq. stack. at( ind ). first; 
    }
@@ -811,7 +812,7 @@ calc::label calc::proofchecker::labelof( ssize_t cnt ) const
             ++ cnt; 
          
          if( ind == 0 )
-            return label( "(doesnotexist)" );     
+            return label( "(outofrange)" );     
       }
      
       return seq. stack. at( ind - 1 ). first; 
