@@ -3,6 +3,7 @@
 kt::minisfixedpoint{ Prop( Obj, Obj ), Prop( Obj, Obj )( Prop( Obj, Obj )) } :
    %cut goal, $goal;
    %branch $goal, #1, { }; 
+   %expand #-1, goal, #0 ; 
    %show "after branch"; 
 
 

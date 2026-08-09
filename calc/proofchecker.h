@@ -50,7 +50,7 @@ namespace calc
       bool expand( label fm, const identifier& ident, size_t occ ); 
 
       bool expand( label fm, size_t var, size_t occ );
-         // var must be a De Bruijn index. 
+         // var must be a De Bruijn index. (Looking backwards)
 
       bool import( const identifier& ident, 
                    std::vector< logic::type > argtypes, label name );

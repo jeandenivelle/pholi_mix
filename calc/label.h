@@ -52,7 +52,6 @@ namespace calc
    bool operator != ( const label& lab1, const label& lab2 ); 
 
    std::ostream& operator << ( std::ostream& out, const label& lab );
-
 }
 
 #endif

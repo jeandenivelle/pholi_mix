@@ -89,6 +89,7 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "%show" ), symbolval::sym_PRF_SHOW );
    cls.insert( word( "%cut" ), symbolval::sym_PRF_CUT );
    cls.insert( word( "%branch" ), symbolval::sym_PRF_BRANCH );
+   cls.insert( word( "%expand" ), symbolval::sym_PRF_EXPAND );
  
    cls.insert( word( "eof" ), symbolval::sym_EOF );
    cls.insert( word( "%eof" ), symbolval::sym_EOF );

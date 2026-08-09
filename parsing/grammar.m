@@ -57,7 +57,7 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
-%symbol{ } PRF_SEQPROOF PRF_SHOW PRF_CUT PRF_BRANCH
+%symbol{ } PRF_SEQPROOF PRF_SHOW PRF_CUT PRF_BRANCH PRF_EXPAND
 
 %symbol{ } SequentProof SequentProofStart
 
@@ -488,16 +488,37 @@ SequentProof
            currentproof. value( ). cut( currentproof. value( ). replacedebruijn( fm ), calc::label( lab ));
         }
       }
-   | SequentProof PRF_BRANCH FormRef : disj COMMA INTEGER : choice COMMA EigenSeq : eigen SEMICOLON
+   | SequentProof PRF_BRANCH FormRef : lab COMMA INTEGER : choice 
+     COMMA EigenSeq : eigen SEMICOLON
       { 
          if( currentproof. has_value( ))
          {
-            currentproof. value( ). branch( disj, choice, eigen ); 
+            currentproof. value( ). branch( lab, choice, eigen ); 
             std::cout << "hallo\n";
          }
          std::cout << "choice = " << choice << "\n";
          for( const auto& e : eigen )
             std::cout << e << "\n";
+      }
+   | SequentProof PRF_EXPAND FormRef : lab COMMA Identifier : id COMMA
+     INTEGER : occ SEMICOLON
+      {
+         std::cout << id << "\n";
+         if( currentproof. has_value( ))
+         { 
+            if( id. size( ) == 1 )
+            {
+               size_t ind = currentproof. value( ). db. find( id. at(0));
+               if( ind < currentproof. value( ). db. size( ))
+               {
+                  ind = currentproof. value( ). db. size( ) - ind - 1;
+                  currentproof. value( ). expand( lab, ind, occ );
+                  return; 
+               } 
+            }
+            std::cout << "it is an identifier\n";
+            throw std::logic_error( "(unfortunately not implemented)" );
+         }
       }
 ;
 
