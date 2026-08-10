@@ -18,7 +18,7 @@ parsing::tokenizer::buildclassifier()
                    symbolval::sym_VARIABLE );
 
    cls. insert( just( '$' ) * ( just( '_' ) | letter | digit ). plus( ),
-                   symbolval::sym_LABEL );
+                   symbolval::sym_FORMNAME );
 
    // I don't think we will ever need bigger indices.
 
@@ -87,9 +87,11 @@ parsing::tokenizer::buildclassifier()
 
    cls.insert( word( "%seqproof" ), symbolval::sym_PRF_SEQPROOF );
    cls.insert( word( "%show" ), symbolval::sym_PRF_SHOW );
+   cls.insert( word( "%setname" ), symbolval::sym_PRF_SETNAME );
    cls.insert( word( "%cut" ), symbolval::sym_PRF_CUT );
    cls.insert( word( "%branch" ), symbolval::sym_PRF_BRANCH );
    cls.insert( word( "%expand" ), symbolval::sym_PRF_EXPAND );
+   cls.insert( word( "%flatten" ), symbolval::sym_PRF_FLATTEN );
  
    cls.insert( word( "eof" ), symbolval::sym_EOF );
    cls.insert( word( "%eof" ), symbolval::sym_EOF );
@@ -142,25 +144,22 @@ restart:
       goto restart; 
    }
 
-   if( p. first == sym_VARIABLE || p. first == sym_LABEL )
+   if( p. first == sym_VARIABLE || p. first == sym_FORMNAME || 
+       p. first == sym_QUOTEDSTRING )
    {
       std::string_view v = inp. view( p. second );      
+     
+      if( p. first == sym_FORMNAME )
+         v. remove_prefix(1);               // The dollar sign.
+
+      if( p. first == sym_QUOTEDSTRING )
+      {
+         v. remove_prefix(1);               // The quotes.
+         v. remove_suffix(1);
+      }
+ 
       std::string attr = std::string(v);
-      
       inp.commit( p.second );
-      return symbol( p. first, startloc, attr );
-   }
-
-   if( p. first == sym_QUOTEDSTRING )
-   {
-      std::string_view v = inp. view( p. second );
-      if( v. size( ) < 2 ) throw std::logic_error( "where are the quotes?" );
-      v. remove_prefix(1);
-      v. remove_suffix(1);
-
-      std::string attr = std::string(v);
-
-      inp. commit( p. second );
       return symbol( p. first, startloc, attr );
    }
 

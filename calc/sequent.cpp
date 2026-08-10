@@ -11,6 +11,7 @@ void calc::sequent::seqform::print( std::ostream& out ) const
 
    out << " / " << ctxtsize;
    if( hidden ) out << "      (hidden)";
+   if( name. size( )) out << "   (" << name << ")";
 }
 
 
@@ -22,46 +23,30 @@ void calc::sequent::seqform::print( pretty_printer& out ) const
          out << get_dnf( ); 
       if( is_unf( ))
          out << get_unf( ); 
+      if( !name. empty( )) 
+         out << "      " << "(" << name << ")";
    }
    else
       out << "   (hidden)";
 }
 
-calc::label
-calc::sequent::append( label lab, unf< logic::term > u )
+size_t calc::sequent::append( unf< logic::term > u )
 {
    if( u. vars. size( ) == 0 )
-      return append( lab, disjunction( { exists( std::move( u. body )) } ));
+      return append( disjunction( { exists( std::move( u. body )) } ));
    else 
    {
-      while( find( lab ) != size( ))
-         ++ lab; 
-
-      stack. push( lab, seqform( std::move(u), ctxt. size( )));
-      return lab;
+      size_t pos = stack. size( );
+      stack. push_back( seqform( std::move(u), ctxt. size( )));
+      return pos;
    }
 }
 
-calc::label 
-calc::sequent::append( label lab, dnf< logic::term > d )
+size_t calc::sequent::append( dnf< logic::term > d )
 {
-   while( find( lab ) != size( ))
-      ++ lab;
-
-   stack. push( lab, seqform( std::move(d), ctxt. size( )));
-   return lab;
-}
-
-
-size_t calc::sequent::find( const label& lab ) const
-{
-   auto s = stack. find( lab );
-   if( s != stack. size( ))
-   {
-      if( stack. at(s). second. hidden )
-         return stack. size( );
-   }
-   return s;
+   size_t pos = stack. size( );
+   stack. push_back( seqform( std::move(d), ctxt. size( )));
+   return pos;
 }
 
 
@@ -76,18 +61,26 @@ void calc::sequent::popdecision( )
    ctxt. restore( decisions. back( ). ctxtsize );
 
    for( auto h : decisions. back( ). hidden )
-      stack. at(h). second. hidden = false; 
-  
-   stack. restore( decisions. back( ). stacksize );
+      stack. at(h). hidden = false; 
 
+   if( stack. size( ) < decisions. back( ). stacksize )
+      throw std::logic_error( "popdecision( ): stack too small" );
+ 
+   while( stack. size( ) > decisions. back( ). stacksize )
+   {
+      if( stack. back( ). name. size( ))
+         index. erase( stack. back( ). name );
+      stack. pop_back( );
+   }
+ 
    decisions. pop_back( );  
 }
 
 void calc::sequent::hide( size_t ind ) 
 {
-   if( !stack. at( ind ). second. hidden )
+   if( !stack. at( ind ). hidden )
    {
-      stack. at( ind ). second. hidden = true;
+      stack. at( ind ). hidden = true;
       if( decisions. size( ) > 0 )
          decisions. back( ). hidden. push_back( ind ); 
    }
@@ -95,7 +88,7 @@ void calc::sequent::hide( size_t ind )
 
 size_t calc::sequent::liftdist( size_t ind ) const
 {
-   return ctxt. size( ) - stack. at( ind ). second. ctxtsize; 
+   return ctxt. size( ) - stack. at( ind ). ctxtsize; 
 }
 
 
@@ -116,8 +109,7 @@ void calc::sequent::print( std::ostream& out ) const
    out << "Stack:\n";
    for( size_t i = 0; i != stack. size( ); ++ i )
    {
-      out << "   " << stack. at(i). first;
-      out << " : " << stack. at(i). second << "\n";
+      out << "   " << stack. at(i) << "\n";
    }
    out << "\n";
 }
@@ -167,11 +159,10 @@ calc::sequent::print( pretty_printer& prt ) const
 
    for( size_t ind = 0; ind != stack. size( ); ++ ind )
    { 
-      print_ctxt( prt, ctxt, stack. at( ind ). second. ctxtsize );
+      print_ctxt( prt, ctxt, stack. at( ind ). ctxtsize );
       
-      prt << "      " << stack. at( ind ). first;
-      prt << "   : ";
-      stack. at( ind ). second. print( prt ); 
+      prt << "      ";
+      stack. at( ind ). print( prt ); 
       prt << '\n';
    }
 

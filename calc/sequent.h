@@ -10,12 +10,10 @@
 #include <variant>
 
 #include "errortree.h"
-#include "indexedstack.h"
 #include "logic/beliefstate.h"
 #include "logic/context.h"
 #include "normalforms.h"
 #include "pretty.h"
-#include "label.h"
 
 namespace calc
 {
@@ -31,6 +29,7 @@ namespace calc
 
          size_t ctxtsize;      // size of ctxt at moment of creation. 
          bool hidden;          // True if the formula is hidden.
+         std::string name;     // Empty if we have no name.
 
          seqform( unf< logic::term > u, size_t ctxtsize )
             : fm( std::move(u)),
@@ -64,7 +63,9 @@ namespace calc
       };
 
       logic::context ctxt;
-      indexedstack< label, seqform, label::hash, label::equal_to > stack;
+      std::vector< seqform > stack;
+      std::unordered_map< std::string, size_t > index;
+         // Maps labels to indices in stack.
 
       struct decision
       {
@@ -103,24 +104,19 @@ namespace calc
       void print( std::ostream& out ) const;
       void print( pretty_printer& prt ) const;
 
-      label append( label lab, unf< logic::term > u ); 
-         // If the quantifier is empty, we append as dnf.
+      size_t append( unf< logic::term > u ); 
+         // If the universal quantifier is empty, we append as dnf.
  
-      label append( label lab, dnf< logic::term > d );
-         // Both methods look for the first free label >= lab.
-         // and return the label where the formula was added.
+      size_t append( dnf< logic::term > d );
  
       size_t size( ) const 
          { return stack. size( ); }
- 
-      size_t find( const label& lab ) const; 
-            // Returns size( ) lab does not exist, or is hidden. 
 
       const seqform& at( size_t ind ) const
-         { return stack. at( ind ). second; } 
+         { return stack. at( ind ); } 
 
       seqform& at( size_t ind ) 
-         { return stack. at( ind ). second; }
+         { return stack. at( ind ); }
 
       void pushdecision( size_t parent, size_t choice ) 
          { decisions. push_back( decision( ctxt. size( ), stack. size( ), 

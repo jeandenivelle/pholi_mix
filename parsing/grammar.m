@@ -20,9 +20,9 @@
 %symbol{ logic::type } StructType func 
 %symbol{ std::vector< logic::type > } StructTypeSeq
 
-%symbol{ std::string } VARIABLE QUOTEDSTRING LABEL
+%symbol{ std::string } VARIABLE QUOTEDSTRING FORMNAME
 %symbol{ int32_t }     INTEGER
-%symbol{ calc::label } FormRef 
+%symbol{ size_t }      FormIndex
 %symbol{ std::vector< std::string > } QuotedStringSeq EigenSeq
 %symbol{ identifier }  Identifier IdentifierStart
 
@@ -57,7 +57,8 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
-%symbol{ } PRF_SEQPROOF PRF_SHOW PRF_CUT PRF_BRANCH PRF_EXPAND
+%symbol{ } PRF_SEQPROOF PRF_SHOW PRF_SETNAME PRF_CUT PRF_BRANCH 
+%symbol{ } PRF_EXPAND PRF_FLATTEN
 
 %symbol{ } SequentProof SequentProofStart
 
@@ -481,38 +482,39 @@ SequentProof
       { if( currentproof. has_value( ))
            currentproof. value( ). show( header ); 
       }
-   | SequentProof PRF_CUT Term : fm COMMA LABEL : lab SEMICOLON 
+   | SequentProof PRF_SETNAME FormIndex : ind 
+                  COMMA VARIABLE : name SEMICOLON
+      {
+         if( currentproof. has_value( ))
+            currentproof. value( ). setname( ind, name ); 
+      }
+   | SequentProof PRF_CUT Term : fm SEMICOLON 
       { 
         if( currentproof. has_value( ))
         {
-           currentproof. value( ). cut( currentproof. value( ). replacedebruijn( fm ), calc::label( lab ));
+           auto& prf = currentproof. value( );
+           prf. cut( prf. replacedebruijn( fm ));
         }
       }
-   | SequentProof PRF_BRANCH FormRef : lab COMMA INTEGER : choice 
-     COMMA EigenSeq : eigen SEMICOLON
+   | SequentProof PRF_BRANCH FormIndex : ind COMMA INTEGER : choice COMMA 
+                  EigenSeq : eigen SEMICOLON
       { 
          if( currentproof. has_value( ))
-         {
-            currentproof. value( ). branch( lab, choice, eigen ); 
-            std::cout << "hallo\n";
-         }
-         std::cout << "choice = " << choice << "\n";
-         for( const auto& e : eigen )
-            std::cout << e << "\n";
+            currentproof. value( ). branch( ind, choice, eigen ); 
       }
-   | SequentProof PRF_EXPAND FormRef : lab COMMA Identifier : id COMMA
+   | SequentProof PRF_EXPAND FormIndex : ind COMMA Identifier : id COMMA
      INTEGER : occ SEMICOLON
       {
-         std::cout << id << "\n";
          if( currentproof. has_value( ))
          { 
+            auto& prf = currentproof. value( );
             if( id. size( ) == 1 )
             {
-               size_t ind = currentproof. value( ). db. find( id. at(0));
-               if( ind < currentproof. value( ). db. size( ))
+               size_t var = prf. db. find( id. at(0));
+               if( var < prf. db. size( ))
                {
-                  ind = currentproof. value( ). db. size( ) - ind - 1;
-                  currentproof. value( ). expand( lab, ind, occ );
+                  var = prf. db. size( ) - var - 1;
+                  prf. expand( ind, var, occ );
                   return; 
                } 
             }
@@ -520,17 +522,38 @@ SequentProof
             throw std::logic_error( "(unfortunately not implemented)" );
          }
       }
+   | SequentProof PRF_FLATTEN FormIndex : ind SEMICOLON 
+      {
+         if( currentproof. has_value( ))
+            currentproof. value( ). flatten( ind ); 
+      }
 ;
 
-FormRef 
-   => INTEGER : i 
+FormIndex
+   => INTEGER : ind
       { 
+        std::cout << "the integer is: " << ind << "\n";
         if( currentproof. has_value( ))
-           return currentproof. value( ). labelof(i); 
+           return currentproof. value( ). lookup( ind ); 
         else
-           return calc::label( "(no proof)" );
+           return 0u;
       }
-   | LABEL : str { return calc::label( str ); }
+   | FORMNAME : str 
+      { 
+         std::cout << "str = " << str << "\n";
+         if( currentproof. has_value( ))
+            return currentproof. value( ). lookup( str ); 
+      }
+
+   | FORMNAME : str LBRACKET INTEGER : offset RBRACKET 
+      {
+         if( currentproof. has_value( ))
+         {
+            auto& prf = currentproof. value( ); 
+               // Not const, because we could log errors in prf. 
+            return prf. move( prf. lookup( str ), offset );
+         } 
+      }
 ;
 
 EigenSeq 

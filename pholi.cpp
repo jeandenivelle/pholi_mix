@@ -88,7 +88,7 @@ checkproofs( logic::beliefstate& blfs,
    parsing::tokenizer tok( lexing::filereader( &in, file. string( )) );
    parsing::parser prs( tok, blfs );
 
-   prs. debug = 1;
+   prs. debug = 0;
    prs. checkattrtypes = 2;
 
    errortree::builder syntax_errors;

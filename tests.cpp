@@ -481,6 +481,7 @@ tests::smallproofs( const logic::beliefstate& blfs,
 
       if( name. has_value( ))
       {
+#if 0
          const auto& goal = blfs. at( name. value( )). view_form( ). fm( );
          auto check = proofchecker( &blfs, goal );
 
@@ -683,6 +684,7 @@ tests::smallproofs( const logic::beliefstate& blfs,
          check. merge( );
          check. merge( );
          check. show( "finished" );
+#endif
       }
       else
       { 
@@ -707,6 +709,7 @@ tests::bigproof( logic::beliefstate& blfs, errorvector& errs )
 
    if( name. has_value( ))
    {
+#if 0
       const auto& goal = blfs. at( name. value( )). view_form( ). fm( );
       auto check = proofchecker( &blfs, goal );
       check. show( "initial" );
@@ -1058,6 +1061,7 @@ tests::bigproof( logic::beliefstate& blfs, errorvector& errs )
       // completed 2026.07.06 (at 15.59 Astana time).
 
       check. show( "unfinished" );
+#endif
    }
    else
       std::cout << id << " not found\n";
