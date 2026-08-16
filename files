@@ -45,7 +45,6 @@
    expander.cpp
    localexpander.cpp
    projection.cpp
-   label.cpp
    sequent.cpp
    fitch_diagram.cpp
    proofchecker.cpp
@@ -58,6 +57,7 @@
    truthval.cpp
    interpretation.cpp
    yanf.cpp
+   label.cpp
  
 %dir Source/parsing
 %sources

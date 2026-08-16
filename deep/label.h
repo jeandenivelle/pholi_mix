@@ -1,13 +1,13 @@
 
-#ifndef CALC_LABEL_
-#define CALC_LABEL_
+#ifndef DEEP_LABEL_
+#define DEEP_LABEL_
 
 #include <string>
 #include <string_view> 
 #include <iostream>
 #include <cstdint>
 
-namespace calc
+namespace deep
 {
    struct label
    {

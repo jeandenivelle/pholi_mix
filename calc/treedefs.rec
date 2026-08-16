@@ -11,8 +11,8 @@
 %option define { tab_define } => var : logic::vartype, val : logic::term,
                                  [ sub : fitch_diagram ]
 %option decide { tab_decide } => fm : logic::term, [ sub : fitch_diagram ]  
-%option conclusion { tab_concl } => lab : label, fm : logic::term, 
-                                    comment : std::string
+%option conclusion { tab_concl } => fm : logic::term, 
+                                    name : std::string
 %option importance { tab_imp } => imp : int 
 
 %h_incl {
@@ -20,7 +20,6 @@
    #include "tvm/includes.h"
    #include <vector>
    #include "logic/term.h"
-   #include "label.h"
 }
 
 %h_before {

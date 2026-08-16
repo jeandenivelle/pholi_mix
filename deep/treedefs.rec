@@ -5,8 +5,7 @@
 %define yanf ( tab_empty ) 
 
 %prefix labelset : 
-   std::unordered_set< calc::label, 
-                       calc::label::hash, calc::label::equal_to > 
+   std::unordered_set< label, label::hash, label::equal_to > 
 
 %option empty { tab_empty } => 
 %option label { yanf_fe, yanf_t, yanf_ft, yanf_e } => fm : logic::term 
@@ -22,7 +21,7 @@
    #include "tvm/includes.h"
    #include <unordered_set>
    #include "logic/term.h"
-   #include "calc/label.h"
+   #include "label.h"
 }
 
 %h_before {

@@ -1,7 +1,7 @@
 
 #include "label.h"
 
-calc::label::label( std::string_view str )
+deep::label::label( std::string_view str )
    : index(0) 
 {
    uint64_t pow = 1;
@@ -20,32 +20,30 @@ calc::label::label( std::string_view str )
       base = "form";
 }
 
-bool calc::operator == ( const label& lab1, const label& lab2 )
+bool deep::operator == ( const label& lab1, const label& lab2 )
 {
    return lab1. base == lab2. base && lab1. index == lab2. index;
 }
 
-bool calc::operator != ( const label& lab1, const label& lab2 )
+bool deep::operator != ( const label& lab1, const label& lab2 )
 {
    return lab1. base != lab2. base || lab1. index != lab2. index; 
 }
 
-size_t 
-calc::label::hash::operator( ) ( const label& lab ) const
+size_t deep::label::hash::operator( ) ( const label& lab ) const
 {
    std::hash< std::string > str;
    std::hash< size_t > sz;
    return str( lab. base ) + 19 * sz( lab. index );
 }
 
-bool 
-calc::label::equal_to::operator( ) 
+bool deep::label::equal_to::operator( ) 
               ( const label& lab1, const label& lab2 ) const
 {
    return lab1. base == lab2. base && lab1. index == lab2. index;
 }
 
-std::ostream& calc::operator << ( std::ostream& out, const calc::label& lab )
+std::ostream& deep::operator << ( std::ostream& out, const label& lab )
 {
    out << lab. base;
    if( lab. index != 0 )
