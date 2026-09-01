@@ -5,7 +5,7 @@ struct MultiSet :=
 end ;
 
 def isclosed( ms : MultiSet; D : Prop( Obj )) ( P : Prop( Obj )) : Prop :=
-   from_to( P, ms. empty ) & from_to( prod(D,P), P, ms. ins );
+   fromto( P, ms. empty ) & fromto( prod(D,P), P, ms. ins );
 
 thm isclosed_prop : forall{ ms : MultiSet; D: Prop( Obj ); P : Prop( Obj ) }:
    strict(P) -> # isclosed( ms, D, P );   
@@ -16,9 +16,9 @@ def gen( ms : MultiSet ) ( D : Prop( Obj )) : Prop( Obj ) :=
 thm gen_prop : forall{ ms : MultiSet; D : Prop( Obj ) }: strict( ms. gen(D) );
 
 thm gen_empty : forall{ ms : MultiSet; D : Prop( Obj ) }: 
-      from_to( ms. gen(D), ms. empty );
+      fromto( ms. gen(D), ms. empty );
 thm gen_ins : forall{ ms : MultiSet; D : Prop( Obj ) }: 
-      from_to( prod( D, ms. gen(D)), ms. gen(D), ms. ins );
+      fromto( prod( D, ms. gen(D)), ms. gen(D), ms. ins );
 
 thm induction : forall{ ms : MultiSet; D : Prop( Obj ); P : Prop( Obj ) }:
    [ stricton( ms. gen(D), P ) ] P( ms. empty ) ->

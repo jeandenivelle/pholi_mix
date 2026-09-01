@@ -16,27 +16,19 @@ def stricton( P, Q : Prop( Obj, Obj )) : Prop :=
 def stricton( P, Q : Prop( Obj, Obj, Obj )) : Prop :=
    forall{ x1, x2, x3 : Obj } : P(x1,x2,x3) -> # Q(x1,x2,x3);
 
-def implies( P1,P2 : Prop ) : Prop :=
-      P1 -> P2;
-def implies( P1,P2 : Prop( Obj )) : Prop :=
-      forall{ x1 : Obj } : P1(x1) -> P2(x1);
-def implies( P1,P2 : Prop( Obj, Obj )) : Prop :=
-      forall{ x1, x2 : Obj } : P1(x1,x2) -> P2(x1,x2);
-def implies( P1,P2 : Prop( Obj, Obj, Obj )) : Prop :=
-      forall{ x1, x2, x3 : Obj } : P1(x1,x2,x3) -> P2(x1,x2,x3);
+// We will also define extending versions of stricton:
+
+def stricton( P : Prop( Obj ); Q : Prop( Obj, Obj )) : Prop :=
+   forall{ x1 : Obj } : P(x1) -> forall{ y : Obj } : # Q(x1,y);
+
+def stricton( P : Prop( Obj, Obj ); Q : Prop( Obj, Obj, Obj )) : Prop :=
+   forall{ x1, x2 : Obj } : P(x1,x2) -> forall{ y : Obj } : # Q(x1,x2,y);
+
+
 
 def prod( P1,P2 : Prop( Obj )) ( x1, x2 : Obj ) : Prop := P1(x1) & P2(x2);
 def prod( P1,P2,P3 : Prop( Obj )) ( x1, x2, x3 : Obj ) : Prop :=
    P1(x1) & P2(x2) & P3(x3);
-
-def extend( P : Prop(Obj)) ( x1, x2 : Obj ) : Prop
-   := P(x1);
-def extend( P : Prop(Obj,Obj)) ( x1, x2, x3 : Obj ) : Prop := 
-   P(x1,x2);
-def extend( P : Prop(Obj,Obj,Obj)) ( x1, x2, x3, x4 : Obj ) : Prop
-   := P(x1,x2,x3);
-
-def univ( x1 : Obj ) : Prop := true ;
 
 def and( P1,P2 : Prop ) : Prop := 
       P1 & P2;
@@ -56,37 +48,9 @@ def with( P1,P2 : Prop( Obj, Obj ))( x1, x2 : Obj ) : Prop :=
 def with( P1,P2 : Prop( Obj, Obj, Obj ))( x1, x2, x3 : Obj ) : Prop :=
       < P1(x1,x2,x3) > P2(x1,x2,x3);
 
-def or( P1,P2 : Prop ) : Prop :=
-      P1 | P2;
-def or( P1,P2 : Prop( Obj ))( x1 : Obj ) : Prop :=
-      P1(x1) | P2(x1);
-def or( P1,P2 : Prop( Obj, Obj ))( x1, x2 : Obj ) : Prop :=
-      P1(x1,x2) | P2(x1,x2);
-def or( P1,P2 : Prop( Obj, Obj, Obj ))( x1, x2, x3 : Obj ) : Prop :=
-      P1(x1,x2,x3) | P2(x1,x2,x3 );
-
-def equiv( P1,P2 : Prop ) : Prop :=
-   P1 <-> P2;
-def equiv( P1,P2 : Prop( Obj ))( x1 : Obj ) : Prop :=
-   P1(x1) <-> P2(x1);
-def equiv( P1,P2 : Prop( Obj, Obj ))( x1, x2 : Obj ) : Prop :=
-   P1(x1,x2) <-> P2(x1,x2);
-def equiv( P1,P2 : Prop( Obj, Obj, Obj ))( x1, x2, x3 : Obj ) : Prop :=
-   P1(x1,x2,x3) <-> P2(x1,x2,x3);
-
-def isempty( P : Prop( Obj )) : Prop :=
-      forall { x1: Obj } : ! P(x1); 
-def isempty( P : Prop( Obj, Obj )) : Prop :=
-      forall { x1, x2 : Obj } : ! P(x1,x2);
-def isempty( P : Prop( Obj, Obj, Obj )) : Prop :=
-      forall { x1, x2, x3 : Obj } : ! P(x1,x2,x3 );
-
-def isuniv( P : Prop( Obj )) : Prop :=
-      forall { x1: Obj } : P(x1);
-def isuniv( P : Prop( Obj, Obj )) : Prop :=
-      forall { x1, x2 : Obj } : P(x1,x2);
-def isuniv( P : Prop( Obj, Obj, Obj )) : Prop :=
-      forall { x1, x2, x3 : Obj } : P(x1,x2,x3 );
+def univ1( x1 : Obj ) : Prop := true;
+def univ2( x1, x2 : Obj ) : Prop := true;
+def univ3( x1, x2, x3: Obj ) : Prop := true;
 
 
 def serial( Q : Prop( Obj )) : Prop := 
@@ -120,41 +84,39 @@ def functional( P : Prop( Obj ); Q : Prop( Obj, Obj )) : Prop :=
 def functional( P : Prop( Obj, Obj ); Q : Prop( Obj, Obj, Obj )) : Prop :=
       serial( P, Q ) & linear( P, Q );
 
-symbol find : Obj( Prop(Obj) ); 
-axiom find : 
-   forall{ Q : Prop( Obj ) } : [ strict(Q) ] functional(Q) -> Q( find(Q)); 
-
-
 // Domain and range of functions:
 
-def from_to( Q : Prop( Obj ); c : Obj ) : Prop := 
+def fromto( Q : Prop( Obj ); c : Obj ) : Prop := 
    Q(c);
 
-def from_to( P : Prop( Obj ); Q : Prop( Obj, Obj ))
+def fromto( P : Prop( Obj ); Q : Prop( Obj, Obj ))
        ( f : Obj( Obj )) : Prop :=
    forall{ x : Obj }: P(x) -> Q( x,f(x));
 
-def from_to( P : Prop( Obj, Obj ); Q : Prop( Obj, Obj, Obj ))
+def fromto( P : Prop( Obj, Obj ); Q : Prop( Obj, Obj, Obj ))
        ( f : Obj( Obj, Obj )) : Prop :=
    forall{ x1, x2 : Obj }: P(x1, x2) -> Q( x1, x2,f(x1, x2));
 
-def from_to( P : Prop( Obj ); Q : Prop( Obj ))( f : Obj( Obj )) : Prop :=
+def fromto( P : Prop( Obj ); Q : Prop( Obj ))( f : Obj( Obj )) : Prop :=
    forall{ x : Obj } : P(x) -> Q(f(x)) ; 
 
-def from_to( P : Prop( Obj, Obj ); Q : Prop( Obj ))
-           ( f : Obj( Obj, Obj )) : Prop :=
+def fromto( P : Prop( Obj, Obj ); Q : Prop( Obj ))
+          ( f : Obj( Obj, Obj )) : Prop :=
    forall{ x1,x2 : Obj } : P(x1, x2) -> Q(f(x1,x2)) ;
 
 
-thm find2 :
+symbol find : Obj( Prop(Obj) ); 
+axiom find : 
+   forall{ Q : Prop( Obj ) } : [ strict(Q) ] functional(Q) -> Q(find(Q)); 
+
+def functionof( Q : Prop( Obj, Obj )) ( x : Obj ) : Obj :=
+   find( lambda{ y : Obj } : Q(x,y) ) ;
+
+thm functionof :
    forall{ P : Prop( Obj ); Q : Prop( Obj, Obj ) } :
-         strict(P) -> [ stricton( extend(P), Q ) ]
-            functional( P, Q ) -> forall{ x1 : Obj }: [ P(x1) ]
-   let{ partial : Prop( Obj )( Obj )( Prop( Obj, Obj )) := 
-           lambda{ P : Prop( Obj, Obj ) }: lambda{ x1 : Obj }: 
-              lambda{ y : Obj }: P(x1,y);
-              QQQ : Prop( Obj, Obj ) := Q }: 
-                 Q( x1, find( partial( QQQ, x1 ))) ;
+         [ strict(P) ] [ stricton( P, Q ) ]
+            functional( P, Q ) -> forall{ x : Obj }: [ P(x) ]
+            Q( x, functionof( Q, x ));
 
 def minimal( D : Prop( Obj ); C : Prop( Prop( Obj )) ) ( x1 : Obj ) : Prop :=
    forall{ R : Prop( Obj ) }: [ stricton(D,R) ] C(R) -> R(x1);

@@ -11,14 +11,14 @@ thm isclosed_prop : forall{ s : Nat; P : Prop( Obj ) }:
    strict(P) -> # isclosed( s, P ); 
 
 def gen( s: Nat ) : Prop( Obj ) :=
-   minimal( univ, s. isclosed );
+   minimal( univ1, s. isclosed );
 
 thm gen_prop : forall{ s : Nat; x : Obj }: # s. gen(x) ; 
 
 thm gen_0 :    forall{ s : Nat }: 
-   from_to( s. gen, s. 0 ); 
+   fromto( s. gen, s. 0 ); 
 thm gen_succ : forall{ s : Nat; x : Obj }: 
-   from_to( s.gen, s.gen, s.succ );
+   fromto( s.gen, s.gen, s.succ );
 
 // gen contains a quantifier over all strict predicates.
 // In general, we want to use predicates on gen only:
