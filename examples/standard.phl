@@ -86,23 +86,20 @@ def functional( P : Prop( Obj, Obj ); Q : Prop( Obj, Obj, Obj )) : Prop :=
 
 // Domain and range of functions:
 
-def fromto( Q : Prop( Obj ); c : Obj ) : Prop := 
-   Q(c);
+def fromto( Q : Prop( Obj )) ( c : Obj ) : Prop := Q(c);
 
-def fromto( P : Prop( Obj ); Q : Prop( Obj, Obj ))
+def fromto( P : Prop( Obj ); Q : Prop( Obj ))
        ( f : Obj( Obj )) : Prop :=
-   forall{ x : Obj }: P(x) -> Q( x,f(x));
-
-def fromto( P : Prop( Obj, Obj ); Q : Prop( Obj, Obj, Obj ))
-       ( f : Obj( Obj, Obj )) : Prop :=
-   forall{ x1, x2 : Obj }: P(x1, x2) -> Q( x1, x2,f(x1, x2));
-
-def fromto( P : Prop( Obj ); Q : Prop( Obj ))( f : Obj( Obj )) : Prop :=
-   forall{ x : Obj } : P(x) -> Q(f(x)) ; 
+   forall{ x : Obj }: P(x) -> Q( f(x) );
 
 def fromto( P : Prop( Obj, Obj ); Q : Prop( Obj ))
-          ( f : Obj( Obj, Obj )) : Prop :=
-   forall{ x1,x2 : Obj } : P(x1, x2) -> Q(f(x1,x2)) ;
+       ( f : Obj( Obj, Obj )) : Prop :=
+   forall{ x1, x2 : Obj }: P(x1, x2) -> Q( f(x1, x2) );
+
+def fromto( P : Prop( Obj, Obj, Obj ); Q : Prop( Obj ))
+       ( f : Obj( Obj, Obj, Obj )) : Prop :=
+   forall{ x1, x2, x3 : Obj } : P(x1,x2,x3) -> Q( f(x1,x2,x3) ); 
+
 
 
 symbol find : Obj( Prop(Obj) ); 

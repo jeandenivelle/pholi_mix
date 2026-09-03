@@ -160,6 +160,7 @@ int main( int argc, char* argv[] )
    includebeliefs( blfs, "examples/orders.phl", err );
    includebeliefs( blfs, "examples/multiset.phl", err );
    includebeliefs( blfs, "examples/knaster_tarski.phl", err );
+   includebeliefs( blfs, "examples/settheory.phl", err );
 
    // includebeliefs( blfs, "examples/automata.phl", err );
 

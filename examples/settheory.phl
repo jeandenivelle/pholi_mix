@@ -1,0 +1,111 @@
+
+// An axiomation of ZF set theory. 
+// Currently, there is no foundation axiom.
+
+struct SetTheory :=
+   isset : Prop( Obj ); 
+   in : Prop( Obj, Obj );
+
+   empty : Obj; 
+   insert : Obj( Obj, Obj );
+   inf : Obj;
+
+   pow : Obj( Obj );
+   sep : Obj( Obj, Prop( Obj ));
+   repl : Obj( Obj, Prop( Obj, Obj ));
+end;
+
+def isset_prop( st: SetTheory ) : Prop :=
+   strict( st. isset );
+
+def in_prop( st: SetTheory ) : Prop :=
+   forall{ z : Obj } : st. isset(z) -> forall{ x : Obj } : # st. in( x, z );
+
+def empty_decl( st : SetTheory ) : Prop := 
+   fromto( st. isset, st. empty );
+
+def insert_decl( st : SetTheory ) : Prop := 
+   fromto( prod( univ1, st. isset ), st. isset, st. insert );
+   
+def inf_decl( st : SetTheory ) : Prop :=
+   fromto( st. isset, st. inf );
+
+def empty_ax( st : SetTheory ) : Prop :=
+   forall{ x : Obj } : ! st. in( x, st. empty );
+
+def insert_ax( st : SetTheory ) : Prop :=
+   forall{ y, z : Obj } : 
+      [ st. isset(z) ] forall{ x : Obj } : 
+            st. in( x, st. insert( y, z )) <-> x == y | st. in( x, z );
+
+def inf_ax( st : SetTheory ) : Prop :=
+   st. in( st. empty, st. inf ) &
+   forall{ x : Obj } : 
+      st. in( x, st. inf ) -> st. in( st. insert(x,x), st. inf );
+
+
+// Extensionality Axiom:
+
+def subset( st : SetTheory; z1, z2 : Obj ) : Prop :=
+   forall{ x : Obj } : st. in( x, z1 ) -> st. in( x, z2 );
+
+def ext( st : SetTheory ) : Prop :=
+   forall{ z1, z2 : Obj } : [ st. isset( z1 ) & st. isset( z2 ) ]
+      st. subset( z1, z2 ) & st. subset( z2, z1 ) -> z1 == z2;
+
+// Power Set Axiom:
+
+def pow_decl( st : SetTheory ) : Prop :=
+   forall{ z : Obj } : st. isset(z) -> st. isset( st. pow(z));
+
+def pow_ax( st: SetTheory ) : Prop :=
+   forall{ z : Obj } : [ st. isset(z) ]
+      forall{ x : Obj } : [ st. isset(x) ]
+         ( st. in( x, st. pow(z)) <-> st. subset( x, z )); 
+
+// Separation Axiom:
+
+def stricton( st : SetTheory; z : Obj; P : Prop( Obj )) : Prop :=
+   forall{ x : Obj } : st. in( x, z ) -> # P(x) ;
+
+def sep_decl( st : SetTheory ) : Prop :=
+   forall{ z : Obj; P : Prop( Obj ) } : 
+      [ st. isset(z) ] st. stricton(z,P) -> st. isset( st. sep( z, P ));
+
+def sep_ax( st : SetTheory ) : Prop :=
+   forall{ z : Obj } : [ st. isset(z) ] 
+      forall{ P : Prop( Obj ) } : [ st. stricton( z, P ) ] 
+         forall{ x : Obj } : 
+            st. in( x, st. sep( z, P )) <-> < st. in( x, z ) > P(x);
+
+// Replacement Axiom:
+
+def stricton( st : SetTheory; z : Obj; R: Prop( Obj, Obj )) : Prop :=
+   forall{ x : Obj } : st. in( x, z ) -> forall{ y : Obj } : # R( x, y );
+
+def linear( st: SetTheory; z : Obj; R : Prop( Obj, Obj )) : Prop :=
+   forall{ x : Obj } : [ st. in( x, z ) ] 
+      forall{ z1, z2 : Obj } : R( x, z1 ) & R( x, z2 ) -> z1 == z2;
+
+def repl_decl( st : SetTheory ) : Prop :=
+   forall{ z : Obj } : [ st. isset(z) ] 
+      forall{ R : Prop( Obj, Obj ) } : [ st. stricton( z, R ) ]
+         st. linear( z, R ) -> st. isset( st. repl( z, R ));
+
+def repl_ax( st : SetTheory ) : Prop :=
+   forall{ z : Obj } : [ st. isset(z) ] 
+      forall{ R : Prop( Obj, Obj ) } : [ st. stricton( z, R ) ]
+         [ st. linear( z, R ) ] 
+            forall{ y : Obj } : st. in( y, st. repl( z, R )) <-> 
+               exists{ x : Obj } : < st. in( x, z ) > R(x,y); 
+
+
+def good( st : SetTheory ) : Prop :=
+   < st. isset_prop > < st. in_prop > 
+   < st. empty_decl & st. insert_decl & st. inf_decl >
+     st. empty_ax & st. insert_ax & st. inf_ax &
+   < st. pow_decl > st. pow_ax &
+   < st. sep_decl & st. repl_decl > 
+     st. sep_ax & st. repl_ax;
+ 
+

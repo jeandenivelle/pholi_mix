@@ -511,6 +511,7 @@ namespace logic
          auto un = pretty::print( res, blfs, ctxt );
          res << "Term:\n   ";
          pretty::print( res, blfs, un, t, {0,0} );
+         res << "\n\n";
          return res; 
       }
    }
@@ -984,7 +985,7 @@ logic::checkandresolve( const beliefstate& blfs, errorvector& errors,
          {
             auto hd = errorheader( blfs, ctxt, t ); 
             hd << "\n";
-            hd << "In structural type of lambda";
+            hd << "In structural type of a lambda abstraction";
             transfer( std::move( hd ), std::move( type_errors ), errors );
             return { };
          }

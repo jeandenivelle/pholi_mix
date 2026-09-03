@@ -5,37 +5,37 @@ struct Nat :=
 end;
 
 def isclosed( s: Nat ) ( P: Prop(Obj) ) : Prop :=
-   P( s.0 ) & forall{ x: Obj }: P( x ) -> P( s. succ( x ));
+   fromto( P, s.0 ) & fromto( P, P, s. succ );
 
 thm isclosed_prop : forall{ s : Nat; P : Prop( Obj ) }:
    strict(P) -> # isclosed( s, P ); 
 
-def gen( s: Nat ) : Prop( Obj ) :=
-   minimal( univ1, s. isclosed );
+def gen( n: Nat ) : Prop( Obj ) :=
+   minimal( univ1, n. isclosed );
 
-thm gen_prop : forall{ s : Nat; x : Obj }: # s. gen(x) ; 
+thm gen_prop : forall{ n : Nat }: strict( n.gen );
+thm gen_0 : forall{ n : Nat }: fromto( n.gen, n.0 ); 
+thm gen_succ : forall{ n : Nat; x : Obj }: fromto( n.gen, n.gen, n.succ );
 
-thm gen_0 :    forall{ s : Nat }: 
-   fromto( s. gen, s. 0 ); 
-thm gen_succ : forall{ s : Nat; x : Obj }: 
-   fromto( s.gen, s.gen, s.succ );
-
-// gen contains a quantifier over all strict predicates.
+// Unfortunately, gen contains a quantifier over all strict predicates.
 // In general, we want to use predicates on gen only:
 
-thm induction : forall{ s : Nat; P : Prop( Obj ) }: 
-   [ stricton( s. gen, P ) ] P( s.0 ) -> 
-      ( forall{ x: Obj }: [ s. gen(x) ] P(x) -> P( s. succ(x)) ) -> 
-         forall{ x: Obj }: [ s. gen(x) ] P(x);
+thm induction : forall{ n : Nat; P : Prop( Obj ) }: 
+   [ stricton( n. gen, P ) ] 
+      fromto( P, n. 0 ) & fromto( with( n. gen, P ), P, n. succ ) ->
+         forall{ x: Obj }: [ n. gen(x) ] P(x);
+
+// Natural numbers are always strict (there is no precondition):
+
+def strict( n : Nat ) : Prop := true;
 
 // Natural numbers are freely generated, hence there are no equations:
 
 def equations( n: Nat ) : Prop := true;
 
-// But we have a lot of differences.
-// (These are in fact the Peano axioms): 
+// But we have a lot of differences:
 
-def differences( n : Nat ) : Prop :=
+def diff( n : Nat ) : Prop :=
    let{ 0 : Obj := n. 0; 
         succ : Obj( Obj ) := n. succ;
         gen : Prop( Obj ) := n. gen 
@@ -44,9 +44,45 @@ def differences( n : Nat ) : Prop :=
       ( forall{ x1, x2 : Obj } : 
            gen(x1) & gen(x2) -> succ(x1) == succ(x2) -> x1 == x2 );
 
-def axioms( n : Nat ) : Prop := equations(n) & differences(n); 
+def good( n : Nat ) : Prop := < strict(n) > equations(n) & diff(n); 
 
- 
+def recrel( n : Nat ) ( P : Prop( Obj )) ( z : Obj; s : Obj( Obj, Obj ))
+          ( R : Prop( Obj, Obj )) : Prop :=
+   R( n.0, z ) &
+   forall{ x, y : Obj } : [ n. gen(x) & P(y) ] 
+      R(x,y) -> R( n. succ(x), s(x,y));
+
+// Of course we are interested in the minimal recursive relation:
+
+def minrecrel( n : Nat ) ( P : Prop( Obj )) 
+             ( z : Obj; s : Obj( Obj, Obj )) : Prop( Obj, Obj ) 
+   := minimal( prod( n. gen, P ), n. recrel( P, z, s ));
+
+thm minrecfunc :
+   forall{ n : Nat; P : Prop( Obj ); z : Obj; s : Obj( Obj, Obj ) } : 
+      [ good(n) & strict(P) ] [ fromto( P, z ) & fromto( prod( n. gen, P ), P, s ) ]
+         functional( n. gen, with( prod( univ1, P ), n. minrecrel( P, z, s )));
+
+def rec( n : Nat ) ( P : Prop( Obj ))
+       ( z : Obj; s : Obj( Obj, Obj )) : Obj( Obj ) :=
+   functionof( with( prod( univ1, P ), n. minrecrel( P, z, s )));
+
+thm rec_0:
+   forall{ n : Nat; P : Prop( Obj ); z : Obj; s : Obj( Obj, Obj ) } : 
+      [ good(n) & strict(P) ] [ fromto( P, z ) & fromto( prod( n. gen, P ), P, s ) ]
+         n.rec( P, z, s, n.0 ) == z ;
+
+thm rec_succ:
+   forall{ n : Nat; P : Prop( Obj ); z : Obj; s : Obj( Obj, Obj ) } :
+      [ good(n) & strict(P) ] [ fromto( P, z ) & fromto( prod( n. gen, P ), P, s ) ]
+         forall{ x : Obj } : [ n. gen(x) ] 
+            n. rec( P, z, s, n.succ(x)) == s( x, n. rec(P,z,s,x));
+
+def add( n : Nat ) : Obj( Obj, Obj ) :=
+   lambda{ x, y : Obj } : n. rec( n. gen, x, lambda{ x, y : Obj } : n. succ(y), y );
+
+// All of this is not used any more:
+
 def homrel( s1,s2: Nat )( R: Prop(Obj,Obj) ) : Prop :=
    R( s1.0, s2.0 ) & forall{ x1,x2: Obj }: [ s1. gen(x1) & s2. gen(x2) ] 
        R( x1, x2 ) -> R( s1. succ(x1), s2. succ(x2) ); 
