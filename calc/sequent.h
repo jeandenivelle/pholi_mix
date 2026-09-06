@@ -108,7 +108,8 @@ namespace calc
          // If the universal quantifier is empty, we append as dnf.
  
       size_t append( dnf< logic::term > d );
- 
+         // We always return the index of the appended formula. 
+
       size_t size( ) const 
          { return stack. size( ); }
 

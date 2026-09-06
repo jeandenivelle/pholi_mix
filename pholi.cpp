@@ -155,6 +155,7 @@ int main( int argc, char* argv[] )
    errorvector err;
    logic::beliefstate blfs;  
 
+   includebeliefs( blfs, "examples/tuple.phl", err );
    includebeliefs( blfs, "examples/standard.phl", err ); 
    includebeliefs( blfs, "examples/natural.phl", err );
    includebeliefs( blfs, "examples/orders.phl", err );
@@ -177,6 +178,7 @@ int main( int argc, char* argv[] )
    // tests::truthtables( );
 
    checkproofs( blfs, "examples/knaster_tarski.prf", err );
+   checkproofs( blfs, "examples/natural.prf", err );
 
    // tests::smallproofs( blfs, err );
    // tests::bigproof( blfs, err );

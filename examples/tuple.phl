@@ -1,0 +1,89 @@
+
+struct Tuples :=
+   tup : Obj( Obj );
+   tup : Obj( Obj, Obj );
+   tup : Obj( Obj, Obj, Obj );
+   tup : Obj( Obj, Obj, Obj, Obj ); 
+end;
+
+def istuple1( tp : Tuples ) ( t : Obj ) : Prop :=
+   exists{ x1 : Obj } : tp. tup( x1 ) == t;
+
+def istuple2( tp : Tuples ) ( t : Obj ) : Prop :=
+   exists{ x1, x2 : Obj } : tp. tup( x1, x2 ) == t;
+
+def istuple3( tp : Tuples ) ( t : Obj ) : Prop :=
+   exists{ x1, x2, x3 : Obj } : tp. tup( x1, x2, x3 ) == t;
+
+def istuple4( tp : Tuples ) ( t : Obj ) : Prop :=
+   exists{ x1, x2, x3, x4 : Obj } : tp. tup( x1, x2, x3, x4 ) == t;
+
+def decomp1( tp : Tuples ) : Prop :=
+   forall{ x1, y1 : Obj } :
+      tp. tup( x1 ) == tp. tup( y1 ) ->
+         x1 == y1;
+
+def decomp2( tp : Tuples ) : Prop :=
+   forall{ x1, y1, x2, y2 : Obj } :
+      tp. tup( x1, x2 ) == tp. tup( y1, y2 ) ->
+         x1 == y1 & x2 == y2;
+
+def decomp3( tp : Tuples ) : Prop :=
+   forall{ x1, y1, x2, y2, x3, y3 : Obj } :
+      tp. tup( x1, x2, x3 ) == tp. tup( y1, y2, y3 ) ->
+         x1 == y1 & x2 == y2 & x3 == y3;
+
+def decomp4( tp : Tuples ) : Prop :=
+   forall{ x1, y1, x2, y2, x3, y3, x4, y4 : Obj } :
+      tp. tup( x1, x2, x3, x4 ) == tp. tup( y1, y2, y3, y4 ) ->
+         x1 == y1 & x2 == y2 & x3 == y3 & x4 == y4;
+
+def good( tp : Tuples ) : Prop :=
+   tp. decomp1 & tp. decomp2 & tp. decomp3 & tp. decomp4;
+
+thm istuple1_prop : forall{ tp : Tuples } : strict( tp. istuple1 );
+thm istuple2_prop : forall{ tp : Tuples } : strict( tp. istuple2 );
+thm istuple3_prop : forall{ tp : Tuples } : strict( tp. istuple3 );
+thm istuple4_prop : forall{ tp : Tuples } : strict( tp. istuple4 );
+   // All easy. 
+
+
+
+eof
+
+// Not used any more:
+
+struct Tuples := 
+   empty : Obj;
+   append : Obj( Obj, Obj );
+end;
+
+// We are not defining tuples of arbitrary size. We do not want
+// to deal with inductive properties.
+
+def istuple0( tp : Tuples ) ( t0 : Obj ) : Prop := 
+   t0 == tp. empty;
+
+def istuple1( tp : Tuples ) ( t1 : Obj ) : Prop :=
+   exists{ t0 : Obj; x : Obj } : tp. istuple0( t0 ) & 
+      t1 == tp. append( t0, x ); 
+
+def istuple2( tp : Tuples ) ( t2 : Obj ) : Prop :=
+   exists{ t1 : Obj; x : Obj } : tp. istuple1( t1 ) &
+      t2 == tp. append( t1, x );
+
+def istuple3( tp : Tuples ) ( t3 : Obj ) : Prop :=
+   exists{ t2 : Obj; x : Obj } : tp. istuple2( t2 ) &
+      t3 == tp. append( t2, x );
+
+def istuple4( tp : Tuples ) ( t4 : Obj ) : Prop :=
+   exists{ t3 : Obj; x : Obj } : tp. istuple2( t3 ) &
+      t4 == tp. append( t3, x );
+
+
+thm istuple0_prop : forall{ tp : Tuples } : strict( tp. istuple0 );
+thm istuple1_prop : forall{ tp : Tuples } : strict( tp. istuple1 );
+thm istuple2_prop : forall{ tp : Tuples } : strict( tp. istuple2 );
+thm istuple3_prop : forall{ tp : Taples } : strict( tp. istuple3 );
+thm istuple4_prop : forall{ tp : Tuples } : strict( tp. istuple4 );
+

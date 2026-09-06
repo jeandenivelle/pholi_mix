@@ -58,7 +58,7 @@
 %symbol{ std::string } SCANERROR
 
 %symbol{ } PRF_SEQPROOF PRF_SHOW PRF_SETNAME PRF_CUT PRF_BRANCH 
-%symbol{ } PRF_EXPAND PRF_FLATTEN
+%symbol{ } PRF_EXPAND PRF_FLATTEN PRF_NORMALIZE
 
 %symbol{ } SequentProof SequentProofStart
 
@@ -517,15 +517,20 @@ SequentProof
                   prf. expand( ind, var, occ );
                   return; 
                } 
-            }
-            std::cout << "it is an identifier\n";
-            throw std::logic_error( "(unfortunately not implemented)" );
+            } 
+            prf. expand( ind, id, occ );
+            return;
          }
       }
    | SequentProof PRF_FLATTEN FormIndex : ind SEMICOLON 
       {
          if( currentproof. has_value( ))
             currentproof. value( ). flatten( ind ); 
+      }
+   | SequentProof PRF_NORMALIZE FormIndex : ind SEMICOLON 
+      {
+         if( currentproof. has_value( ))
+            currentproof. value( ). normalize( ind );
       }
 ;
 
@@ -535,14 +540,14 @@ FormIndex
         std::cout << "the integer is: " << ind << "\n";
         if( currentproof. has_value( ))
            return currentproof. value( ). lookup( ind ); 
-        else
-           return 0u;
+        return 0u;
       }
    | FORMNAME : str 
       { 
          std::cout << "str = " << str << "\n";
          if( currentproof. has_value( ))
             return currentproof. value( ). lookup( str ); 
+         return 0u; 
       }
 
    | FORMNAME : str LBRACKET INTEGER : offset RBRACKET 
@@ -553,6 +558,7 @@ FormIndex
                // Not const, because we could log errors in prf. 
             return prf. move( prf. lookup( str ), offset );
          } 
+         return 0u;
       }
 ;
 

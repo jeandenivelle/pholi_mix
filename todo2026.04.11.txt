@@ -72,7 +72,7 @@ As a consequence, one must introduce variables more than once.
 --------------------------------------------------------------
 14th of July:
    Renamed 'Form' into 'Prop'. I think that initially, it was
-   called 'Form' because there existed a 'prop' iterator, which
+   called 'Form' because there existed a 'prop' operator, which
    now is called '#'.
 
    Names in the beliefstate should contain source information.

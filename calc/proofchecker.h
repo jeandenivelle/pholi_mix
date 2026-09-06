@@ -62,9 +62,9 @@ namespace calc
          // Imported formula will be called 'name'.
 #endif
       size_t flatten( size_t ind );
-#if 0
-      std::optional< label > normalize( label fm );
+      size_t normalize( size_t ind );
 
+#if 0
       bool def( std::string_view name, logic::term val );
          // Introduce a local definition.
 
@@ -82,11 +82,10 @@ namespace calc
 
       size_t nrdecisions( ) const { return seq. decisions. size( ); }
 
-      std::optional< label > merge( );
-         // Merge (resolve) the last choice. Name of the result will
-         // be derived from the original disjunction.
-
-      std::optional< label > rename( label was, label becomes );
+#endif
+      size_t merge( );
+         // Merge (resolve) the last choice.
+#if 0
 
       std::optional< label > copy( label lab );
 
@@ -95,6 +94,8 @@ namespace calc
 #endif
       void show( std::string_view label, 
                  std::ostream& out = std::cout ) const;
+
+
       logic::term replacedebruijn( logic::term tm );
 
       // Each of these 3 methods creates an error when

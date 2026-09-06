@@ -8,8 +8,6 @@
 
 namespace tests
 {
-   void add_settheory( logic::beliefstate& blfs );
-
    void flatten( );
 
    void saturate( );

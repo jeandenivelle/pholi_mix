@@ -153,7 +153,7 @@ calc::proofchecker::expand( size_t ind, const identifier& ident, size_t occ )
 {
    if( ind >= seq. size( ))
       return seq. size( );
-#if 0
+
    // The expander will check if ident has a definition
    // for the types with which it is used. We don't need
    // to do anything.
@@ -171,20 +171,21 @@ calc::proofchecker::expand( size_t ind, const identifier& ident, size_t occ )
    {
       auto res = seq. at( ind ). get_dnf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      seq. append( lab, outermost( def, std::move( res ), 0 ));
+      ind = seq. append( outermost( def, std::move( res ), 0 ));
       transfer( std::move( def. errs ), errors );
+      return ind;
    }
 
    if( seq. at( ind ). is_unf( ))
    {
       auto res = seq. at( ind ). get_unf( );
       res = lift( std::move( res ), seq. liftdist( ind )); 
-      seq. append( lab, outermost( def, std::move( res ), 0 )); 
+      ind = seq. append( outermost( def, std::move( res ), 0 )); 
       transfer( std::move( def. errs ), errors );
+      return ind;
    }
 
-   return true;
-#endif
+   throw std::logic_error( "unreachable" );
 }
 
 
@@ -222,7 +223,9 @@ calc::proofchecker::expand( size_t ind, size_t var, size_t occ )
        throw std::logic_error( "unf: unfinished !!" );
    }
 
+   throw std::logic_error( "unreachable!" );
 }
+
 #if 0
 
 bool
@@ -328,34 +331,34 @@ size_t calc::proofchecker::flatten( size_t ind )
    throw std::logic_error( "flatten: unreachable" );
 }
 
-#if 0
 
-std::optional< calc::label > calc::proofchecker::normalize( label lab )
+size_t calc::proofchecker::normalize( size_t ind )
 {
-   size_t ind = try2find( lab, "formula formalization" );
-   if( ind == seq. stack. size( ))
-      return { };
+   if( ind >= seq. size( ))
+      return seq. size( );
+
+   std::cout << "normalize: " << ind << "\n";
 
    seq. hide( ind );
 
-   ++ lab;
    if( seq. at( ind ). is_dnf( ))
    {        
       auto res = seq. at( ind ). get_dnf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      return seq. append( lab, ::normalize( *blfs, std::move( res ), 0 ));
+      return seq. append( ::normalize( *blfs, std::move( res ), 0 ));
    }
 
    if( seq. at( ind ). is_unf( ))
    {
       auto res = seq. at( ind ). get_unf( );
       res = lift( std::move( res ), seq. liftdist( ind ));
-      return seq. append( lab, ::normalize( *blfs, std::move( res ), 0 ));
+      return seq. append( ::normalize( *blfs, std::move( res ), 0 ));
    }
  
-   throw std::logic_error( "unreachable" );
+   throw std::logic_error( "unreachable!" );
 }
 
+#if 0
 bool 
 calc::proofchecker::def( std::string_view name, logic::term val )
 {
@@ -535,8 +538,12 @@ calc::proofchecker::simplify( label names )
       return false;        // Nothing was simplified.
 }
 
-std::optional< calc::label > calc::proofchecker::merge( )
-{  
+#endif
+
+size_t calc::proofchecker::merge( )
+{ 
+
+#if 0 
    if( seq. nrdecisions( ) == 0 )
    {
       errortree::builder bld;
@@ -696,8 +703,14 @@ std::optional< calc::label > calc::proofchecker::merge( )
 
    label lab = seq. stack. at( parind ). first + 1; 
    return seq. append( lab, std::move( resolvent ));  
+#endif
+   throw std::logic_error( "no!" );
 }
 
+
+#if 0
+
+// Probably should be deleted, because it belongs to an old model. 
 
 std::optional< calc::label > 
 calc::proofchecker::rename( label was, label becomes ) 
