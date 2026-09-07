@@ -1,5 +1,28 @@
 
 %seqproof
+isclosed_prop{ Nat, Prop( Obj ) } :
+   %cut goal;
+   %setname #-1, cutform;
+   %branch $cutform, #0, { };
+   %expand #-1, goal, #0;
+   %flatten #-1;
+   %branch #-1, #0, {};
+   %expand #-1, strict, #0;
+   %normalize #-1;
+   %flatten #-1;
+   %merge;
+   %merge;
+   %branch #-1, #0, { };
+   %expand #-1, goal, #0;
+   %flatten #-1;
+   %branch #-1, #0, { };
+   %flatten #-1;
+   %expand #-1, isclosed, #0;
+   %normalize #-1;
+   %flatten #-1;
+   %show "haha";
+   
+%seqproof
 gen_prop{ Nat } :
    %cut goal;
    %setname #-1, cutform; 
@@ -8,6 +31,22 @@ gen_prop{ Nat } :
    %flatten #-1; 
    %branch #-1, #0, {};
    %expand #-1, strict, #0;
+   %normalize #-1;
+   %flatten #-1;
+   %merge; 
+   %merge; 
+   
+   %branch #-1, #0, { };
+   %expand #-1, goal, #0;
+   %flatten #-1;
+   %branch #-1, #0, { };
+   %expand #-1, strict, #0;
+   %normalize #-1;
+   %flatten #-1;
+   %branch #-1, #0, { "x" }; 
+   %flatten #-1;
+   %expand #-1, gen, #0; 
+   %expand #-1, minimal, #0;
    %normalize #-1;
    %flatten #-1;
    %show "unfinished"; 

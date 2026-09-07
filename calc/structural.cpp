@@ -41,7 +41,8 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
    if( candidates. size( ) == 0 )
    {
       errortree::builder bld;
-      bld << "Import: Identifier " << ident << " does not occur as formula"; 
+      bld << "Import: Identifier " << ident;
+      bld << " does not occur as provable formula"; 
       errs. push_back( std::move( bld ));
       return { };
    }
@@ -61,7 +62,7 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
    if( nrfits == 0 )
    {
       errortree::builder bld;
-      bld << "Import: No suitable formula found for identifier " << ident;
+      bld << "Import: No provable formula found for identifier " << ident;
       errs. push_back( std::move( bld ));
       return { };
    }
@@ -69,7 +70,7 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
    if( nrfits > 1 )
    {
       errortree::builder bld;
-      bld << "Import: More than suitable formula found for " << ident;
+      bld << "Import: More than provable formula found for " << ident;
       errs. push_back( std::move( bld ));
       return { };
    }

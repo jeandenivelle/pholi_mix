@@ -178,6 +178,7 @@ int main( int argc, char* argv[] )
    // tests::truthtables( );
 
    checkproofs( blfs, "examples/knaster_tarski.prf", err );
+   checkproofs( blfs, "examples/standard.prf", err );
    checkproofs( blfs, "examples/natural.prf", err );
 
    // tests::smallproofs( blfs, err );
@@ -187,6 +188,7 @@ int main( int argc, char* argv[] )
    for( auto& e : err )
    {
       e. report( std::cout ); 
+      std::cout << "\n"; 
    }
    std::cout << "\n";
 

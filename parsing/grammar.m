@@ -15,7 +15,7 @@
 %symbol{ logic::term } GreedyPrefTerm
    // Greedy Prefix Term that grabs everything to its right.
 
-%symbol{ std::vector< logic::term > } ArgSeq
+%symbol{ std::vector< logic::term > } TermSeq
 
 %symbol{ logic::type } StructType func 
 %symbol{ std::vector< logic::type > } StructTypeSeq
@@ -57,8 +57,8 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
-%symbol{ } PRF_SEQPROOF PRF_SHOW PRF_SETNAME PRF_CUT PRF_BRANCH 
-%symbol{ } PRF_EXPAND PRF_FLATTEN PRF_NORMALIZE
+%symbol{ } PRF_SEQPROOF PRF_SHOW PRF_SETNAME PRF_CUT PRF_BRANCH PRF_MERGE
+%symbol{ } PRF_EXPAND PRF_FLATTEN PRF_NORMALIZE PRF_INST
 
 %symbol{ } SequentProof SequentProofStart
 
@@ -409,7 +409,7 @@ DotTerm =>
    return tm;
 }
 | 
-   DotTerm : first DOT Identifier : func LPAR ArgSeq : rest RPAR 
+   DotTerm : first DOT Identifier : func LPAR TermSeq : rest RPAR 
 {
    logic::term tm = logic::term( logic::op_apply, 
                                  logic::term( logic::op_unchecked, func ),
@@ -423,7 +423,7 @@ DotTerm =>
 ;
 
 ApplTerm =>  
-   ApplTerm : func LPAR ArgSeq : args RPAR
+   ApplTerm : func LPAR TermSeq : args RPAR
       { return logic::term( logic::op_apply, 
                             func, args. begin( ), args. end( )); }
 
@@ -433,7 +433,7 @@ ApplTerm =>
 | TRUE { return logic::term( logic::op_true ); }
 ; 
 
-ArgSeq => ArgSeq : args COMMA Term : t 
+TermSeq => TermSeq : args COMMA Term : t 
    { args. push_back( std::move(t)); return std::move( args ); } 
             | Term : t
    { std::vector< logic::term > res;
@@ -455,11 +455,16 @@ SequentProofStart =>
 
    auto ex = calc::findformula( blfs, errors, ident, tps );
    if( !ex. has_value( )) 
+   {
+      std::cout << "obviously failing, where are the errors?\n"; 
       currentproof. reset( );
+   }
    else
+   {
       currentproof. emplace( &blfs, ex. value( ), 
              calc::proofobligation( blfs. at( ex. value( ))), 
              std::move( tps ));
+   }
 }
 
 |
@@ -493,7 +498,7 @@ SequentProof
         if( currentproof. has_value( ))
         {
            auto& prf = currentproof. value( );
-           prf. cut( prf. replacedebruijn( fm ));
+           prf. cut( prf. replacedebruijn( std::move(fm)));
         }
       }
    | SequentProof PRF_BRANCH FormIndex : ind COMMA INTEGER : choice COMMA 
@@ -501,6 +506,11 @@ SequentProof
       { 
          if( currentproof. has_value( ))
             currentproof. value( ). branch( ind, choice, eigen ); 
+      }
+   | SequentProof PRF_MERGE SEMICOLON
+      {
+         if( currentproof. has_value( ))
+            currentproof. value( ). merge( ); 
       }
    | SequentProof PRF_EXPAND FormIndex : ind COMMA Identifier : id COMMA
      INTEGER : occ SEMICOLON
@@ -531,6 +541,23 @@ SequentProof
       {
          if( currentproof. has_value( ))
             currentproof. value( ). normalize( ind );
+      }
+   | SequentProof PRF_INST FormIndex : ind COMMA 
+                  LBRACE TermSeq : values RBRACE SEMICOLON
+      {
+         if( currentproof. has_value( ))
+         {
+            auto& prf = currentproof. value( );         
+            for( auto& v : values )
+            {
+               std::cout << "before: " << v << "\n";
+               v = prf. replacedebruijn( std::move(v));    
+               std::cout << "after:  " << v << "\n";
+            }
+
+            prf. inst( ind, values );
+         }   
+
       }
 ;
 

@@ -77,6 +77,24 @@ As a consequence, one must introduce variables more than once.
 
    Names in the beliefstate should contain source information.
 
-   
+September:
+   When a goal is started and not found, the error message is 
+   not good. It does not list the types. 
 
+   We need agressive reporting of unfinished goals, in the same way
+   that errors are reported. 
+ 
+   The dependency analysis must be fixed. It is clever, but nothing
+   of it is implemented.
+
+   I believe that proof scripts should have scopes with { and }.
+
+   An absent formula reference should default into the last formula
+   of the sequent.
+
+   This error is not properly handled: 
+   UNREPORTED ERROR:
+   branch 12: there are too many eigenvariables (2), but the formula has only 0 variables
+
+   It seems that no error is properly merged. 
 

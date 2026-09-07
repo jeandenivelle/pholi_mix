@@ -271,28 +271,21 @@ size_t calc::proofchecker::flatten( size_t ind )
    if( ind >= seq. size( ))
       return seq. size( );
 
-   std::cout << "flatten " << ind << "\n";
-
    if( seq. at( ind ). is_unf( ))
    {
-#if 0
       auto f = lift( seq. at( ind ). get_unf( ), seq. liftdist( ind )); 
       auto f2 = try_flatten( conjunction( { f } ));
       if( f2. has_value( ))
       {
          seq. hide( ind ); 
 
+         size_t pos = seq. size( );
          for( auto& u : f2. value( ))
-         {
-            ++ lab; 
-            lab = seq. append( lab, std::move(u));
-         }
-         return lab; 
+            seq. append( std::move(u));
+         return pos; 
       }
 
-      return { };
-#endif
-      throw std::logic_error( "its an UNF" );
+      return seq. size( );
    }
 
    if( seq. at( ind ). is_dnf( ))
@@ -320,7 +313,7 @@ size_t calc::proofchecker::flatten( size_t ind )
             size_t pos = seq. size( );
             for( auto& u : cnf2. value( ))
                seq. append( std::move(u)); 
-            
+
             return pos;
          }
       }
@@ -424,27 +417,27 @@ calc::proofchecker::removedef( )
    return true;
 }
 
+#endif
 
-bool
-calc::proofchecker::instantiate( label lab,
-                                 const std::vector< logic::term > & values )
+size_t
+calc::proofchecker::inst( size_t ind,
+                          const std::vector< logic::term > & values )
 {
-   size_t ind = try2find( lab, "instantiated formula" );
-   if( ind == seq. stack. size( ))   
-      return false;
-   
-   if( !is_unf( lab, ind, "instantiated formula" ))
-      return false;
- 
+   if( ind >= seq. size( ))
+      return seq. size( );
+
+   if( !check_unf( ind, "instantiated formula" ))
+      return seq. size( );
+
    if( seq. at( ind ). get_unf( ). vars. size( ) < values. size( ))
    {
       errortree::builder bld;
-      bld << "forallelim " << lab << " : ";
+      bld << "forallelim : ";
       bld << "There are " << values. size( ) << " instances, ";
       bld << "while the formula has only ";
       bld << seq. at( ind ). get_unf( ). vars. size( ) << " variables";
       errors. push_back( std::move( bld ));
-      return false;
+      return seq. size( );
    }
 
    auto mainform = seq. at( ind ). get_unf( );
@@ -482,7 +475,7 @@ calc::proofchecker::instantiate( label lab,
       errortree::builder bld; 
       bld << "unable to instantiate, typechecking failed";
       errors. push_back( std::move( bld ));
-      return false;
+      return seq. size( );
    }
 
    // We do not remove the outermost forall, because its
@@ -497,11 +490,10 @@ calc::proofchecker::instantiate( label lab,
    // We append mainform as CNF. The append function will
    // convert formula into a DNF is the quantification is empty.
 
-   ++ lab; 
-   seq. append( lab, std::move( mainform ) );
-
-   return true;
+   return seq. append( std::move( mainform ));
 }
+
+#if 0
 
 bool
 calc::proofchecker::simplify( label names )
@@ -543,13 +535,12 @@ calc::proofchecker::simplify( label names )
 size_t calc::proofchecker::merge( )
 { 
 
-#if 0 
    if( seq. nrdecisions( ) == 0 )
    {
       errortree::builder bld;
       bld << "merge: there is no decision";
       errors. push_back( std::move( bld ));
-      return { };
+      return seq. size( );
    }
 
    size_t nrassumed = seq. ctxt. size( ) - seq. decisions. back( ). ctxtsize;
@@ -576,11 +567,8 @@ size_t calc::proofchecker::merge( )
    for( size_t i = seq. decisions. back( ). stacksize;
         i != seq. stack. size( ); ++ i )
    {
-      if( seq. stack. at(i). second. ctxtsize != 
-          seq. ctxt. size( ))
-      {
+      if( seq. stack. at(i). ctxtsize != seq. ctxt. size( ))
          throw std::logic_error( "merge: wrong context size" );
-      }
    }
 
    for( size_t var = 0; var != nrassumed; ++ var ) 
@@ -592,10 +580,10 @@ size_t calc::proofchecker::merge( )
    // Very unlikely, but who knows?
 
    while( seq. decisions. back( ). stacksize < seq. stack. size( ) &&
-          seq. stack. back( ). second. hidden )
+          seq. stack. back( ). hidden )
    {
-      throw std::logic_error( "unlikely thing happened" );
-      seq. stack. pop( );
+      throw std::logic_error( "a very unlikely thing happened" );
+      seq. stack. pop_back( );
    }
    
    if( seq. decisions. back( ). stacksize >= seq. stack. size( ))
@@ -603,14 +591,14 @@ size_t calc::proofchecker::merge( )
       throw std::logic_error( "merge: there is no usable result" );
    }
 
-   if( !seq. stack. back( ). second. is_dnf( ))
+   if( !seq. stack. back( ). is_dnf( ))
    {
       errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
       prt << "Resolve: Last formula is not DNF: ";
-      prt << seq. stack. back( ). second;
+      prt << seq. stack. back( );
       errors. push_back( std::move( bld )); 
-      return { };
+      return seq. size( );
    }
 
    dnf< logic::term > resolvent;
@@ -619,7 +607,7 @@ size_t calc::proofchecker::merge( )
 
    {
       const dnf< logic::term > & parent = 
-         seq. stack. at( parind ). second. get_dnf( ); 
+         seq. stack. at( parind ). get_dnf( ); 
 
       for( size_t i = 0; i != parent. size( ); ++ i )
       {
@@ -639,7 +627,7 @@ size_t calc::proofchecker::merge( )
    // we determine its free variables, and
    // prepend existential quantifiers for them:
 
-   for( auto lit : seq. stack. back( ). second. get_dnf( ))
+   for( auto lit : seq. stack. back( ). get_dnf( ))
    {
       // Collect the free variables of lit. Note that
       // lit may contain free variables. That is unproblematic. 
@@ -698,19 +686,16 @@ size_t calc::proofchecker::merge( )
    seq. popdecision( );
    db. restore( seq. ctxt. size( ));
  
-   if( subsumes( resolvent, seq. stack. at( parind ). second. get_dnf( )))
+   if( subsumes( resolvent, seq. stack. at( parind ). get_dnf( )))
       seq. hide( parind );
 
-   label lab = seq. stack. at( parind ). first + 1; 
-   return seq. append( lab, std::move( resolvent ));  
-#endif
-   throw std::logic_error( "no!" );
+   return seq. append( std::move( resolvent ));  
 }
 
 
 #if 0
 
-// Probably should be deleted, because it belongs to an old model. 
+// Probably should be deleted, because it belongs to an old approach. 
 
 std::optional< calc::label > 
 calc::proofchecker::rename( label was, label becomes ) 
@@ -858,7 +843,7 @@ size_t calc::proofchecker::lookup( const std::string& name )
       bld << "could not find formula name $" << name; 
       errors. push_back( std::move( bld )); 
 
-      return seq. stack. size( );
+      return seq. size( );
    }
 
    if( seq. stack. at( p -> second ). hidden )
@@ -924,7 +909,6 @@ std::optional< calc::cnf< logic::term >>
 calc::proofchecker::try_flatten( const cnf< logic::term > & conj )
 {
    auto conj2 = calc::flatten( conj );
-
    if( conj2. size( ) < conj. size( ) || !subsumes( conj, conj2 ))
       return conj2; 
    else
@@ -973,11 +957,9 @@ calc::proofchecker::check_dnf( size_t ind, std::string_view descr )
       return true;
 }
 
-#if 0
 
 bool
-calc::proofchecker::is_unf( const label& lab, size_t ind,
-                            std::string_view descr )
+calc::proofchecker::check_unf( size_t ind, std::string_view descr )
 {
    if( !seq. at( ind ). is_unf( ))
    {
@@ -992,5 +974,4 @@ calc::proofchecker::is_unf( const label& lab, size_t ind,
       return true;
 }
 
-#endif
 

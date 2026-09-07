@@ -68,11 +68,12 @@ namespace calc
       bool def( std::string_view name, logic::term val );
          // Introduce a local definition.
 
-      bool removedef( );
+      bool substdef( );
          // Remove the last local definition by substituting it away.
 
-      bool
-      instantiate( label lab, const std::vector< logic::term > & values );
+#endif
+      size_t inst( size_t ind, const std::vector< logic::term > & values );
+#if 0
 
       bool simplify( label names );
          // We always simplify everything. The return value
@@ -105,9 +106,10 @@ namespace calc
          // >= 0 starts looking from the beginning.
          // < 0 looks from the end.
          // We ignore hidden formulas. We are not const
-         // because we may log an error.
+         // because we may log an error. 
 
       size_t lookup( const std::string& name );
+
       size_t move( size_t ind, ssize_t disp );
          // Steps over disp (not hidden) formulas. We are not const
          // because we might log an error. 

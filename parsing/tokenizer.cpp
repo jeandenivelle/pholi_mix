@@ -90,6 +90,8 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "%setname" ), symbolval::sym_PRF_SETNAME );
    cls.insert( word( "%cut" ), symbolval::sym_PRF_CUT );
    cls.insert( word( "%branch" ), symbolval::sym_PRF_BRANCH );
+   cls.insert( word( "%inst" ), symbolval::sym_PRF_INST );
+   cls.insert( word( "%merge" ), symbolval::sym_PRF_MERGE );
    cls.insert( word( "%expand" ), symbolval::sym_PRF_EXPAND );
    cls.insert( word( "%flatten" ), symbolval::sym_PRF_FLATTEN );
    cls.insert( word( "%normalize" ), symbolval::sym_PRF_NORMALIZE );

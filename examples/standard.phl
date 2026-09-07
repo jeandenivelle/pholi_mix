@@ -92,6 +92,10 @@ def fromto( P : Prop( Obj ); Q : Prop( Obj ))
        ( f : Obj( Obj )) : Prop :=
    forall{ x : Obj }: P(x) -> Q( f(x) );
 
+thm fromto_prop: forall{ P : Prop( Obj ); Q : Prop( Obj ) } :
+   strict(P) & strict(Q) -> 
+      forall{ f : Obj( Obj ) } : # fromto( P, Q, f ); 
+
 def fromto( P : Prop( Obj, Obj ); Q : Prop( Obj ))
        ( f : Obj( Obj, Obj )) : Prop :=
    forall{ x1, x2 : Obj }: P(x1, x2) -> Q( f(x1, x2) );
@@ -118,6 +122,12 @@ thm functionof :
 def minimal( D : Prop( Obj ); C : Prop( Prop( Obj )) ) ( x1 : Obj ) : Prop :=
    forall{ R : Prop( Obj ) }: [ stricton(D,R) ] C(R) -> R(x1);
 
+thm minimal_prop : 
+   forall{ D : Prop( Obj ); C: Prop( Prop( Obj )) } :
+      strict(D) & 
+      ( forall{ R : Prop( Obj ) } : stricton( D, R ) -> # C(R) ) 
+         -> strict( minimal( D, C )); 
+      
 def minimal( D : Prop( Obj, Obj ); C : Prop( Prop( Obj, Obj )) )
            ( x1, x2 : Obj ) : Prop :=
    forall{ R : Prop( Obj, Obj ) }:
