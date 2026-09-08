@@ -16,22 +16,26 @@ namespace logic
    struct proofstatus
    {
       std::string calcname;  
-         // Name of the calculus used. The formula is proven
-         // if calc is nonempty, and nrfakes == 0.
+         // Name of the calculus used. 
 
       uint64_t nrsteps;
-         // Using some unspecified measure.
+         // Using some unspecified measure. It depends on the calculus.
+
+      uint64_t nrgaps;
+         // Number of gaps in the proof. 
 
       uint64_t nrfakes;
-         // Number of fakes in the proof. If this number is zero, 
-         // and proven is true, then the proof is complete. 
+         // Number of fakes in the proof. If both nrgaps and  
+         // nrfakes are zero, then the goal is proven. 
+         // Technically, a fake is also a gap, but it is convenient to 
+         // count them separately.
 
       exact::unordered_map< uint64_t > dependencies;
          // Exact identifiers that the proof depends on.
 
-      proofstatus( const char* calcname ) 
-         : calcname( calcname ),
-           nrsteps(0), 
+      proofstatus( ) noexcept 
+         : nrsteps(0), 
+           nrgaps(1), 
            nrfakes(0)
       { }
 

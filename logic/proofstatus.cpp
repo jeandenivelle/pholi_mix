@@ -5,19 +5,18 @@ std::ostream&
 logic::operator << ( std::ostream& out, const proofstatus& stat )
 {
    if( stat. calcname. empty( ))
-      out << "(no proof)";
+      out << "(no proof calculus)\n";
    else
-   {
-      if( stat. nrfakes )
-         out << "(incompletely proven ";
-      else
-         out << "(proven "; 
-      out << "using " << stat. calcname;
-      out << " in " << stat. nrsteps << " steps";
-      if( stat. nrfakes )
-         out << " with " << stat. nrfakes << " fakes";
-      out << ")";
-   }
+      out << "(proven with " << stat. calcname << ")\n";
+
+   if( stat. nrgaps )
+      out << "the proof has " << stat. nrgaps << " gaps\n";
+   if( stat. nrfakes )
+      out << "the proof used " << stat. nrfakes << " fakes\n";
+
+   if( stat. nrgaps == 0 && stat. nrfakes == 0 )
+      out << "the proof is complete with " << stat. nrsteps << " steps\n";
+
    return out;
 }
 

@@ -79,7 +79,7 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
 }
 
 
-logic::term calc::proofobligation( const logic::belief& blf )
+logic::term calc::initialgoal( const logic::belief& blf )
 {
    switch( blf. sel( ))
    {

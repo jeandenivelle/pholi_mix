@@ -25,6 +25,7 @@ namespace calc
       sequent seq;
       indexedstack< std::string, size_t > db;
 
+      uint64_t nrsteps; 
       uint64_t nrfakes;
 
       logic::exact::unordered_map< uint64_t > dependencies;
@@ -33,6 +34,7 @@ namespace calc
       explicit proofchecker( const logic::beliefstate* blfs,
                              const logic::term& goal )
          : blfs( blfs ),
+           nrsteps(0),
            nrfakes(0)
       { 
          define( "goal", goal, logic::type( logic::type_prop ));
@@ -73,29 +75,31 @@ namespace calc
 
 #endif
       size_t inst( size_t ind, const std::vector< logic::term > & values );
-#if 0
 
-      bool simplify( label names );
-         // We always simplify everything. The return value
-         // is empty if no simplification was possible. 
-         // Since we do not know how to resolve names from parents,
-         // the caller has to provide names for the results.
+      size_t simplify( );
+         // We always simplify everything. The formulas at positions
+         // >= the return value are new.
+         // The result is seq. end( ) if no simplification happened. 
 
       size_t nrdecisions( ) const { return seq. decisions. size( ); }
 
-#endif
       size_t merge( );
          // Merge (resolve) the last choice.
+
 #if 0
-
       std::optional< label > copy( label lab );
-
-      bool fake( logic::term donald, label name );
-
+         // Not sure if will be used.
 #endif
+
+      size_t fake( logic::term donald );
+
       void show( std::string_view label, 
                  std::ostream& out = std::cout ) const;
 
+      size_t findgoal( ) const;
+         // Try to find the goal.
+         // It should be not in the scope of a decision. 
+         // We also accept false.  
 
       logic::term replacedebruijn( logic::term tm );
 
@@ -113,11 +117,6 @@ namespace calc
       size_t move( size_t ind, ssize_t disp );
          // Steps over disp (not hidden) formulas. We are not const
          // because we might log an error. 
- 
- 
-#if 0
-      bool isfinished( ) const;
-#endif
 
    private: 
       void assume( const std::string& name, const logic::type& tp );

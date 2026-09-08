@@ -1,13 +1,21 @@
 
-%seqproof
+%seqcalc
 kt::minisfixedpoint{ Prop( Obj, Obj ), Prop( Obj, Obj )( Prop( Obj, Obj )) } :
+{
    %cut goal;
    %setname #-1, cutform; 
    %show "after cut"; 
-   %branch $cutform, #1, {}; 
-   %expand #-1, goal, #0 ; 
-   %flatten #-1; 
-   %branch #-1, #0, {};
-   %flatten #-1;
-   %show "unfinished"; 
+   %branch $cutform, #1, { } :
+   {
+      %expand #-1, goal, #0; 
+      %flatten #-1; 
+      %branch #-1, #0, {} :
+      {
+         %flatten #-1;
+         %fake false;
+         %flatten #-1;
+         %show "unfinished"; 
+      }
+   }
+}
 

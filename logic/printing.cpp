@@ -217,8 +217,8 @@ void logic::belief::print( std::ostream& out ) const
                out << ", ";
             out << f. tp(i);
          }
-         out << " ) : " << view_form( ). fm( );
-         out << "   " << view_form( ). status( ); 
+         out << " ) : " << view_form( ). fm( ) << "\n";
+         out << view_form( ). status( ); 
       }
       return;
 

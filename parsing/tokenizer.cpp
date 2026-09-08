@@ -85,16 +85,17 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "lambda" ), symbolval::sym_LAMBDA );
    cls.insert( word( "let" ), symbolval::sym_LET );
 
-   cls.insert( word( "%seqproof" ), symbolval::sym_PRF_SEQPROOF );
+   cls.insert( word( "%seqcalc" ), symbolval::sym_PRF_SEQCALC );
    cls.insert( word( "%show" ), symbolval::sym_PRF_SHOW );
    cls.insert( word( "%setname" ), symbolval::sym_PRF_SETNAME );
    cls.insert( word( "%cut" ), symbolval::sym_PRF_CUT );
+   cls.insert( word( "%fake" ), symbolval::sym_PRF_FAKE );
    cls.insert( word( "%branch" ), symbolval::sym_PRF_BRANCH );
    cls.insert( word( "%inst" ), symbolval::sym_PRF_INST );
-   cls.insert( word( "%merge" ), symbolval::sym_PRF_MERGE );
    cls.insert( word( "%expand" ), symbolval::sym_PRF_EXPAND );
    cls.insert( word( "%flatten" ), symbolval::sym_PRF_FLATTEN );
    cls.insert( word( "%normalize" ), symbolval::sym_PRF_NORMALIZE );
+   cls.insert( word( "%simplify" ), symbolval::sym_PRF_SIMPLIFY );
  
    cls.insert( word( "eof" ), symbolval::sym_EOF );
    cls.insert( word( "%eof" ), symbolval::sym_EOF );

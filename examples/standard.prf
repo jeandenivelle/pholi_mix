@@ -1,28 +1,42 @@
 
-%seqproof fromto_prop{ Prop( Obj ), Prop( Obj ) } :
+%seqcalc fromto_prop{ Prop( Obj ), Prop( Obj ) } :
+{
    %cut goal;
-   %branch #-1, #0, { };
-   %expand #-1, goal, #0;
-   %expand #-1, strict, #0;
-   %expand #-1, strict, #0;
-   %normalize #-1;
-   %flatten #-1;
-  
-   %merge;
-   %branch #-1, #0, { };
-   %expand #-1, goal, #0;
-   %expand #-1, strict, #0;
-   %expand #-1, strict, #0;
-   %expand #-1, fromto, #0;
-   %normalize #-1;
-   %flatten #-1;
-   %branch #-1, #0, { "P", "Q" };
-   %flatten #-1;
-   %setname #-3, f1;
-   %setname #-2, f2;
-   %flatten #-1;
-   %branch #-1, #0, { "f", "x" };
-  
-   %inst $f1, { x };
-   %show "blabla"; 
+   %branch #-1, #0, { } :
+   {
+      %expand #-1, goal, #0;
+      %expand #-1, strict, #0;
+      %expand #-1, strict, #0;
+      %normalize #-1;
+      %flatten #-1;
+   }
+ 
+   %branch #-1, #0, { } :
+   {
+      %expand #-1, goal, #0;
+      %expand #-1, strict, #0;
+      %expand #-1, strict, #0;
+      %expand #-1, fromto, #0;
+      %normalize #-1;
+      %flatten #-1;
+      %branch #-1, #0, { "P", "Q" } :
+      {
+         %flatten #-1;
+         %setname #-3, f1;
+         %setname #-2, f2;
+         %flatten #-1;
+         %branch #-1, #0, { "f", "x" } :
+         {
+            %inst $f1, { x };
+            %simplify; 
+         } 
 
+         %branch #-1, #0, { "f", "x" } :
+         {
+            %inst $f2, { f(x) };
+            %simplify;
+         }
+      } 
+   }
+   %show "finished"; 
+}

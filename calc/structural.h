@@ -18,7 +18,7 @@ namespace calc
                 const identifier& ident,
                 const std::vector< logic::type > & argtypes ); 
 
-   logic::term proofobligation( const logic::belief& blf );    
+   logic::term initialgoal( const logic::belief& blf );    
 }
 
 #endif

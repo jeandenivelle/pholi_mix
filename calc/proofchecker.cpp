@@ -493,10 +493,8 @@ calc::proofchecker::inst( size_t ind,
    return seq. append( std::move( mainform ));
 }
 
-#if 0
 
-bool
-calc::proofchecker::simplify( label names )
+size_t calc::proofchecker::simplify( )
 {
    saturation sat; 
 
@@ -514,23 +512,20 @@ calc::proofchecker::simplify( label names )
    for( auto rm : sat. removed_initials )
       seq. hide( rm );
 
-   auto lab = names;
+   size_t pos = seq. size( ); 
 
    for( auto& cls : sat. checked )
    {
       // We don't add initial ones, because they are already there.
 
       if( !cls. seqind )
-         lab = seq. append( lab , make_dnf( cls. disj ));
+         seq. append( make_dnf( cls. disj ));
    }
 
-   if( lab != names )  
-      return true;         // Something was simplified.
-   else
-      return false;        // Nothing was simplified.
+   return pos;
+      // If position is still equal to seq. size( ), we added nothing.
 }
 
-#endif
 
 size_t calc::proofchecker::merge( )
 { 
@@ -744,13 +739,15 @@ calc::proofchecker::copy( label lab )
    throw std::logic_error( "reached the unreachable" );
 }
 
+#endif
 
-bool
-calc::proofchecker::fake( logic::term donald, label name )
+size_t calc::proofchecker::fake( logic::term donald )
 {
    auto tp = checkandresolve( *blfs, errors, seq. ctxt, donald );
    if( !tp. has_value( ))
-      return false;  // Error is already created by checktype. 
+      return seq. size( ); 
+
+   std::cout << "faking: " << donald << "\n";
 
    if( tp. value( ). sel( ) != logic::type_prop )
    {
@@ -759,7 +756,7 @@ calc::proofchecker::fake( logic::term donald, label name )
       prt << "Type of faked formala is not Prop, instead it is ";
       prt << tp. value( );
       errors. push_back( std::move( bld ));
-      return false; 
+      return seq. size( ); 
    }
    else
    {
@@ -768,13 +765,13 @@ calc::proofchecker::fake( logic::term donald, label name )
       prt << "Faked proof of " << donald; 
       errors. push_back( std::move( bld ));
 
-      name = seq. append( name, 
-                     disjunction( { exists( std::move( donald )) } ));
       ++ nrfakes;
-      return true;
+
+      return seq. append( disjunction( { exists( std::move( donald )) } ));
    }
 }
 
+#if 0
 
 void
 calc::proofchecker::hide( label lab )
@@ -795,6 +792,15 @@ calc::proofchecker::show( std::string_view label,
    prt << "proof state " << label << " :\n";
    seq. print( prt );   
    prt << bar( 75 ) << "\n";
+}
+
+size_t
+calc::proofchecker::findgoal( ) const
+{
+
+
+
+
 }
 
 void

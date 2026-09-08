@@ -57,10 +57,9 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
-%symbol{ } PRF_SEQPROOF PRF_SHOW PRF_SETNAME PRF_CUT PRF_BRANCH PRF_MERGE
-%symbol{ } PRF_EXPAND PRF_FLATTEN PRF_NORMALIZE PRF_INST
-
-%symbol{ } SequentProof SequentProofStart
+%symbol{ } PRF_SEQCALC PRF_SHOW PRF_SETNAME PRF_CUT PRF_FAKE PRF_BRANCH 
+%symbol{ } PRF_EXPAND PRF_FLATTEN PRF_NORMALIZE PRF_INST PRF_SIMPLIFY
+%symbol{ } SequentProof SeqProofStart SeqBranchStart SeqProofScript
 
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }
@@ -146,11 +145,13 @@ BeliefSeq =>
       }
     | BeliefSeq AXIOM Identifier : id COLON Term : f SEMICOLON 
        { 
-          blfs. append( logic::belief( logic::bel_axiom, id, f, "", { } )); 
+          blfs. append( logic::belief( logic::bel_axiom, id, f, 
+                                       logic::proofstatus( ), { } )); 
        } 
     | BeliefSeq THM Identifier : id COLON Term : f SEMICOLON
        { 
-          blfs. append( logic::belief( logic::bel_thm, id, f, "", { } ));
+          blfs. append( logic::belief( logic::bel_thm, id, f, 
+                                       logic::proofstatus( ), { } ));
        } 
     | BeliefSeq _recover_ SEMICOLON
        { std::cout << "recovered!!!\n"; } 
@@ -443,57 +444,43 @@ TermSeq => TermSeq : args COMMA Term : t
 ;
 
 ProofSeq => 
-   | ProofSeq SequentProof : prf END 
-   ;
-
-SequentProofStart => 
-   PRF_SEQPROOF Identifier : ident LBRACE StructTypeSeq : tps RBRACE COLON
-{
-   errorvector errors;
-   for( auto& tp : tps )
-      logic::checkandresolve( blfs, errors, tp );
-
-   auto ex = calc::findformula( blfs, errors, ident, tps );
-   if( !ex. has_value( )) 
-   {
-      std::cout << "obviously failing, where are the errors?\n"; 
-      currentproof. reset( );
-   }
-   else
-   {
-      currentproof. emplace( &blfs, ex. value( ), 
-             calc::proofobligation( blfs. at( ex. value( ))), 
-             std::move( tps ));
-   }
-}
-
-|
-   PRF_SEQPROOF Identifier : ident COLON 
-{
-   errorvector errors;
-   auto ex = calc::findformula( blfs, errors, ident, { } );
-   if( !ex. has_value( ))
-      currentproof. reset( );
-   else
-      currentproof. emplace( &blfs, ex. value( ),
-              calc::proofobligation( blfs. at( ex. value( ))), 
-              std::vector< logic::type > ( ));
-}
+   | ProofSeq SequentProof 
 ;
 
 SequentProof 
-   => SequentProofStart 
-   | SequentProof : prf PRF_SHOW QUOTEDSTRING : header SEMICOLON
+   => SeqProofStart LBRACE SeqProofScript RBRACE 
+   {
+      if( currentproof. has_value( ))
+      {
+         auto& prf = currentproof. value( );
+         std::cout << "the proof of " << prf. name << " is finished!\n";
+         auto fm = blfs. at( prf. name ). view_form( );
+         auto stat = fm. extr_status( ); 
+         stat. calcname = "seqcalc";
+         stat. nrsteps = prf. nrsteps;
+         stat. nrgaps = prf. errors. size( );
+         stat. nrfakes = prf. nrfakes;
+         stat. dependencies = std::move( prf. dependencies );
+
+         fm. update_status( std::move( stat )); 
+         std::cout << blfs. at( prf. name ) << "\n\n";
+      }
+   }
+   ;
+
+SeqProofScript =>
+
+   | SeqProofScript : prf PRF_SHOW QUOTEDSTRING : header SEMICOLON
       { if( currentproof. has_value( ))
            currentproof. value( ). show( header ); 
       }
-   | SequentProof PRF_SETNAME FormIndex : ind 
+   | SeqProofScript PRF_SETNAME FormIndex : ind 
                   COMMA VARIABLE : name SEMICOLON
       {
          if( currentproof. has_value( ))
             currentproof. value( ). setname( ind, name ); 
       }
-   | SequentProof PRF_CUT Term : fm SEMICOLON 
+   | SeqProofScript PRF_CUT Term : fm SEMICOLON 
       { 
         if( currentproof. has_value( ))
         {
@@ -501,19 +488,23 @@ SequentProof
            prf. cut( prf. replacedebruijn( std::move(fm)));
         }
       }
-   | SequentProof PRF_BRANCH FormIndex : ind COMMA INTEGER : choice COMMA 
-                  EigenSeq : eigen SEMICOLON
-      { 
-         if( currentproof. has_value( ))
-            currentproof. value( ). branch( ind, choice, eigen ); 
-      }
-   | SequentProof PRF_MERGE SEMICOLON
+   | SeqProofScript PRF_FAKE Term : fm SEMICOLON 
       {
          if( currentproof. has_value( ))
-            currentproof. value( ). merge( ); 
+         {
+            auto& prf = currentproof. value( );
+            prf. fake( prf. replacedebruijn( std::move(fm)));
+         }
       }
-   | SequentProof PRF_EXPAND FormIndex : ind COMMA Identifier : id COMMA
-     INTEGER : occ SEMICOLON
+   | SeqProofScript SeqBranchStart LBRACE SeqProofScript RBRACE 
+      {
+         if( currentproof. has_value( ))
+         {
+            currentproof. value( ). merge( );
+         }
+      }
+   | SeqProofScript PRF_EXPAND FormIndex : ind COMMA Identifier : id 
+     COMMA INTEGER : occ SEMICOLON
       {
          if( currentproof. has_value( ))
          { 
@@ -532,34 +523,79 @@ SequentProof
             return;
          }
       }
-   | SequentProof PRF_FLATTEN FormIndex : ind SEMICOLON 
+   | SeqProofScript PRF_FLATTEN FormIndex : ind SEMICOLON 
       {
          if( currentproof. has_value( ))
             currentproof. value( ). flatten( ind ); 
       }
-   | SequentProof PRF_NORMALIZE FormIndex : ind SEMICOLON 
+   | SeqProofScript PRF_NORMALIZE FormIndex : ind SEMICOLON 
       {
          if( currentproof. has_value( ))
             currentproof. value( ). normalize( ind );
       }
-   | SequentProof PRF_INST FormIndex : ind COMMA 
+   | SeqProofScript PRF_INST FormIndex : ind COMMA 
                   LBRACE TermSeq : values RBRACE SEMICOLON
       {
          if( currentproof. has_value( ))
          {
             auto& prf = currentproof. value( );         
             for( auto& v : values )
-            {
-               std::cout << "before: " << v << "\n";
                v = prf. replacedebruijn( std::move(v));    
-               std::cout << "after:  " << v << "\n";
-            }
 
             prf. inst( ind, values );
          }   
-
+      }
+   | SeqProofScript PRF_SIMPLIFY SEMICOLON 
+      {
+         if( currentproof. has_value( ))
+         {
+            currentproof. value( ). simplify( );            
+         }
       }
 ;
+
+SeqProofStart => 
+   PRF_SEQCALC Identifier : ident LBRACE StructTypeSeq : tps RBRACE COLON
+{
+   errorvector errors;
+   for( auto& tp : tps )
+      logic::checkandresolve( blfs, errors, tp );
+
+   auto ex = calc::findformula( blfs, errors, ident, tps );
+   if( !ex. has_value( )) 
+   {
+      std::cout << "obviously failed, but where are the errors?\n"; 
+      currentproof. reset( );
+   }
+   else
+   {
+      currentproof. emplace( &blfs, ex. value( ), 
+             calc::initialgoal( blfs. at( ex. value( ))), 
+             std::move( tps ));
+   }
+}
+|
+   PRF_SEQCALC Identifier : ident COLON 
+{
+   errorvector errors;
+   auto ex = calc::findformula( blfs, errors, ident, { } );
+   if( !ex. has_value( ))
+      currentproof. reset( );
+   else
+      currentproof. emplace( &blfs, ex. value( ),
+              calc::initialgoal( blfs. at( ex. value( ))), 
+              std::vector< logic::type > ( ));
+}
+;
+
+SeqBranchStart => PRF_BRANCH FormIndex : ind COMMA INTEGER : choice COMMA
+                  EigenSeq : eigen COLON
+{  
+   if( currentproof. has_value( ))
+      currentproof. value( ). branch( ind, choice, eigen );
+}
+;
+
 
 FormIndex
    => INTEGER : ind
@@ -576,7 +612,6 @@ FormIndex
             return currentproof. value( ). lookup( str ); 
          return 0u; 
       }
-
    | FORMNAME : str LBRACKET INTEGER : offset RBRACKET 
       {
          if( currentproof. has_value( ))

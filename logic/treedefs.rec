@@ -106,8 +106,8 @@
 %option form { bel_axiom, bel_thm } => 
    fm : term, status : proofstatus, [ tp : type ] 
       // tp is intended for overload resolution. These are universally 
-      // quantified types AFTER CHECKING. Contrary to earlier versions, 
-      // we are not trying to store the proof.
+      // quantified types AFTER CHECKING AND RESOLVING. 
+      // Contrary to earlier versions, we are not storing any proofs. 
 
 %option field { bel_fld } => sdef : exact, offset : size_t 
    // The meanings are:
