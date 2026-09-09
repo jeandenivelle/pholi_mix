@@ -1,7 +1,7 @@
 
 %seqcalc fromto_prop{ Prop( Obj ), Prop( Obj ) } :
 {
-   %cut goal;
+   %show "kut";
    %branch #-1, #0, { } :
    {
       %expand #-1, goal, #0;

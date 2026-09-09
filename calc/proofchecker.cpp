@@ -58,14 +58,23 @@ namespace
 }
 
 
-void calc::proofchecker::setname( size_t ind, const std::string& name )
+calc::proofchecker::proofchecker( const logic::beliefstate* blfs,
+                                  const logic::term& goal )
+   : blfs( blfs ),
+     nrsteps(0),
+     nrfakes(0)
 {
-   if( ind < seq. size( ))
-   {
-      seq. at( ind ). name = name; 
-      seq. index. insert( std::pair( name, ind ));
-   }
+   define( "goal", goal, logic::type( logic::type_prop ));
+
+   auto var = logic::term( logic::op_debruijn, 0 );
+
+   auto f1 = logic::term( logic::op_not,
+             logic::term( logic::op_prop, var ));
+   auto f2 = logic::term( logic::op_not, var );
+
+   seq. append( disjunction{ exists(f1), exists(f2) } );
 }
+
 
 size_t calc::proofchecker::cut( logic::term fm )
 {
@@ -90,6 +99,15 @@ size_t calc::proofchecker::cut( logic::term fm )
    return seq. append( disjunction{ exists(f1), exists(f2), exists(fm) } );
 }
 
+
+void calc::proofchecker::setname( size_t ind, const std::string& name )
+{
+   if( ind < seq. size( ))
+   {
+      seq. at( ind ). name = name; 
+      seq. index. insert( std::pair( name, ind ));
+   }
+}
 
 size_t
 calc::proofchecker::branch( size_t disj, size_t choice,
@@ -762,7 +780,7 @@ size_t calc::proofchecker::fake( logic::term donald )
    {
       errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
-      prt << "Faked proof of " << donald; 
+      prt << "Faked a proof of " << donald; 
       errors. push_back( std::move( bld ));
 
       ++ nrfakes;
@@ -794,13 +812,29 @@ calc::proofchecker::show( std::string_view label,
    prt << bar( 75 ) << "\n";
 }
 
-size_t
-calc::proofchecker::findgoal( ) const
+
+size_t calc::proofchecker::qed( ) const
 {
+   if( seq. nrdecisions( ) != 0 )
+      return seq. size( );
 
+   for( size_t i = 0; i != seq. ctxt. size( ); ++ i )
+   {
+      if( !seq. ctxt. hasdefinition(i))
+         return false;
+   }
 
+   for( size_t c = 0; c != seq. stack. size( ); ++ c )
+   {
+      const auto& fm = seq. at(c);
+  
+      // Of course we could accept hidden:
 
+      if( fm. is_dnf( ) && fm. get_dnf( ). size( ) == 0 && !fm. hidden )
+         return c; 
+   }
 
+   return seq. stack. size( );
 }
 
 void

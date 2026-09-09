@@ -9,7 +9,7 @@
 // one should always put them in a container.
 // We always use vector, and there are some functions that
 // suppport this. In principle, errors should be put in a set, 
-// or perhaps a multiset.
+// or perhaps even a multiset.
 
 // Any error that is unreported will be aggressively printed 
 // when destroyed. 
@@ -135,8 +135,9 @@ using errorvector = std::vector< errortree > ;
 
 void transfer( errorvector from, errorvector& into );
 
-void transfer( errortree::builder header,
-               errorvector from, errorvector& into );
+void transfer( errortree::builder header, errorvector from, 
+               errorvector& into );
+   // Collects all of from under a single header.
 
 std::ostream& operator << ( std::ostream& out, const errortree& );
 std::ostream& operator << ( std::ostream& out, const errorvector& );

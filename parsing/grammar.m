@@ -453,16 +453,27 @@ SequentProof
       if( currentproof. has_value( ))
       {
          auto& prf = currentproof. value( );
-         std::cout << "the proof of " << prf. name << " is finished!\n";
+         std::cout << "the proof of " << prf. name << " ended!\n";
          auto fm = blfs. at( prf. name ). view_form( );
          auto stat = fm. extr_status( ); 
          stat. calcname = "seqcalc";
          stat. nrsteps = prf. nrsteps;
-         stat. nrgaps = prf. errors. size( );
+         if( prf. errors. size( ))
+         {
+            ++ stat. nrgaps;
+               // This is not needed, and perhaps even wrong. 
+            errortree::builder bld;
+            bld << "errors while checking " << prf. name;
+            transfer( std::move( bld ), std::move( prf. errors ), 
+                      prooferrors ); 
+         }
          stat. nrfakes = prf. nrfakes;
          stat. dependencies = std::move( prf. dependencies );
+         if( prf. qed( ) == prf. size( ))
+            ++ stat. nrgaps; 
 
          fm. update_status( std::move( stat )); 
+         
          std::cout << blfs. at( prf. name ) << "\n\n";
       }
    }
@@ -570,7 +581,7 @@ SeqProofStart =>
    else
    {
       currentproof. emplace( &blfs, ex. value( ), 
-             calc::initialgoal( blfs. at( ex. value( ))), 
+             calc::getgoal( blfs. at( ex. value( ))), 
              std::move( tps ));
    }
 }
@@ -583,7 +594,7 @@ SeqProofStart =>
       currentproof. reset( );
    else
       currentproof. emplace( &blfs, ex. value( ),
-              calc::initialgoal( blfs. at( ex. value( ))), 
+              calc::getgoal( blfs. at( ex. value( ))), 
               std::vector< logic::type > ( ));
 }
 ;

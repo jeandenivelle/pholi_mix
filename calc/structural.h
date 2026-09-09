@@ -18,7 +18,8 @@ namespace calc
                 const identifier& ident,
                 const std::vector< logic::type > & argtypes ); 
 
-   logic::term initialgoal( const logic::belief& blf );    
+   logic::term getgoal( const logic::belief& blf ); 
+      // get the goal belonghing to blf. 
 }
 
 #endif

@@ -31,20 +31,20 @@ namespace calc
       logic::exact::unordered_map< uint64_t > dependencies;
          // Exact identifiers occurring in the proof. 
 
+      
+      // goal must be checked and resolved:
+ 
       explicit proofchecker( const logic::beliefstate* blfs,
-                             const logic::term& goal )
-         : blfs( blfs ),
-           nrsteps(0),
-           nrfakes(0)
-      { 
-         define( "goal", goal, logic::type( logic::type_prop ));
-      }
-
-      void setname( size_t ind, const std::string& name );
+                             const logic::term& goal );
+         // Create the sequent:
+         // goal := goal (the formula).
+         // { !# goal, !goal };
 
       size_t cut( logic::term fm );
          // Returns the index of the added formula, or size( ) if 
          // not succesful. 
+
+      void setname( size_t ind, const std::string& name );
 
       // If you want to parse expressions, you must set the
       // names of the eigenvariables:
@@ -72,8 +72,8 @@ namespace calc
 
       bool substdef( );
          // Remove the last local definition by substituting it away.
-
 #endif
+
       size_t inst( size_t ind, const std::vector< logic::term > & values );
 
       size_t simplify( );
@@ -82,6 +82,7 @@ namespace calc
          // The result is seq. end( ) if no simplification happened. 
 
       size_t nrdecisions( ) const { return seq. decisions. size( ); }
+      size_t size( ) const { return seq. size( ); }
 
       size_t merge( );
          // Merge (resolve) the last choice.
@@ -96,10 +97,11 @@ namespace calc
       void show( std::string_view label, 
                  std::ostream& out = std::cout ) const;
 
-      size_t findgoal( ) const;
-         // Try to find the goal.
-         // It should be not in the scope of a decision. 
-         // We also accept false.  
+      size_t qed( ) const;
+         // There must be no decisions and no assumptions. 
+         // Definitions are possible.
+         // Find a DNF of form { }, if there is one, otherwise
+         // seq. size( ). 
 
       logic::term replacedebruijn( logic::term tm );
 
