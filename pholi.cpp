@@ -10,6 +10,7 @@
 #include "logic/termoperators.h"
 #include "logic/replacements.h"
 #include "logic/cmp.h"
+#include "logic/counters.h"
 
 #include "parsing/parser.h"
 
@@ -138,6 +139,35 @@ bool compare( const T& t1, const T& t2 )
 
 int main( int argc, char* argv[] )
 {
+   logic::exactcounter cnt;
+   std::cout << cnt << "\n";
+
+   std::vector< logic::type > extypes;
+   for( size_t i = 0; i < 50; ++ i )
+      extypes. push_back( logic::type( logic::type_struct, logic::exact(i)) );
+
+   auto tp = logic::type( logic::type_func, 
+                     extypes[4], 
+                     {
+                        extypes[10], extypes[4], 
+                        logic::type( logic::type_func, 
+                           logic::type( logic::type_unchecked, identifier( ) + "hallo" ),
+                           { extypes[20] } )
+                     } );
+
+   tp = logic::type( logic::type_prop );
+   auto tm = logic::lambda( {{ "a", tp }}, 
+      logic::term( logic::op_exact, logic::exact(100)) == 4_db );
+
+   tm = logic::exists( {{ "a", extypes[25] }, { "b", extypes[13] }}, tm );
+   tm = logic::let( { "hans", extypes[39] }, 
+                    logic::term( logic::op_exact, logic::exact(20)) &&
+                    logic::term( logic::op_exact, logic::exact(21)), tm );
+
+   std::cout << "start counting in: " << tm << "\n";
+   cnt. count(tm);
+   std::cout << cnt << "\n"; 
+   return 0;
 
 #if 0
    logic::vartype var1 = { "aaaa", logic::type_obj };

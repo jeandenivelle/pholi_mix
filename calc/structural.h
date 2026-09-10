@@ -17,9 +17,10 @@ namespace calc
    findformula( const logic::beliefstate& blfs, errorvector& errs, 
                 const identifier& ident,
                 const std::vector< logic::type > & argtypes ); 
+      // Types in argtypes must be resolved.
 
    logic::term getgoal( const logic::belief& blf ); 
-      // get the goal belonghing to blf. 
+      // get the goal belonging to blf. 
 }
 
 #endif

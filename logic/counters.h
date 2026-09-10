@@ -20,11 +20,13 @@ namespace logic
 
 
    template< counter C >
-   void traverse( C& counter, const term& t, size_t vardepth )
+   void traverse( C& counter, const term& tm, size_t vardepth )
    {
-      counter( t, vardepth );
+      // std::cout << "traverse " << tm << " / " << vardepth << "\n";
 
-      switch( t. sel( ))
+      counter( tm, vardepth );
+
+      switch( tm. sel( ))
       {
       case op_exact:
       case op_debruijn:
@@ -37,7 +39,7 @@ namespace logic
       case op_not:
       case op_prop:
          {
-            auto un = t. view_unary( );
+            auto un = tm. view_unary( );
             traverse( counter, un. sub( ), vardepth );
          }
          return;
@@ -50,7 +52,7 @@ namespace logic
       case op_lazy_implies:
       case op_equals:
          {
-            auto bin = t. view_binary( );
+            auto bin = tm. view_binary( );
             traverse( counter, bin. sub1( ), vardepth );
             traverse( counter, bin. sub2( ), vardepth );
          }
@@ -59,14 +61,22 @@ namespace logic
       case op_forall:
       case op_exists:
          {
-            auto q = t. view_quant( ); 
+            auto q = tm. view_quant( ); 
             traverse( counter, q. body( ), vardepth + q. size( ));
+         }
+         return;
+
+      case op_let:
+         {
+            auto let = tm. view_let( );
+            traverse( counter, let. val( ), vardepth ); 
+            traverse( counter, let. body( ), vardepth + 1 );
          }
          return;
 
       case op_apply:
          {
-            auto ap = t. view_apply( );
+            auto ap = tm. view_apply( );
             traverse( counter, ap. func( ), vardepth );
             for( size_t i = 0; i != ap. size( ); ++ i )
                traverse( counter, ap. arg(i), vardepth );
@@ -75,14 +85,14 @@ namespace logic
 
       case op_lambda:
          {
-            auto lam = t. view_lambda( );
+            auto lam = tm. view_lambda( );
             traverse( counter, lam. body( ), vardepth + lam. size( ));
          }
          return; 
       }
 
-      std::cout << "count: " << t. sel( ) << "\n";
-      throw std::logic_error( "dont know how to count" );
+      std::cout << "traverse: " << tm. sel( ) << "\n";
+      throw std::logic_error( "dont know how to traverse" );
    }
 
 
@@ -122,10 +132,8 @@ namespace logic
       return db;
    }
 
-   exact::unordered_map< size_t > count_beliefs( const term& t );
 
-
-   // Can be used for finding the nearest De Bruijn index. 
+   // Can be used for finding the nearest De Bruijn index: 
 
    struct debruijn_cmp 
    {
@@ -151,26 +159,28 @@ namespace logic
    }
 
 
+   // Counts exact identifiers. 
+   // We also look inside structural types.
+
    struct exactcounter
    {
-      exact::unordered_map< size_t > occ;
-      bool extending;
-         // If extending == true, we insert exact names that are not in
-         // occ yet.
+      exact::unordered_map< uint64_t > occ;
 
-      explicit exactcounter( bool extending ) noexcept
-         : extending( extending )
+      exactcounter( ) = default;
+      exactcounter( exact::unordered_map< uint64_t > && occ )
+         : occ( std::move( occ ))
       { }
 
-      void addtodomain( exact ex )
-         { occ. insert( std::pair< exact, size_t > ( ex, 0 )); }
-            // add ex to the domain, with zero occurrences.
-            // This is not needed if extending == true. 
-
+      exactcounter( exactcounter&& ) noexcept = default;
+      exactcounter& operator = ( exactcounter&& ) noexcept = default;
+ 
       void operator( ) ( const term& t, size_t vardepth );
 
-      size_t at( exact ex ) 
-         { return occ. at( ex ); }
+      void count( const term& tm ) 
+         { traverse( *this, tm, 0 ); }
+   
+      void count( const type& tp );
+         // Counts in structural type. We don't have a template for that.
 
       void print( std::ostream& out ) const; 
    };
