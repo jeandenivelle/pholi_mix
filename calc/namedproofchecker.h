@@ -5,7 +5,6 @@
 #define CALC_NAMEDPROOFCHECKER_
 
 #include <optional>
-#include <vector>
 
 #include "identifier.h"
 #include "proofchecker.h"
@@ -20,12 +19,12 @@ namespace calc
    {
       logic::exact name; 
 
-      std::vector< logic::type > types; 
+      logic::typesequence types; 
          // In principle resolved.
 
       namedproofchecker( const logic::beliefstate* blfs, 
                          logic::exact name, const logic::term& goal,
-                         std::vector< logic::type > types )
+                         logic::typesequence types )
          : proofchecker( blfs, goal ),
            name( name ),
            types( std::move( types ))

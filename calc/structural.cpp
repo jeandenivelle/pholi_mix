@@ -6,36 +6,26 @@
 
 // True if blf is applicable on types as a theorem or axiom:
 
-bool           
+bool  
 calc::applicable( const logic::belief& blf,
-                  const std::vector< logic::type > & types )
+                  const logic::typesequence& types )
 {
    std::cout << "applicable " << blf << "\n";
 
    if( blf. sel( ) == logic::bel_axiom || blf. sel( ) == logic::bel_thm )
    { 
       const auto& fm = blf. view_form( ); 
-            
-      if( types. size( ) > fm. size( ))
-         return false;
-         
-      for( size_t i = 0; i != types. size( ); ++ i )
-      {        
-         if( !equal( fm. tp(i), types. at(i)) )
-            return false;
-      }        
-
-      return true;
+      if( isprefix( types, fm. tps( ) ))
+         return true; 
    }
-   else
-      return false; 
+   return false; 
 }
 
 
 std::optional< logic::exact >
 calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
                    const identifier& ident,
-                   const std::vector< logic::type > & types )
+                   const logic::typesequence& univtypes )
 {
    const auto& candidates = blfs. getformulas( ident );   
    if( candidates. size( ) == 0 )
@@ -52,7 +42,7 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
 
    for( auto p = candidates. begin( ); p != candidates. end( ); ++ p )
    {
-      if( applicable( blfs. at( *p ), types ))
+      if( applicable( blfs. at( *p ), univtypes ))
       {
          cand = p; 
          ++ nrfits; 
@@ -91,4 +81,5 @@ logic::term calc::getgoal( const logic::belief& blf )
 
    throw std::logic_error( "unable to get goal from belief" );
 }
+
 

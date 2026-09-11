@@ -17,7 +17,7 @@
 
 %symbol{ std::vector< logic::term > } TermSeq
 
-%symbol{ logic::type } StructType func 
+%symbol{ logic::type } StructType 
 %symbol{ std::vector< logic::type > } StructTypeSeq
 
 %symbol{ std::string } VARIABLE QUOTEDSTRING FORMNAME
@@ -569,10 +569,13 @@ SeqProofStart =>
    PRF_SEQCALC Identifier : ident LBRACE StructTypeSeq : tps RBRACE COLON
 {
    errorvector errors;
-   for( auto& tp : tps )
+
+   auto seq = logic::typesequence( std::move( tps ));
+
+   for( auto& tp : seq )
       logic::checkandresolve( blfs, errors, tp );
 
-   auto ex = calc::findformula( blfs, errors, ident, tps );
+   auto ex = calc::findformula( blfs, errors, ident, seq );
    if( !ex. has_value( )) 
    {
       std::cout << "obviously failed, but where are the errors?\n"; 
@@ -582,7 +585,7 @@ SeqProofStart =>
    {
       currentproof. emplace( &blfs, ex. value( ), 
              calc::getgoal( blfs. at( ex. value( ))), 
-             std::move( tps ));
+             std::move( seq ));
    }
 }
 |
@@ -595,7 +598,7 @@ SeqProofStart =>
    else
       currentproof. emplace( &blfs, ex. value( ),
               calc::getgoal( blfs. at( ex. value( ))), 
-              std::vector< logic::type > ( ));
+              logic::typesequence( ));
 }
 ;
 

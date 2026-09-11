@@ -208,16 +208,8 @@ void logic::belief::print( std::ostream& out ) const
          out << ident( );
 
          auto f = view_form( );
-         out << '(';
-         for( size_t i = 0; i != f. size( ); ++ i )
-         {
-            if( i == 0 )
-               out << " ";
-            else
-               out << ", ";
-            out << f. tp(i);
-         }
-         out << " ) : " << view_form( ). fm( ) << "\n";
+         f. tps( ). print( out ); 
+         out << " : " << view_form( ). fm( ) << "\n";
          out << view_form( ). status( ); 
       }
       return;

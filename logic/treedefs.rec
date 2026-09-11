@@ -104,10 +104,10 @@
 %option def { bel_def } => tp : type, val : term 
 
 %option form { bel_axiom, bel_thm } => 
-   fm : term, status : proofstatus, [ tp : type ] 
-      // tp is intended for overload resolution. These are universally 
+   fm : term, status : proofstatus, tps : typesequence
+      // tps is used for overload resolution. These are universally 
       // quantified types AFTER CHECKING AND RESOLVING. 
-      // Contrary to earlier versions, we are not storing any proofs. 
+      // Contrary to earlier versions, we are not storing proofs. 
 
 %option field { bel_fld } => sdef : exact, offset : size_t 
    // The meanings are:
@@ -123,6 +123,7 @@
    #include "structdef.h" 
    #include "proofstatus.h"
    #include "term.h"
+   #include "typesequence.h"
 }
 
 %h_methods

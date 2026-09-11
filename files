@@ -25,6 +25,7 @@
    selector.cpp
    belief.cpp
    structdef.cpp
+   typesequence.cpp
    beliefstate.cpp
    replacements.cpp
    counters.cpp
@@ -35,7 +36,7 @@
    pretty.cpp
    printing.cpp
    proofstatus.cpp
-
+   
 %dir Source/calc
 %sources
    selector.cpp

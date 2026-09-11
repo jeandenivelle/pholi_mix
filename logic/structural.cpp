@@ -241,14 +241,21 @@ logic::checkandresolve( beliefstate& everything, errorvector& errors )
             checkformula( everything, blf. ident( ), fm, "formula", 
                           blf_errors );
             {
+               // This is an interesting loop from the programming
+               // language point of view:
+
                auto univ = fm;
+               typesequence types = f. extr_tps( ); 
+
                while( univ. sel( ) == op_forall )
                {
-                  auto all = univ. view_quant( );
-                  for( size_t i = 0; i != all. size( ); ++ i )
-                     f. push_back( all. var(i). tp );
-                  univ = all. body( );
+                  auto q = univ. view_quant( );
+                  for( size_t i = 0; i != q. size( ); ++ i )
+                     types. append( q. var(i). tp );
+                  univ = q. body( );
                }
+ 
+               f. update_tps( std::move( types )); 
             }
             f. update_fm( fm );
 

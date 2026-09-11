@@ -11,13 +11,13 @@ namespace calc
 
    bool
    applicable( const logic::belief& blf,
-               const std::vector< logic::type > & types );
+               const logic::typesequence& types );
 
    std::optional< logic::exact > 
    findformula( const logic::beliefstate& blfs, errorvector& errs, 
                 const identifier& ident,
-                const std::vector< logic::type > & argtypes ); 
-      // Types in argtypes must be resolved.
+                const logic::typesequence& univtypes ); 
+      // Types in univtypes must be resolved.
 
    logic::term getgoal( const logic::belief& blf ); 
       // get the goal belonging to blf. 
