@@ -2,7 +2,6 @@
 %seqcalc
 isclosed_prop{ Nat, Prop( Obj ) } :
 {
-   %cut goal;
    %setname #-1, cutform;
    %branch $cutform, #0, { } :
    {
@@ -19,7 +18,7 @@ isclosed_prop{ Nat, Prop( Obj ) } :
    {
       %expand #-1, goal, #0;
       %flatten #-1;
-      %branch #-1, #0, { } :
+      %branch #-1, #0, { "s", "P" } :
       {
          %flatten #-1;
          %expand #-1, isclosed, #0;

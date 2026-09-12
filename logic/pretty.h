@@ -124,6 +124,9 @@ namespace pretty
       // together with its context, we remember the uniquenamestack,
       // so that it can be used for printing the term. 
 
+   void print( std::ostream& out, const beliefstate& blfs, 
+               const typesequence& seq );
+
    void print( std::ostream& out, const beliefstate& blfs, const belief& bel ); 
 
 }}

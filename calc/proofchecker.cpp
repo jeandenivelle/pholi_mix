@@ -181,8 +181,6 @@ calc::proofchecker::expand( size_t ind, const identifier& ident, size_t occ )
       // The expander will look only at exact overloads.
       // This guarantees type safety.
 
-   std::cout << def << "\n";
-
    seq. hide( ind );
 
    if( seq. at( ind ). is_dnf( ))
@@ -347,8 +345,6 @@ size_t calc::proofchecker::normalize( size_t ind )
 {
    if( ind >= seq. size( ))
       return seq. size( );
-
-   std::cout << "normalize: " << ind << "\n";
 
    seq. hide( ind );
 
@@ -524,8 +520,6 @@ size_t calc::proofchecker::simplify( )
    }
 
    sat. saturate( );
-   std::cout << "after saturation\n";
-   std::cout << sat << "\n";
 
    for( auto rm : sat. removed_initials )
       seq. hide( rm );
@@ -898,8 +892,6 @@ size_t calc::proofchecker::lookup( const std::string& name )
 
 size_t calc::proofchecker::move( size_t ind, ssize_t disp ) 
 {
-   std::cout << "moving " << ind << " + " << disp << "\n";
-   
    if( seq. size( ) == 0 )
       return 0;
 

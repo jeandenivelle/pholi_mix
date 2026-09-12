@@ -463,7 +463,9 @@ SequentProof
             ++ stat. nrgaps;
                // This is not needed, and perhaps even wrong. 
             errortree::builder bld;
-            bld << "errors while checking " << prf. name;
+            bld << "errors while checking proof of ";
+            bld << blfs. at( prf. name ). ident( ) << " : ";
+            logic::pretty::print( bld, blfs, fm. tps( ));
             transfer( std::move( bld ), std::move( prf. errors ), 
                       prooferrors ); 
          }
@@ -584,8 +586,7 @@ SeqProofStart =>
    else
    {
       currentproof. emplace( &blfs, ex. value( ), 
-             calc::getgoal( blfs. at( ex. value( ))), 
-             std::move( seq ));
+             calc::getgoal( blfs. at( ex. value( ))) );
    }
 }
 |
@@ -597,8 +598,7 @@ SeqProofStart =>
       currentproof. reset( );
    else
       currentproof. emplace( &blfs, ex. value( ),
-              calc::getgoal( blfs. at( ex. value( ))), 
-              logic::typesequence( ));
+              calc::getgoal( blfs. at( ex. value( ))) );
 }
 ;
 
@@ -614,14 +614,12 @@ SeqBranchStart => PRF_BRANCH FormIndex : ind COMMA INTEGER : choice COMMA
 FormIndex
    => INTEGER : ind
       { 
-        std::cout << "the integer is: " << ind << "\n";
         if( currentproof. has_value( ))
            return currentproof. value( ). lookup( ind ); 
         return 0u;
       }
    | FORMNAME : str 
       { 
-         std::cout << "str = " << str << "\n";
          if( currentproof. has_value( ))
             return currentproof. value( ). lookup( str ); 
          return 0u; 

@@ -540,6 +540,23 @@ logic::pretty::getnames( const logic::context& ctxt, size_t ss )
 }
 
 
+void
+logic::pretty::print( std::ostream& out, const beliefstate& blfs,
+                      const typesequence& seq )
+{
+   out << '(';
+   for( auto p = seq. begin( ); p != seq. end( ); ++ p )
+   {
+      if( p == seq. begin( ))
+         out << ' ';
+      else
+         out << ", ";
+      print( out, blfs, *p, {0,0} );
+   } 
+   out << " )"; 
+}
+
+
 void 
 logic::pretty::print( std::ostream& out,
                       const beliefstate& blfs,  
