@@ -595,7 +595,7 @@ logic::pretty::print( std::ostream& out,
          auto form = bel. view_form( );
          context ctxt;
          pretty::print( out, blfs, ctxt, form. fm( ));
-         out << "   " << form. status( ) << "\n";
+         out << "      " << form. status( ) << '\n';
          return; 
       }
 

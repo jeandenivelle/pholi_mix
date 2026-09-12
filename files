@@ -26,6 +26,7 @@
    belief.cpp
    structdef.cpp
    typesequence.cpp
+   proofstatus.cpp
    beliefstate.cpp
    replacements.cpp
    counters.cpp
@@ -35,7 +36,6 @@
    uniquenamestack.cpp
    pretty.cpp
    printing.cpp
-   proofstatus.cpp
    
 %dir Source/calc
 %sources

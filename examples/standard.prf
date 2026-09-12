@@ -27,13 +27,13 @@
          %flatten #-1;
          %branch #-1, #0, { "f", "x" } :
          {
-            %inst $f1, { x };
+            %instantiate $f1, { x };
             %simplify; 
          } 
 
          %branch #-1, #0, { "f", "x" } :
          {
-            %inst $f2, { f(x) };
+            %instantiate $f2, { f(x) };
             %simplify;
          }
       } 

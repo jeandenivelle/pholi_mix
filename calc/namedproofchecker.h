@@ -21,6 +21,17 @@ namespace calc
          : proofchecker( blfs, goal ),
            name( name ) 
       { }
+
+      errortree::builder errorheader( ) const
+      {
+         errortree::builder bld;
+         bld << "in proof of ";
+         bld << blfs -> at( name ). ident( ) << ' ';
+         logic::pretty::print( bld, *blfs, 
+                               blfs -> at( name ). view_form( ). tps( ));
+         bld << ": ";
+         return bld;
+      }
    };
 
 }

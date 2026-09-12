@@ -4,19 +4,29 @@
 std::ostream& 
 logic::operator << ( std::ostream& out, const proofstatus& stat )
 {
-   if( stat. calcname. empty( ))
-      out << "(no proof calculus)\n";
+   if( stat. calcname. size( ))
+   {
+      if( stat. distance )
+         out << "(attempted with " << stat. calcname;
+      else
+         out << "(proven with " << stat. calcname;
+      out << " in " << stat. nrsteps << " steps";
+
+      for( auto p = stat. dependencies. begin( ); 
+                p != stat. dependencies. end( ); ++ p )
+      {
+         if( p != stat. dependencies. begin( ))
+            out << " ";
+         else
+            out << ", ";
+         out << ( p -> first ) << " : " << ( p -> second );
+      }
+      out << " )";
+   }
    else
-      out << "proven with " << stat. calcname << "\n";
-
-   if( stat. nrgaps )
-      out << "the proof has " << stat. nrgaps << " gaps\n";
-   if( stat. nrfakes )
-      out << "the proof used " << stat. nrfakes << " fakes\n";
-
-   if( stat. nrgaps == 0 && stat. nrfakes == 0 )
-      out << "the proof is complete and uses " << stat. nrsteps << " steps\n";
+      out << "(no proof)";
 
    return out;
 }
+
 

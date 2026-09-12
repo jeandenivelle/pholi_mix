@@ -32,7 +32,7 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
    {
       errortree::builder bld;
       bld << "Import: Identifier " << ident;
-      bld << " does not occur as provable formula"; 
+      bld << " does not occur as formula"; 
       errs. push_back( std::move( bld ));
       return { };
    }

@@ -107,7 +107,7 @@
    fm : term, status : proofstatus, tps : typesequence
       // tps is used for overload resolution. These are universally 
       // quantified types AFTER CHECKING AND RESOLVING. 
-      // Contrary to earlier versions, we are not storing proofs. 
+      // We are not storing proofs. 
 
 %option field { bel_fld } => sdef : exact, offset : size_t 
    // The meanings are:

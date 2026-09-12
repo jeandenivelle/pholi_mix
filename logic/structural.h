@@ -48,7 +48,11 @@ namespace logic
 
    bool
    checkandresolve( const beliefstate& blfs, errorvector& errors, type& tp );
-    
+   
+   bool
+   checkandresolve( const beliefstate& blfs, errorvector& errors, 
+                    typesequence& tps );
+ 
    std::optional< type > 
    checkandresolve( const beliefstate& blfs, errorvector& errors,
                     context& ctxt, term& t );

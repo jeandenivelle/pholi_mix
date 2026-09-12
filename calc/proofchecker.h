@@ -30,7 +30,6 @@ namespace calc
 
       logic::exact::unordered_map< uint64_t > dependencies;
          // Exact identifiers occurring in the proof. 
-
       
       // goal must be checked and resolved:
  
@@ -58,11 +57,8 @@ namespace calc
       size_t expand( size_t ind, size_t var, size_t occ );
          // var must be a De Bruijn index. (Looking backwards)
 
-#if 0
-      bool import( const identifier& ident, 
-                   std::vector< logic::type > argtypes, label name );
-         // Imported formula will be called 'name'.
-#endif
+      size_t import( const identifier& ident, logic::typesequence types );
+
       size_t flatten( size_t ind );
       size_t normalize( size_t ind );
 

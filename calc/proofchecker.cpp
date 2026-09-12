@@ -242,45 +242,33 @@ calc::proofchecker::expand( size_t ind, size_t var, size_t occ )
    throw std::logic_error( "unreachable!" );
 }
 
-#if 0
 
-bool
+size_t
 calc::proofchecker::import( const identifier& ident, 
-                            std::vector< logic::type > argtypes,
-                            label name )
+                            logic::typesequence types )
 {
-   size_t nrcorrect = 0;
-
-   for( auto& tp : argtypes )
    {
-      bool b = checkandresolve( *blfs, errors, tp );
-      if( b )
-         ++ nrcorrect;
-      else
+      errorvector err;
+      bool b = checkandresolve( *blfs, err, types );
+      if(!b)
       {
          errortree::builder bld; 
-         auto prt = pretty_printer( &bld, blfs );
-         prt << "Bad structural type while importing " << ident << " : ";
-         prt << tp;
-         errors. push_back( std::move( bld ));
+         bld << "Errors while importing " << ident;
+         transfer( std::move(bld), std::move(err), errors );
+         return seq. size( ); 
       }
    }
- 
-   if( nrcorrect != argtypes. size( ))
-      return { };
 
-   auto ex = findformula( *blfs, errors, ident, argtypes );
+   auto ex = findformula( *blfs, errors, ident, types );
    if( !ex. has_value( ))
+   {
       return false;  
          // We can return quietly because findformula created an error. 
+   }
 
    const auto& fm = blfs -> at( ex. value( )). view_form( ). fm( );
-   seq. append( name, disjunction( { exists( fm ) } ));
-
-   return true;
+   return seq. append( disjunction( { exists( fm ) } ));
 }
-
-#endif
 
 size_t calc::proofchecker::flatten( size_t ind )
 {

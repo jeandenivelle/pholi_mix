@@ -114,7 +114,7 @@ checkproofs( logic::beliefstate& blfs,
    if( prs. prooferrors. size( ))
    {
       errortree::builder header;
-      header << "proof errors in proof file " << file. string( ) << " :";
+      header << "errors in proof file " << file. string( ) << " :";
       transfer( std::move( header ), std::move( prs. prooferrors ), errors );
    }
 

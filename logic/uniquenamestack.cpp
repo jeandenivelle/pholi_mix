@@ -15,7 +15,6 @@ namespace
          -- i;
          str[i] = first; 
       }
-      std::cout << i << "\n";
       if( i == 0 || str[ i - 1 ] < first || str[ i - 1 ] > last )
          str. insert( i, 1, first + 1 );
       else

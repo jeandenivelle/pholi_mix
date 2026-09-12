@@ -17,6 +17,7 @@ namespace logic
       std::vector< type > repr;
 
       typesequence( ) noexcept = default;
+
       explicit typesequence( std::vector< type > && repr ) noexcept
          : repr( std::move( repr ))
       { }

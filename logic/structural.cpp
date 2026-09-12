@@ -494,6 +494,23 @@ logic::checkandresolve( const beliefstate& blfs,
    throw std::runtime_error( "not implemented for this case" );
 }
 
+
+bool 
+logic::checkandresolve( const beliefstate& blfs, errorvector& errors,
+                        typesequence& tps )
+{
+   size_t nrcorrect = 0;
+
+   for( auto& tp : tps )
+   {
+      bool b = checkandresolve( blfs, errors, tp );
+      if(b) 
+         ++ nrcorrect;
+   }
+
+   return nrcorrect == tps. size( );
+}
+
 std::optional< logic::type >
 logic::checkandresolve( const beliefstate& blfs, errorvector& errors,
                         term& t )
