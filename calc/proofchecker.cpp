@@ -143,10 +143,11 @@ calc::proofchecker::branch( size_t disj, size_t choice,
    if( eigen. size( ) > ex. vars. size( ))
    { 
       errortree::builder bld;
-      bld << "branch " << disj << ": ";
-      bld << "there are too many eigenvariables (" << eigen. size( ) << "), ";
-      bld << "but the formula has only " << ex. vars. size( );
-      bld << " variables";
+      auto prt = pretty_printer( &bld, blfs, seq. ctxt );
+      prt << "branch " << ex << ": ";
+      prt << "there are too many eigenvariables (" << eigen. size( ) << "), ";
+      prt << "but the formula has only " << ex. vars. size( );
+      prt << " variables";
       errors. push_back( std::move( bld ));
       return seq. size( );
    }

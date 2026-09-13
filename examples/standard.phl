@@ -100,6 +100,10 @@ def fromto( P : Prop( Obj, Obj ); Q : Prop( Obj ))
        ( f : Obj( Obj, Obj )) : Prop :=
    forall{ x1, x2 : Obj }: P(x1, x2) -> Q( f(x1, x2) );
 
+thm fromto_prop: forall{ P : Prop( Obj, Obj ); Q : Prop( Obj ) } :
+   strict(P) & strict(Q) -> 
+      forall{ f : Obj( Obj, Obj ) } : # fromto( P, Q, f );
+
 def fromto( P : Prop( Obj, Obj, Obj ); Q : Prop( Obj ))
        ( f : Obj( Obj, Obj, Obj )) : Prop :=
    forall{ x1, x2, x3 : Obj } : P(x1,x2,x3) -> Q( f(x1,x2,x3) ); 
