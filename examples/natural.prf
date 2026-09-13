@@ -2,68 +2,91 @@
 %seqcalc
 isclosed_prop{ Nat, Prop( Obj ) } :
 {
-   %setname #-1, cutform;
-   %branch $cutform, #0, { } :
+   %branch #0 #0 { } :
    {
-      %expand #-1, goal, #0;
+      %expand #-1 goal #0;
       %flatten #-1;
-      %branch #-1, #0, {} :
+      %branch #-1 #0 { } :
       {
-         %expand #-1, strict, #0;
+         %expand #-1 strict #0;
          %normalize #-1;
          %flatten #-1;
       } 
    } 
-   %branch #-1, #0, { } :
+   %branch #-1 #0 { } :
    {
-      %expand #-1, goal, #0;
+      %expand #-1 goal #0;
       %flatten #-1;
-      %branch #-1, #0, { "s", "P" } :
+      %branch #-1 #0 { "s", "P" } :
       {
          %flatten #-1;
-         %expand #-1, isclosed, #0;
+         %expand #-1 isclosed #0;
+         %setname #-2 strictP;
          %normalize #-1;
          %flatten #-1;
-         %import fromto_prop;
+         %import fromto_prop ( Prop( Obj ), Prop( Obj ) );
+         %setname #-1 fromtoprop;
          %flatten #-1;
-         %setname #-1, prop;
-         %instantiate $prop, { P, P };
+         %setname #-1 prop;
+         %instantiate $prop { P, P };
          %flatten #-1;
          %simplify;
          %flatten #-1;
-         %instantiate #-1, { s. succ };
+         %instantiate #-1 { s. succ };
+         %simplify;
+         // This should become %import fromto_prop( Prop( Obj ), Obj ),
+         // now we just do the proof:
+         %expand #-1 fromto #0;
+         %normalize #-1;
+         %expand $strictP strict #0;
+         %normalize #-1; 
+         %flatten #-1;
+         %instantiate #-1 { s.0 };
+         %simplify;
       }
    }
 }
-   
-%seqcalc
-gen_prop{ Nat } :
+
+%seqcalc gen_prop{ Nat } :
 {
-   %cut goal;
-   %setname #-1, cutform; 
-   %branch $cutform, #0, { };
-   %expand #-1, goal, #0;
+   %show "gen_prop";
+   %branch #0 #0 { }:
+   {
+      %expand #-1 goal #0;
+      %expand #-1 strict #0;
+      %normalize #-1;
+      %flatten #-1;
+   }
+   %expand #-1 goal #0;
+   %expand #-1 strict #0;
+   %expand #-1 gen #0; 
+   // We could use a theorem here, or just write it out:
+   %expand #-1 minimal #0;
+   %normalize #-1;
    %flatten #-1; 
+   %branch #0 #0 { }:
+   {
+      %show "inbranch";
+   }
    %branch #-1, #0, {};
-   %expand #-1, strict, #0;
    %normalize #-1;
    %flatten #-1;
    %merge; 
    %merge; 
    
-   %branch #-1, #0, { };
-   %expand #-1, goal, #0;
+   %branch #-1 #0 { };
+   %expand #-1 goal #0;
    %flatten #-1;
-   %branch #-1, #0, { };
-   %expand #-1, strict, #0;
+   %branch #-1 #0 { };
+   %expand #-1 strict #0;
    %normalize #-1;
    %flatten #-1;
-   %branch #-1, #0, { "x" }; 
+   %branch #-1 #0 { "x" }; 
    %flatten #-1;
-   %expand #-1, gen, #0; 
-   %expand #-1, minimal, #0;
+   %expand #-1 gen #0; 
+   %expand #-1 minimal #0;
    %normalize #-1;
    %flatten #-1;
-   %show "unfinished"; 
+   %show "isclosed-unfinished"; 
 }
 

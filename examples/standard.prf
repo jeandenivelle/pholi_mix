@@ -1,38 +1,38 @@
 
 %seqcalc fromto_prop{ Prop( Obj ), Prop( Obj ) } :
 {
-   %branch #-1, #0, { } :
+   %branch #-1 #0 { } :
    {
-      %expand #-1, goal, #0;
-      %expand #-1, strict, #0;
-      %expand #-1, strict, #0;
+      %expand #-1 goal #0;
+      %expand #-1 strict #0;
+      %expand #-1 strict #0;
       %normalize #-1;
       %flatten #-1;
    }
  
-   %branch #-1, #0, { } :
+   %branch #-1 #0 { } :
    {
-      %expand #-1, goal, #0;
-      %expand #-1, strict, #0;
-      %expand #-1, strict, #0;
-      %expand #-1, fromto, #0;
+      %expand #-1 goal #0;
+      %expand #-1 strict #0;
+      %expand #-1 strict #0;
+      %expand #-1 fromto #0;
       %normalize #-1;
       %flatten #-1;
-      %branch #-1, #0, { "P", "Q" } :
+      %branch #-1 #0 { "P", "Q" } :
       {
          %flatten #-1;
-         %setname #-3, f1;
-         %setname #-2, f2;
+         %setname #-3 f1;
+         %setname #-2 f2;
          %flatten #-1;
-         %branch #-1, #0, { "f", "x" } :
+         %branch #-1 #0 { "f", "x" } :
          {
-            %instantiate $f1, { x };
+            %instantiate $f1 { x };
             %simplify; 
          } 
 
-         %branch #-1, #0, { "f", "x" } :
+         %branch #-1 #0 { "f", "x" } :
          {
-            %instantiate $f2, { f(x) };
+            %instantiate $f2 { f(x) };
             %simplify;
          }
       } 
@@ -41,45 +41,44 @@
 
 %seqcalc fromto_prop{ Prop( Obj, Obj ), Prop( Obj ) } :
 {
-   %branch #-1, #0, { } :
+   %branch #-1 #0 { } :
    {
-      %expand #-1, goal, #0;
-      %expand #-1, strict, #0;
-      %expand #-1, strict, #0;
+      %expand #-1 goal #0;
+      %expand #-1 strict #0;
+      %expand #-1 strict #0;
       %normalize #-1;
       %flatten #-1;
    }
 
-   %expand #-1, goal, #0;
+   %expand #-1 goal #0;
    %flatten #-1;
 
-   %branch #-1, #0, { "P", "Q" } :
+   %branch #-1 #0 { "P", "Q" } :
    {
       %flatten #-1;
-      %setname #-3, strictP;
-      %setname #-2, strictQ;
+      %setname #-3 strictP;
+      %setname #-2 strictQ;
 
-      %expand #-1, fromto, #0; 
+      %expand #-1 fromto #0; 
       %normalize #-1; 
       %flatten #-1;
-      %branch #-1, #0, { "f" } : 
+      %branch #-1 #0 { "f" } : 
       {
-         %expand $strictP, strict, #0;
+         %expand $strictP strict #0;
          %normalize #-1;
          %flatten #-1;
-         %instantiate #-1, { x1, x2 }; 
+         %instantiate #-1 { x1, x2 }; 
          %simplify;
       }
 
-      %branch #-1, #0, { "f" } :
+      %branch #-1 #0 { "f" } :
       {
-         %expand $strictQ, strict, #0;
+         %expand $strictQ strict #0;
          %normalize #-1;
          %flatten #-1;
-         %instantiate #-1, { f( x1, x2 ) };
+         %instantiate #-1 { f( x1, x2 ) };
          %simplify;
       }
-      %show "hero";
    }
 }
 

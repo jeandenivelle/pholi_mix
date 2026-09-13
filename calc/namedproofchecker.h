@@ -26,7 +26,7 @@ namespace calc
       {
          errortree::builder bld;
          bld << "in proof of ";
-         bld << blfs -> at( name ). ident( ) << ' ';
+         bld << blfs -> at( name ). ident( );
          logic::pretty::print( bld, *blfs, 
                                blfs -> at( name ). view_form( ). tps( ));
          bld << ": ";

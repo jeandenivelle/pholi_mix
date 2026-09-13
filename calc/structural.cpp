@@ -52,7 +52,7 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
    if( nrfits == 0 )
    {
       errortree::builder bld;
-      bld << "Import: No provable formula found for identifier " << ident;
+      bld << "Import: No formula found for identifier " << ident;
       errs. push_back( std::move( bld ));
       return { };
    }
@@ -60,7 +60,7 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
    if( nrfits > 1 )
    {
       errortree::builder bld;
-      bld << "Import: More than provable formula found for " << ident;
+      bld << "Import: More than one formula found for " << ident;
       errs. push_back( std::move( bld ));
       return { };
    }

@@ -496,8 +496,7 @@ SeqProofScript =>
       { if( currentproof. has_value( ))
            currentproof. value( ). show( header ); 
       }
-   | SeqProofScript PRF_SETNAME FormIndex : ind 
-                  COMMA VARIABLE : name SEMICOLON
+   | SeqProofScript PRF_SETNAME FormIndex : ind VARIABLE : name SEMICOLON
       {
          if( currentproof. has_value( ))
             currentproof. value( ). setname( ind, name ); 
@@ -525,8 +524,8 @@ SeqProofScript =>
             currentproof. value( ). merge( );
          }
       }
-   | SeqProofScript PRF_EXPAND FormIndex : ind COMMA Identifier : id 
-     COMMA INTEGER : occ SEMICOLON
+   | SeqProofScript PRF_EXPAND FormIndex : ind Identifier : id 
+     INTEGER : occ SEMICOLON
       {
          if( currentproof. has_value( ))
          { 
@@ -555,7 +554,7 @@ SeqProofScript =>
          if( currentproof. has_value( ))
             currentproof. value( ). normalize( ind );
       }
-   | SeqProofScript PRF_INSTANTIATE FormIndex : ind COMMA 
+   | SeqProofScript PRF_INSTANTIATE FormIndex : ind 
                   LBRACE TermSeq : values RBRACE SEMICOLON
       {
          if( currentproof. has_value( ))
@@ -574,21 +573,19 @@ SeqProofScript =>
             currentproof. value( ). simplify( );            
          }
       }
-   | SeqProofScript PRF_IMPORT Identifier : id COMMA 
-                    LBRACE StructTypeSeq : tps RBRACE SEMICOLON
+   | SeqProofScript PRF_IMPORT Identifier : id 
+                    LPAR StructTypeSeq : tps RPAR SEMICOLON
       {
          if( currentproof. has_value( ))
          {
-            std::cout << "importing " << id << "\n";
             auto seq = logic::typesequence( std::move( tps )); 
-            std::cout << seq << "\n";
+            currentproof. value( ). import( id, std::move( seq )); 
          }
       }
     | SeqProofScript PRF_IMPORT Identifier : id SEMICOLON 
       {
          if( currentproof. has_value( ))
          {
-            std::cout << "importing " << id << "\n";
             currentproof. value( ). import( id, logic::typesequence( ));
          }
       }
@@ -597,13 +594,16 @@ SeqProofScript =>
 SeqProofStart => 
    PRF_SEQCALC Identifier : ident LBRACE StructTypeSeq : tps RBRACE COLON
 {
-   errorvector errors;
-
    auto seq = logic::typesequence( std::move( tps ));
-      // Move this?
- 
-   for( auto& tp : seq )
-      logic::checkandresolve( blfs, errors, tp );
+
+   errorvector errors;
+   if( !checkandresolve( blfs, errors, seq )) 
+   {
+      errortree::builder bld;
+      bld << "unable to start proof of " << ident << ":";
+      transfer( std::move( bld ), std::move( errors ), prooferrors );
+      return; 
+   }
 
    auto ex = calc::findformula( blfs, errors, ident, seq );
    if( !ex. has_value( )) 
@@ -630,7 +630,7 @@ SeqProofStart =>
 }
 ;
 
-SeqBranchStart => PRF_BRANCH FormIndex : ind COMMA INTEGER : choice COMMA
+SeqBranchStart => PRF_BRANCH FormIndex : ind INTEGER : choice 
                   EigenNames : eigen COLON
 {  
    if( currentproof. has_value( ))
