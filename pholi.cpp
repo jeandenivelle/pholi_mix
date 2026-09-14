@@ -1,4 +1,6 @@
 
+#include "partial_order_min.h"
+
 #include <filesystem>
 
 #include "identifier.h"
@@ -138,23 +140,11 @@ bool compare( const T& t1, const T& t2 )
       return &t1 == &t2;
 }
 
+#include <list>
 
 int main( int argc, char* argv[] )
 {
-
-#if 0
-   logic::vartype var1 = { "aaaa", logic::type_obj };
-   logic::vartype var2 = { "bbbb", logic::type_obj };
-   std::cout << compare( var1, var2 ) << "\n";
-   std::vector< logic::vartype > v1;
-   std::vector< logic::vartype > v2;
-   // std::cout << compare( v1, v2 ) << "\n";
-
-   std::cout << has_equality< std::vector< logic::vartype >> << "\n";
-   std::cout << std::equality_comparable< std::vector< logic::vartype >> << "\n";
-   return 0;
-#endif
-
+ 
    errorvector err;
    logic::beliefstate blfs;  
 

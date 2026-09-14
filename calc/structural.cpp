@@ -1,24 +1,44 @@
 
+#include "partial_order_min.h"
 #include "structural.h"
-#include "logic/structural.h"
-#include "logic/cmp.h"
+#include "logic/pretty.h"
 
-
-// True if blf is applicable on types as a theorem or axiom:
+bool
+calc::fits( const logic::belief& bl, 
+            const logic::typesequence& univtypes )
+{
+   if( bl. sel( ) == logic::bel_axiom || bl. sel( ) == logic::bel_thm )
+   { 
+      auto fm = bl. view_form( );  
+      if( isprefix( univtypes, fm. tps( ) ))
+         return true;
+   }
+   return false;
+}
 
 bool  
-calc::applicable( const logic::belief& blf,
-                  const logic::typesequence& types )
+calc::fitsbetter( const logic::belief& bl1, const logic::belief& bl2,
+                  const logic::typesequence& univtypes )
 {
-   std::cout << "applicable " << blf << "\n";
-
-   if( blf. sel( ) == logic::bel_axiom || blf. sel( ) == logic::bel_thm )
+   bool f1 = fits( bl1, univtypes );
+   if( f1 )
    { 
-      const auto& fm = blf. view_form( ); 
-      if( isprefix( types, fm. tps( ) ))
-         return true; 
+      bool f2 = fits( bl2, univtypes );
+      if( f2 )
+      {
+         // Both fit, we look at length of tps( ).
+
+         auto fm1 = bl1. view_form( );
+         auto fm2 = bl2. view_form( );
+
+         return fm1. tps( ). size( ) < fm2. tps( ). size( ) &&
+                isprefix( fm1. tps( ), fm2. tps( ));
+      } 
+      else
+         return true;
    }
-   return false; 
+   else
+      return false; 
 }
 
 
@@ -31,41 +51,57 @@ calc::findformula( const logic::beliefstate& blfs, errorvector& errs,
    if( candidates. size( ) == 0 )
    {
       errortree::builder bld;
-      bld << "Import: Identifier " << ident;
-      bld << " does not occur as formula"; 
+      bld << "findformula: " << ident << " does not occur as formula"; 
       errs. push_back( std::move( bld ));
       return { };
    }
 
-   size_t nrfits = 0; 
-   auto cand = candidates. end( );
+   // This loop is in principle unnecessary, but we want to generate
+   // a nicer error message when there is no fit:
+
+   size_t nrfits = 0;
+   auto best = candidates. end( );
 
    for( auto p = candidates. begin( ); p != candidates. end( ); ++ p )
    {
-      if( applicable( blfs. at( *p ), univtypes ))
+      if( fits( blfs. at( *p ), univtypes ))
       {
-         cand = p; 
-         ++ nrfits; 
-      } 
+         ++ nrfits;
+         best = p;
+      }
    }
 
    if( nrfits == 0 )
    {
       errortree::builder bld;
-      bld << "Import: No formula found for identifier " << ident;
+      bld << "findformula: no occurrence of " << ident;
+      bld << " fits to ";
+      logic::pretty::print( bld, blfs, univtypes ); 
       errs. push_back( std::move( bld ));
       return { };
    }
 
-   if( nrfits > 1 )
+   // Now we need to look for the best fit:
+
+   auto better = [&blfs,&univtypes] ( logic::exact ex1, logic::exact ex2 )
+   {
+      return fitsbetter( blfs. at(ex1), blfs. at(ex2), univtypes );
+   };
+   
+   best = partial_order_min( candidates. begin( ), candidates. end( ),
+                             better );
+                                  
+   if( best != candidates. end( ))
+      return *best;
+   else
    {
       errortree::builder bld;
-      bld << "Import: More than one formula found for " << ident;
+      bld << "findformula: there is no most specific occurrence of " << ident;
+      bld << " for the types ";
+      logic::pretty::print( bld, blfs, univtypes );
       errs. push_back( std::move( bld ));
       return { };
    }
-  
-   return *cand; 
 }
 
 

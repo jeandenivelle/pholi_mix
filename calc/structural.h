@@ -9,9 +9,13 @@
 namespace calc 
 {
 
+   bool 
+   fits( const logic::belief& bl, const logic::typesequence& univtypes );
+      // True if bl fits to univtypes
+
    bool
-   applicable( const logic::belief& blf,
-               const logic::typesequence& types );
+   fitsbetter( const logic::belief& bl1, const logic::belief& bl2, 
+               const logic::typesequence& univtypes );
 
    std::optional< logic::exact > 
    findformula( const logic::beliefstate& blfs, errorvector& errs, 

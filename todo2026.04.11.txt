@@ -87,7 +87,7 @@ September:
    findformula must use nearest fit.
    If two formulas fit the type sequence, it should take the smaller
    one. I believe that this is the most urgent thing, because
-   it hinders some of the other proofs.
+   it hinders some of the other proofs. I did it on 14sept2026.
 
    Formulas that have a name should never be hidden?
 

@@ -88,6 +88,9 @@ def functional( P : Prop( Obj, Obj ); Q : Prop( Obj, Obj, Obj )) : Prop :=
 
 def fromto( Q : Prop( Obj )) ( c : Obj ) : Prop := Q(c);
 
+thm fromto_prop: forall{ P : Prop( Obj ) } :
+   strict(P) -> forall{ c : Obj } : # fromto( P, c ); 
+
 def fromto( P : Prop( Obj ); Q : Prop( Obj ))
        ( f : Obj( Obj )) : Prop :=
    forall{ x : Obj }: P(x) -> Q( f(x) );
