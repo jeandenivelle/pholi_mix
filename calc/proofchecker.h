@@ -66,10 +66,8 @@ namespace calc
       bool let( std::string_view name, logic::term val );
          // Introduce a local definition.
 
-#if 0
-      bool substdef( );
-         // Remove the last local definition by substituting it away.
-#endif
+      bool substlet( );
+         // Substitute a let away.
 
       size_t inst( size_t ind, const std::vector< logic::term > & values );
 

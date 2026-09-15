@@ -528,7 +528,10 @@ SeqProofScript =>
       }
    | SeqProofScript SeqLetStart LBRACE SeqProofScript RBRACE
       {
-         std::cout << "Let, we made it to the end!\n";
+         if( currentproof. has_value( ))
+         {
+            currentproof. value( ). substlet( );
+         } 
       }
    | SeqProofScript PRF_EXPAND FormIndex : ind Identifier : id 
      INTEGER : occ SEMICOLON
@@ -565,10 +568,9 @@ SeqProofScript =>
       {
          if( currentproof. has_value( ))
          {
-            auto& prf = currentproof. value( );         
+            auto& prf = currentproof. value( );
             for( auto& v : values )
                v = prf. replacedebruijn( std::move(v));    
-
             prf. inst( ind, values );
          }   
       }

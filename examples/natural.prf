@@ -119,6 +119,9 @@ isclosed_prop{ Nat, Prop( Obj ) } :
    {
       // The type checking proof.
 
+      %expand #-1 goal #0;
+      %flatten #-1;
+      %show "fake";
       %fake false;
       %flatten #-1;
    }
@@ -128,41 +131,126 @@ isclosed_prop{ Nat, Prop( Obj ) } :
 
    %branch #-1 #0 { "s1", "s2", "x1", "x2" } :
    {
-         %flatten #-1; 
-         %expand #-3 minhomrel #0;
-         %expand #-1 minimal #0; 
-         %normalize #-1;
+      %flatten #-1; 
+      %expand #-3 minhomrel #0;
+      %expand #-1 minimal #0; 
+      %normalize #-1;
+      %flatten #-1;
+      %setname #-1 mainforall; 
+      %let Q := lambda{ n1, n2 : Nat } :
+                      lambda{ x1, x2 : Obj } :
+                         ( x1 == n1.0 & x2 == n2.0 ) | 
+                         exists{ y1, y2 : Obj } :
+                            < n1. gen(y1) & n2. gen(y2) > 
+                               minhomrel( n1, n2, y1, y2 ) &
+                               x1 == n1. succ(y1) &
+                               x2 == n2. succ(y2) : 
+      {
+         %instantiate $mainforall { Q(s1,s2) };
          %flatten #-1;
-         %setname #-1 mainforall; 
-         %let Q := lambda{ n1, n2 : Nat } :
-                         lambda{ x1, x2 : Obj } :
-                            ( x1 == n1.0 & x2 == n2.0 ) | 
-                            exists{ y1, y2 : Obj } :
-                               < n1. gen(y1) & n2. gen(y2) > 
-                                  minhomrel( n1, n2, y1, y2 ) &
-                                  x1 == n1. succ(y1) &
-                                  x2 == n2. succ(y2) : 
+         %branch #-1 #1 { } :
          {
-            %instantiate $mainforall { Q(s1,s2) };
+            %expand #-1 homrel #0;
+            %normalize #-1;
             %flatten #-1;
-            %branch #-1 #1 { } :
-            {
-               %expand #-1 homrel #0;
+            %branch #-1 #0 { } :
+            { 
+               %expand #-1 Q #0; 
                %normalize #-1;
                %flatten #-1;
-               %branch #-1 #0 { } :
-               { 
-                  %expand #-1 Q #0; 
-                  %normalize #-1;
+               %flatten #-2;
+               %simplify;
+            }
+            %branch #-1 #0 { "y1", "y2" } :
+            { 
+               // We are at label "induction";
+               %setname #-1 induction;
+               %flatten #-1;
+               %expand #-2 Q #0;
+               %normalize #-1;
+               %flatten #-2;
+               %flatten #-1;
+               %setname #-1 split;
+               %expand #-2 Q #0;
+               %normalize #-1;
+               %flatten #-1;
+               %setname #-1 univ;
+               %branch $split #0 { } :
+               {
+                  // Base case.
                   %flatten #-1;
-                  %flatten #-2;
+                  %instantiate $univ { y1, y2 };
+                  %flatten #-1;
+                  %simplify;
+                  %import minhomrel_zero { Nat, Nat };
+                  %flatten #-1;
+                  %instantiate #-1 { s1, s2 };
                   %simplify;
                }
-               %show "indef";
-            } 
-            // We are at label "induction";
-            // %instantiate #-1 { Q(s1,s2) }; 
+
+               %branch #-1 #0 { "z1", "z2" } :
+               {
+                  %flatten #-1; 
+                  %instantiate $univ { y1, y2 }; 
+                  %flatten #-1;
+                  %simplify;
+                  %import minhomrel_succ { Nat, Nat };
+                  %flatten #-1;
+                  %instantiate #-1 { s1, s2, z1, z2 };
+                  %flatten #-1;
+                  %simplify;
+               } 
+            }
          }
+         // Here comes stricton:
+
+         %expand #-1 stricton #0;
+         %expand #-1 identifier #0;
+         %normalize #-1;
+         %flatten #-1; 
+         %branch #-1 #0 { "y1", "y2" } :
+         {
+            %flatten #-1;
+            %expand #-1 Q #0;
+            %normalize #-1;
+            %flatten #-1;
+
+            %setname #-1 disj;
+            %import gen_prop { Nat };
+            %expand #-1 strict #0;
+            %normalize #-1;
+            %flatten #-1;
+            %branch $disj #0 { "z1", "z2" } :
+            {
+                %instantiate #-2 { s1, z1 };
+                %simplify;
+            }
+            %branch #-1 #0 { "z1", "z2" } :
+            {
+                %instantiate #-2 { s2, z2 };
+                %simplify;
+            }
+            %branch #-1 #0 { "z1", "z2" } :
+            {
+               %flatten #-1;
+               %flatten #-1;
+               %import minhomrel_prop { Nat, Nat };
+               %flatten #-1;
+               %instantiate #-1 { s1, s2, z1, z2 };
+               %flatten #-1;
+               %simplify;
+            }
+         }
+         // We now have: Q( s1, s2, x1, x2 )
+      }
+      %normalize #-1;
+      %flatten #-1;
+      %simplify;
+      %branch #-1 #0 { "y1", "y2" } :
+      {
+         %instantiate #3 { y1, y2 };
+         %simplify;
+      }
    }
 }
 

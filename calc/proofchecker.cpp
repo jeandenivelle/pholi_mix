@@ -382,17 +382,13 @@ calc::proofchecker::let( std::string_view name, logic::term val )
    return true;
 }
 
-#if 0
-bool
-calc::proofchecker::removedef( )
+bool calc::proofchecker::substlet( )
 {
-   std::cout << seq << "\n";
-
    if( seq. ctxt. size( ) == 0 || !seq. ctxt. hasdefinition(0))
    {
       errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
-      prt << "removedef: Last variable is not definition"; 
+      prt << "end of let: Last variable is not definition"; 
       errors. push_back( std::move( bld ));
       return false;
    }
@@ -414,18 +410,17 @@ calc::proofchecker::removedef( )
       {
          seq. at(s). get_unf( ) =
             outermost( subst, std::move( seq. at(s). get_unf( )), 0 );
-
       }
       
       -- seq. at(s). ctxtsize;
-
    }
 
    seq. ctxt. restore( seq. ctxt. size( ) - 1 );
+   db. restore( db. size( ) - 1 );
+
    return true;
 }
 
-#endif
 
 size_t
 calc::proofchecker::inst( size_t ind,
@@ -451,6 +446,7 @@ calc::proofchecker::inst( size_t ind,
    auto mainform = seq. at( ind ). get_unf( );
    mainform = lift( std::move( mainform ), seq. liftdist( ind ));
 
+   std::cout << "mainform " << mainform << "\n";
    logic::fullsubst subst;
 
    size_t nrcorrecttypes = 0;
@@ -583,7 +579,8 @@ size_t calc::proofchecker::merge( )
    while( seq. decisions. back( ). stacksize < seq. stack. size( ) &&
           seq. stack. back( ). hidden )
    {
-      throw std::logic_error( "a very unlikely thing happened" );
+      // This can happen when simpliyfy subsumes the last formula.
+ 
       seq. stack. pop_back( );
    }
    
