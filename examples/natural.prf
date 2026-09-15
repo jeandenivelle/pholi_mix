@@ -24,7 +24,7 @@ isclosed_prop{ Nat, Prop( Obj ) } :
          %setname #-2 strictP;
          %normalize #-1;
          %flatten #-1;
-         %import fromto_prop ( Prop( Obj ), Prop( Obj ) );
+         %import fromto_prop { Prop( Obj ), Prop( Obj ) };
          %setname #-1 fromtoprop;
          %flatten #-1;
          %setname #-1 prop;
@@ -35,7 +35,7 @@ isclosed_prop{ Nat, Prop( Obj ) } :
          %instantiate #-1 { s. succ };
          %simplify;
          // This should become %import fromto_prop( Prop( Obj ), Obj ),
-         // now we just do the proof:
+         // now we just write out the proof:
          %expand #-1 fromto #0;
          %normalize #-1;
          %expand $strictP strict #0;
@@ -64,29 +64,54 @@ isclosed_prop{ Nat, Prop( Obj ) } :
    %expand #-1 minimal #0;
    %normalize #-1;
    %flatten #-1; 
-   %branch #0 #0 { }:
+   %branch #-1 #0 { }:
    {
-      %show "inbranch";
+      %expand #-1 stricton #0;
+      %normalize #-1;
+      %flatten #-1;
+      %branch #0 #0 { }:
+      {
+         %expand #-1 univ1 #0;
+         %normalize #-1;
+         %flatten #-1;
+      }
    }
-   %branch #-1, #0, {};
-   %normalize #-1;
-   %flatten #-1;
-   %merge; 
-   %merge; 
-   
-   %branch #-1 #0 { };
-   %expand #-1 goal #0;
-   %flatten #-1;
-   %branch #-1 #0 { };
-   %expand #-1 strict #0;
-   %normalize #-1;
-   %flatten #-1;
-   %branch #-1 #0 { "x" }; 
-   %flatten #-1;
-   %expand #-1 gen #0; 
-   %expand #-1 minimal #0;
-   %normalize #-1;
-   %flatten #-1;
-   %show "isclosed-unfinished"; 
+   %branch #-1 #0 { }:
+   {
+      %flatten #-1;
+      %setname #-2 stricton;
+      %flatten #-1;
+      %import isclosed_prop { Nat, Prop( Obj ) };
+      %flatten #-1;
+      %instantiate #-1 { n, R }; 
+      %hide #-2;
+      %flatten #-1;
+      %expand #-1 strict #0;
+      %normalize #-1;
+      %flatten #-1;
+      %branch #-1 #1 { }:
+      {
+         %simplify;
+         %expand $stricton stricton #0;
+         %expand #-1 univ1 #0;
+         %normalize #-1;
+         %flatten #-1;
+         %instantiate #-1 { x1 };
+         %flatten #-1;
+         %simplify;
+      }
+      %branch #-1 #0 { "x1b" }:
+      {
+         %flatten #-1;
+         %expand $stricton stricton #0;
+         %expand #-1 univ1 #0;
+         %normalize #-1;
+         %flatten #-1;
+         %instantiate #-1 { x1b }; 
+         %flatten #-1;
+         %simplify;
+      }
+   }
 }
+
 

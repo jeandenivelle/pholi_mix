@@ -97,6 +97,7 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "%flatten" ), symbolval::sym_PRF_FLATTEN );
    cls.insert( word( "%normalize" ), symbolval::sym_PRF_NORMALIZE );
    cls.insert( word( "%simplify" ), symbolval::sym_PRF_SIMPLIFY );
+   cls.insert( word( "%hide" ), symbolval::sym_PRF_HIDE );
  
    cls.insert( word( "eof" ), symbolval::sym_EOF );
    cls.insert( word( "%eof" ), symbolval::sym_EOF );

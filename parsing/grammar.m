@@ -59,7 +59,7 @@
 
 %symbol{ } PRF_SEQCALC PRF_SHOW PRF_SETNAME PRF_CUT PRF_FAKE PRF_BRANCH 
 %symbol{ } PRF_EXPAND PRF_FLATTEN PRF_NORMALIZE PRF_INSTANTIATE 
-%symbol{ } PRF_IMPORT PRF_SIMPLIFY
+%symbol{ } PRF_IMPORT PRF_SIMPLIFY PRF_HIDE
 
 %symbol{ } SequentProof SeqProofStart SeqBranchStart SeqProofScript
 
@@ -569,12 +569,10 @@ SeqProofScript =>
    | SeqProofScript PRF_SIMPLIFY SEMICOLON 
       {
          if( currentproof. has_value( ))
-         {
             currentproof. value( ). simplify( );            
-         }
       }
    | SeqProofScript PRF_IMPORT Identifier : id 
-                    LPAR StructTypeSeq : tps RPAR SEMICOLON
+                    LBRACE StructTypeSeq : tps RBRACE SEMICOLON
       {
          if( currentproof. has_value( ))
          {
@@ -585,9 +583,12 @@ SeqProofScript =>
     | SeqProofScript PRF_IMPORT Identifier : id SEMICOLON 
       {
          if( currentproof. has_value( ))
-         {
             currentproof. value( ). import( id, logic::typesequence( ));
-         }
+      }
+    | SeqProofScript PRF_HIDE FormIndex : ind SEMICOLON 
+      {
+         if( currentproof. has_value( ))
+            currentproof. value( ). hide( ind ); 
       }
 ;
 

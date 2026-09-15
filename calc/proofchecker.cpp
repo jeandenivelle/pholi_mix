@@ -109,6 +109,12 @@ void calc::proofchecker::setname( size_t ind, const std::string& name )
    }
 }
 
+void calc::proofchecker::hide( size_t ind )
+{
+   if( ind < seq. size( ))
+      seq. hide( ind ); 
+}
+
 size_t
 calc::proofchecker::branch( size_t disj, size_t choice,
                             const std::vector< std::string > & eigen )
@@ -591,7 +597,7 @@ size_t calc::proofchecker::merge( )
    {
       errortree::builder bld;
       auto prt = pretty_printer( &bld, blfs, seq. ctxt );
-      prt << "Resolve: Last formula is not DNF: ";
+      prt << "Merge: Last formula is not DNF: ";
       prt << seq. stack. back( );
       errors. push_back( std::move( bld )); 
       return seq. size( );

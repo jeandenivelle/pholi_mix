@@ -44,6 +44,7 @@ namespace calc
          // not succesful. 
 
       void setname( size_t ind, const std::string& name );
+      void hide( size_t ind );
 
       // If you want to parse expressions, you must set the
       // names of the eigenvariables:
