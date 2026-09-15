@@ -93,3 +93,7 @@ September:
 
    Expand should normalize automatically.
 
+Maphoon behaves rather ugly with an unterminated string in action code. 
+   There is an error message, but it is incomprehenbile.
+   Have a look at that. 
+

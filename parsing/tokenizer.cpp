@@ -91,6 +91,7 @@ parsing::tokenizer::buildclassifier()
    cls.insert( word( "%cut" ), symbolval::sym_PRF_CUT );
    cls.insert( word( "%fake" ), symbolval::sym_PRF_FAKE );
    cls.insert( word( "%branch" ), symbolval::sym_PRF_BRANCH );
+   cls.insert( word( "%let" ), symbolval::sym_PRF_LET );
    cls.insert( word( "%instantiate" ), symbolval::sym_PRF_INSTANTIATE );
    cls.insert( word( "%expand" ), symbolval::sym_PRF_EXPAND );
    cls.insert( word( "%import" ), symbolval::sym_PRF_IMPORT );

@@ -184,10 +184,6 @@ int main( int argc, char* argv[] )
       std::cout << "\n"; 
    }
    std::cout << "\n";
-
-   std::cout << blfs << "\n";
-   std::cout << "(after proving)\n";
-
    return 0;
 }
 

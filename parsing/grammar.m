@@ -57,11 +57,13 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
-%symbol{ } PRF_SEQCALC PRF_SHOW PRF_SETNAME PRF_CUT PRF_FAKE PRF_BRANCH 
+%symbol{ } PRF_SEQCALC PRF_SHOW PRF_SETNAME PRF_CUT PRF_FAKE 
+%symbol{ } PRF_BRANCH PRF_LET
 %symbol{ } PRF_EXPAND PRF_FLATTEN PRF_NORMALIZE PRF_INSTANTIATE 
 %symbol{ } PRF_IMPORT PRF_SIMPLIFY PRF_HIDE
 
-%symbol{ } SequentProof SeqProofStart SeqBranchStart SeqProofScript
+%symbol{ } SequentProof SeqProofStart SeqProofScript
+%symbol{ } SeqBranchStart SeqLetStart
 
 %symbolcode_h { #include "location.h" }
 %symbolcode_h { #include <vector> }
@@ -524,6 +526,10 @@ SeqProofScript =>
             currentproof. value( ). merge( );
          }
       }
+   | SeqProofScript SeqLetStart LBRACE SeqProofScript RBRACE
+      {
+         std::cout << "Let, we made it to the end!\n";
+      }
    | SeqProofScript PRF_EXPAND FormIndex : ind Identifier : id 
      INTEGER : occ SEMICOLON
       {
@@ -639,6 +645,16 @@ SeqBranchStart => PRF_BRANCH FormIndex : ind INTEGER : choice
 }
 ;
 
+SeqLetStart => PRF_LET VARIABLE : var ASSIGN Term : tm COLON
+{
+   if( currentproof. has_value( ))
+   {
+      auto& prf = currentproof. value( );
+      tm = prf. replacedebruijn( std::move( tm ));
+      prf. let( var, std::move( tm ));
+   }
+}
+;
 
 FormIndex
    => INTEGER : ind

@@ -360,11 +360,10 @@ size_t calc::proofchecker::normalize( size_t ind )
    throw std::logic_error( "unreachable!" );
 }
 
-#if 0
 bool 
-calc::proofchecker::def( std::string_view name, logic::term val )
+calc::proofchecker::let( std::string_view name, logic::term val )
 {
-   std::cout << "val in define = " << val << "\n";
+   std::cout << "let " << name << " := " << val << "\n";
 
    errorvector type_errors;
 
@@ -383,7 +382,7 @@ calc::proofchecker::def( std::string_view name, logic::term val )
    return true;
 }
 
-
+#if 0
 bool
 calc::proofchecker::removedef( )
 {
@@ -557,7 +556,7 @@ size_t calc::proofchecker::merge( )
          auto prt = pretty_printer( &bld, blfs, seq. ctxt );
          prt << "Cannot merge, because ";
          prt << "variable " << logic::term( logic::op_debruijn, var );
-         prt << " is defined (while it must be assumed)\n"; 
+         prt << " is defined (it must be assumed)\n"; 
          prt << seq. ctxt << "\n";
          errors. push_back( std::move( bld )); 
          return { };
@@ -697,35 +696,6 @@ size_t calc::proofchecker::merge( )
 
 #if 0
 
-// Probably should be deleted, because it belongs to an old approach. 
-
-std::optional< calc::label > 
-calc::proofchecker::rename( label was, label becomes ) 
-{
-   size_t ind = try2find( was, "formula to rename" );
-   if( ind == seq. stack. size( ))
-      return { };
-
-   seq. hide( ind );
-
-   if( seq. at( ind ). is_dnf( ))
-   {
-      auto res = seq. at( ind ). get_dnf( );
-      res = lift( std::move( res ), seq. liftdist( ind ));
-      return seq. append( becomes, std::move( res ));
-   }
-
-   if( seq. at( ind ). is_unf( ))
-   {
-      auto res = seq. at( ind ). get_unf( ); 
-      res = lift( std::move( res ), seq. liftdist( ind )); 
-      return seq. append( becomes, std::move( res )); 
-   }
-
-   throw std::logic_error( "reached the unreachable" );
-}
-
-
 std::optional< calc::label >
 calc::proofchecker::copy( label lab )
 {
@@ -778,17 +748,6 @@ size_t calc::proofchecker::fake( logic::term donald )
    }
 }
 
-#if 0
-
-void
-calc::proofchecker::hide( label lab )
-{
-   auto ind = try2find( lab, "hiding" );
-   if( ind < seq. stack. size( ))
-      seq. hide( ind );
-}
-
-#endif
 
 void 
 calc::proofchecker::show( std::string_view label, 

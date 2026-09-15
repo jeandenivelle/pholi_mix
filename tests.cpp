@@ -18,8 +18,6 @@
 
 #include "parsing/parser.h"
 
-
-
 void tests::flatten( )
 {
    using namespace logic;
@@ -606,7 +604,7 @@ tests::bigproof( logic::beliefstate& blfs, errorvector& errs )
       check. expand( check. labelof( -1 ), identifier( ) + "minimal", 0 );
       check. normalize( check. labelof( -1 ));
       check. flatten( check. labelof( -1 )); 
-      check. rename( check. labelof( -1 ), label( "main_forall" )); 
+      check. rename( check. labelof( -1 ), label( "mainforall" )); 
 
       logic::term indhyp = logic::term( logic::op_false );  
 
@@ -645,14 +643,12 @@ tests::bigproof( logic::beliefstate& blfs, errorvector& errs )
 
       check. flatten( check. labelof( -1 ));
       check. branch( check. labelof( -1 ), 1 );
-      check. show( "!homrel( s1, s2, Q( s1, s2 )" );
 
       check. expand( check. labelof( -1 ), identifier( ) + "homrel", 0 );
       check. normalize( check. labelof( -1 ));
       check. flatten( check. labelof( -1 ));
 
       check. branch( check. labelof( -1 ), 0, { } );
-
       check. expand( check. labelof( -1 ), 
                            check. replacedebruijn( "Q"_unchecked ). view_debruijn( ). index( ), 0 );
       check. normalize( check. labelof( -1 ));

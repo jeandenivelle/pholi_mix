@@ -63,10 +63,10 @@ namespace calc
       size_t flatten( size_t ind );
       size_t normalize( size_t ind );
 
-#if 0
-      bool def( std::string_view name, logic::term val );
+      bool let( std::string_view name, logic::term val );
          // Introduce a local definition.
 
+#if 0
       bool substdef( );
          // Remove the last local definition by substituting it away.
 #endif
@@ -83,11 +83,6 @@ namespace calc
 
       size_t merge( );
          // Merge (resolve) the last choice.
-
-#if 0
-      std::optional< label > copy( label lab );
-         // Not sure if will be used.
-#endif
 
       size_t fake( logic::term donald );
 
@@ -127,12 +122,6 @@ namespace calc
 
       std::optional< dnf< logic::term >> 
       try_flatten( const dnf< logic::term > & disj );
-
-#if 0
-      size_t try2find( label lab, std::string_view descr ); 
-         // If we don't find, we return seq. stack. size( ) and
-         // write that we could not find {descr} into err. 
-#endif
 
       bool check_dnf( size_t ind, std::string_view descr );
       bool check_unf( size_t ind, std::string_view descr );

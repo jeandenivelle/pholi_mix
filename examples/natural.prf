@@ -49,7 +49,6 @@ isclosed_prop{ Nat, Prop( Obj ) } :
 
 %seqcalc gen_prop{ Nat } :
 {
-   %show "gen_prop";
    %branch #0 #0 { }:
    {
       %expand #-1 goal #0;
@@ -114,4 +113,56 @@ isclosed_prop{ Nat, Prop( Obj ) } :
    }
 }
 
+%seqcalc justification { Nat, Nat, Obj, Obj }:
+{
+   %branch #0 #0 { } :
+   {
+      // The type checking proof.
+
+      %fake false;
+      %flatten #-1;
+   }
+
+   %expand #-1 goal #0; 
+   %flatten #-1;
+
+   %branch #-1 #0 { "s1", "s2", "x1", "x2" } :
+   {
+         %flatten #-1; 
+         %expand #-3 minhomrel #0;
+         %expand #-1 minimal #0; 
+         %normalize #-1;
+         %flatten #-1;
+         %setname #-1 mainforall; 
+         %let Q := lambda{ n1, n2 : Nat } :
+                         lambda{ x1, x2 : Obj } :
+                            ( x1 == n1.0 & x2 == n2.0 ) | 
+                            exists{ y1, y2 : Obj } :
+                               < n1. gen(y1) & n2. gen(y2) > 
+                                  minhomrel( n1, n2, y1, y2 ) &
+                                  x1 == n1. succ(y1) &
+                                  x2 == n2. succ(y2) : 
+         {
+            %instantiate $mainforall { Q(s1,s2) };
+            %flatten #-1;
+            %branch #-1 #1 { } :
+            {
+               %expand #-1 homrel #0;
+               %normalize #-1;
+               %flatten #-1;
+               %branch #-1 #0 { } :
+               { 
+                  %expand #-1 Q #0; 
+                  %normalize #-1;
+                  %flatten #-1;
+                  %flatten #-2;
+                  %simplify;
+               }
+               %show "indef";
+            } 
+            // We are at label "induction";
+            // %instantiate #-1 { Q(s1,s2) }; 
+         }
+   }
+}
 
