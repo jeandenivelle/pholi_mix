@@ -21,8 +21,8 @@
       %branch #-1 #0 { "P", "Q" } :
       {
          %flatten #-1;
-         %setname #-3 f1;
-         %setname #-2 f2;
+         %givename #-3 f1;
+         %givename #-2 f2;
          %flatten #-1;
          %branch #-1 #0 { "f", "x" } :
          {
@@ -56,8 +56,8 @@
    %branch #-1 #0 { "P", "Q" } :
    {
       %flatten #-1;
-      %setname #-3 strictP;
-      %setname #-2 strictQ;
+      %givename #-3 strictP;
+      %givename #-2 strictQ;
 
       %expand #-1 fromto #0; 
       %normalize #-1; 

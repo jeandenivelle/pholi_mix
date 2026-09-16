@@ -57,7 +57,7 @@
 %symbol{ } FORALL EXISTS LET LAMBDA
 %symbol{ std::string } SCANERROR
 
-%symbol{ } PRF_SEQCALC PRF_SHOW PRF_SETNAME PRF_CUT PRF_FAKE 
+%symbol{ } PRF_SEQCALC PRF_SHOW PRF_GIVENAME PRF_CUT PRF_FAKE 
 %symbol{ } PRF_BRANCH PRF_LET
 %symbol{ } PRF_EXPAND PRF_FLATTEN PRF_NORMALIZE PRF_INSTANTIATE 
 %symbol{ } PRF_IMPORT PRF_SIMPLIFY PRF_HIDE
@@ -498,10 +498,10 @@ SeqProofScript =>
       { if( currentproof. has_value( ))
            currentproof. value( ). show( header ); 
       }
-   | SeqProofScript PRF_SETNAME FormIndex : ind VARIABLE : name SEMICOLON
+   | SeqProofScript PRF_GIVENAME FormIndex : ind VARIABLE : name SEMICOLON
       {
          if( currentproof. has_value( ))
-            currentproof. value( ). setname( ind, name ); 
+            currentproof. value( ). givename( ind, name ); 
       }
    | SeqProofScript PRF_CUT Term : fm SEMICOLON 
       { 

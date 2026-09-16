@@ -21,13 +21,13 @@ isclosed_prop{ Nat, Prop( Obj ) } :
       {
          %flatten #-1;
          %expand #-1 isclosed #0;
-         %setname #-2 strictP;
+         %givename #-2 strictP;
          %normalize #-1;
          %flatten #-1;
          %import fromto_prop { Prop( Obj ), Prop( Obj ) };
-         %setname #-1 fromtoprop;
+         %givename #-1 fromtoprop;
          %flatten #-1;
-         %setname #-1 prop;
+         %givename #-1 prop;
          %instantiate $prop { P, P };
          %flatten #-1;
          %simplify;
@@ -78,7 +78,7 @@ isclosed_prop{ Nat, Prop( Obj ) } :
    %branch #-1 #0 { }:
    {
       %flatten #-1;
-      %setname #-2 stricton;
+      %givename #-2 stricton;
       %flatten #-1;
       %import isclosed_prop { Nat, Prop( Obj ) };
       %flatten #-1;
@@ -121,9 +121,62 @@ isclosed_prop{ Nat, Prop( Obj ) } :
 
       %expand #-1 goal #0;
       %flatten #-1;
-      %show "fake";
-      %fake false;
+      %givename #-1 maingoal;
+      %import gen_prop { Nat };
+      %expand #-1 strict #0;
+      %normalize #-1;
       %flatten #-1;
+      %givename #-1 genprop;  
+      %import minhomrel_prop { Nat, Nat };
+      %expand #-1 stricton #0;
+      %expand #-1 prod #0;
+      %normalize #-1;
+      %flatten #-1; 
+      %givename #-1 minhomrel_prop;
+      %branch $maingoal #0 { "s1", "s2", "x1", "x2" } :
+      {
+         %instantiate $genprop { s1, x1 };
+         %flatten #-1;
+         %simplify; 
+      }
+      %branch #-1 #0 { "s1", "s2", "x1", "x2" } :
+      {    
+         %instantiate $genprop { s2, x2 };
+         %flatten #-1;
+         %simplify;
+      }
+      %branch #-1 #0 { "s1", "s2", "x1", "x2" } :
+      {
+         %flatten #-1;
+         %flatten #-1;
+         %branch #-1 #0 { } : 
+         {
+            %instantiate $minhomrel_prop { s1, s2, x1, x2 };
+            %flatten #-1;
+            %simplify;
+         }
+         %branch #-1 #0 { } :
+         {
+            %instantiate $genprop { s1, y1 };
+            %flatten #-1;
+            %simplify;
+         }
+         %branch #-1 #0 { } :
+         {
+            %instantiate $genprop { s2, y2 };
+            %flatten #-1;
+            %simplify;
+         }
+
+         %branch #-1 #0 { } :
+         {  
+            %flatten #-1;
+            %flatten #-1;
+            %instantiate $minhomrel_prop { s1, s2, y1, y2 };
+            %flatten #-1;
+            %simplify;
+         }
+      }
    }
 
    %expand #-1 goal #0; 
@@ -136,7 +189,7 @@ isclosed_prop{ Nat, Prop( Obj ) } :
       %expand #-1 minimal #0; 
       %normalize #-1;
       %flatten #-1;
-      %setname #-1 mainforall; 
+      %givename #-1 mainforall; 
       %let Q := lambda{ n1, n2 : Nat } :
                       lambda{ x1, x2 : Obj } :
                          ( x1 == n1.0 & x2 == n2.0 ) | 
@@ -164,17 +217,17 @@ isclosed_prop{ Nat, Prop( Obj ) } :
             %branch #-1 #0 { "y1", "y2" } :
             { 
                // We are at label "induction";
-               %setname #-1 induction;
+               %givename #-1 induction;
                %flatten #-1;
                %expand #-2 Q #0;
                %normalize #-1;
                %flatten #-2;
                %flatten #-1;
-               %setname #-1 split;
+               %givename #-1 split;
                %expand #-2 Q #0;
                %normalize #-1;
                %flatten #-1;
-               %setname #-1 univ;
+               %givename #-1 univ;
                %branch $split #0 { } :
                {
                   // Base case.
@@ -215,7 +268,7 @@ isclosed_prop{ Nat, Prop( Obj ) } :
             %normalize #-1;
             %flatten #-1;
 
-            %setname #-1 disj;
+            %givename #-1 disj;
             %import gen_prop { Nat };
             %expand #-1 strict #0;
             %normalize #-1;
@@ -235,6 +288,9 @@ isclosed_prop{ Nat, Prop( Obj ) } :
                %flatten #-1;
                %flatten #-1;
                %import minhomrel_prop { Nat, Nat };
+               %expand #-1 stricton #0;
+               %expand #-1 prod #0;
+               %normalize #-1;
                %flatten #-1;
                %instantiate #-1 { s1, s2, z1, z2 };
                %flatten #-1;
@@ -252,5 +308,6 @@ isclosed_prop{ Nat, Prop( Obj ) } :
          %simplify;
       }
    }
+   // Completed september 16th 2026.
 }
 

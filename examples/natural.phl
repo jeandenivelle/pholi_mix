@@ -97,8 +97,8 @@ def minhomrel( s1,s2: Nat ) : Prop( Obj, Obj ) :=
    minimal( prod( s1. gen, s2. gen ), homrel( s1, s2 )); 
 
 thm minhomrel_prop :
-   forall{ s1, s2 : Nat; x1, x2 : Obj }:
-      [ s1. gen(x1) & s2. gen(x2) ] # minhomrel( s1, s2, x1, x2 );
+   forall{ s1, s2 : Nat }:
+      stricton( prod( s1. gen, s2. gen ), minhomrel( s1, s2 ));
 
 thm minhomrel_zero :
    forall{ s1, s2 : Nat }: minhomrel( s1, s2, s1. 0, s2. 0 );

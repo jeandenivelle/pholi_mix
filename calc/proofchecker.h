@@ -43,7 +43,7 @@ namespace calc
          // Returns the index of the added formula, or size( ) if 
          // not succesful. 
 
-      void setname( size_t ind, const std::string& name );
+      void givename( size_t ind, const std::string& name );
       void hide( size_t ind );
 
       // If you want to parse expressions, you must set the

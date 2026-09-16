@@ -99,8 +99,7 @@ size_t calc::proofchecker::cut( logic::term fm )
    return seq. append( disjunction{ exists(f1), exists(f2), exists(fm) } );
 }
 
-
-void calc::proofchecker::setname( size_t ind, const std::string& name )
+void calc::proofchecker::givename( size_t ind, const std::string& name )
 {
    if( ind < seq. size( ))
    {
@@ -243,7 +242,9 @@ calc::proofchecker::expand( size_t ind, size_t var, size_t occ )
 
    if( seq. at( ind ). is_unf( ))
    {
-       throw std::logic_error( "unf: unfinished !!" );
+      auto res = seq. at( ind ). get_unf( ); 
+      res = lift( std::move( res ), seq. liftdist( ind ));
+      return seq. append( outermost( def, std::move( res ), 0 )); 
    }
 
    throw std::logic_error( "unreachable!" );
@@ -546,13 +547,13 @@ size_t calc::proofchecker::merge( )
 
    for( size_t var = 0; var != nrassumed; ++ var )
    {
-      if( seq. ctxt. hasdefinition(var)) 
+      if( seq. ctxt. hasdefinition( var )) 
       {
          errortree::builder bld;
          auto prt = pretty_printer( &bld, blfs, seq. ctxt );
          prt << "Cannot merge, because ";
-         prt << "variable " << logic::term( logic::op_debruijn, var );
-         prt << " is defined (it must be assumed)\n"; 
+         prt << logic::term( logic::op_debruijn, var );
+         prt << " is defined (merge only handles assumptions)\n"; 
          prt << seq. ctxt << "\n";
          errors. push_back( std::move( bld )); 
          return { };
@@ -574,19 +575,20 @@ size_t calc::proofchecker::merge( )
          throw std::logic_error( "merge: variable cannot be definition" );
    }
 
-   // Very unlikely, but who knows?
-
    while( seq. decisions. back( ). stacksize < seq. stack. size( ) &&
           seq. stack. back( ). hidden )
    {
-      // This can happen when simpliyfy subsumes the last formula.
+      // This can happen when simplify subsumes the last formula:
  
       seq. stack. pop_back( );
    }
    
    if( seq. decisions. back( ). stacksize >= seq. stack. size( ))
    {
-      throw std::logic_error( "merge: there is no usable result" );
+      errortree::builder bld;
+      bld << "Merge: All formulas under the last assumption are hidden";
+      errors. push_back( std::move( bld ));
+      return seq. size( );
    }
 
    if( !seq. stack. back( ). is_dnf( ))
@@ -690,30 +692,6 @@ size_t calc::proofchecker::merge( )
    return seq. append( std::move( resolvent ));  
 }
 
-
-#if 0
-
-std::optional< calc::label >
-calc::proofchecker::copy( label lab )
-{
-   size_t ind = try2find( lab, "formula to copy" );
-   if( ind == seq. stack. size( ))
-      return { };
-
-   if( seq. at( ind ). is_dnf( ))
-   {
-      auto res = seq. at( ind ). get_dnf( );
-      res = lift( std::move( res ), seq. liftdist( ind ));
-      return seq. append( lab, std::move( res ));
-   }
-
-   if( seq. at( ind ). is_unf( ))
-      throw std::logic_error( "not implemented" );
-  
-   throw std::logic_error( "reached the unreachable" );
-}
-
-#endif
 
 size_t calc::proofchecker::fake( logic::term donald )
 {
@@ -908,21 +886,6 @@ calc::proofchecker::try_flatten( const dnf< logic::term > & disj )
       return { };
 }
 
-#if 0
-
-size_t calc::proofchecker::try2find( label lab, std::string_view descr )
-{
-   size_t ind = seq. find( lab );
-   if( ind == seq. stack. size( ))
-   {
-      errortree::builder bld;
-      bld << "Unknown label " << lab << " used for " << descr; 
-      errors. push_back( std::move( bld ));
-   }
-   return ind;
-}
-
-#endif
 
 bool
 calc::proofchecker::check_dnf( size_t ind, std::string_view descr )

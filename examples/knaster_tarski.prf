@@ -3,7 +3,7 @@
 kt::minisfixedpoint{ Prop( Obj, Obj ), Prop( Obj, Obj )( Prop( Obj, Obj )) } :
 {
    %cut goal;
-   %setname #-1 cutform; 
+   %givename #-1 cutform; 
    %show "after cut"; 
    %branch $cutform #1 { }:
    {

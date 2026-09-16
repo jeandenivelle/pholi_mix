@@ -87,7 +87,7 @@ parsing::tokenizer::buildclassifier()
 
    cls.insert( word( "%seqcalc" ), symbolval::sym_PRF_SEQCALC );
    cls.insert( word( "%show" ), symbolval::sym_PRF_SHOW );
-   cls.insert( word( "%setname" ), symbolval::sym_PRF_SETNAME );
+   cls.insert( word( "%givename" ), symbolval::sym_PRF_GIVENAME );
    cls.insert( word( "%cut" ), symbolval::sym_PRF_CUT );
    cls.insert( word( "%fake" ), symbolval::sym_PRF_FAKE );
    cls.insert( word( "%branch" ), symbolval::sym_PRF_BRANCH );
