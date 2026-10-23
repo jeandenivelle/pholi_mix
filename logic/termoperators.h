@@ -60,10 +60,10 @@ namespace logic
 }
 
 
-inline logic::term operator "" _db( long long unsigned int i )
+inline logic::term operator ""_db( long long unsigned int i )
    { return logic::term( logic::op_debruijn, i ); }
 
-inline logic::term operator "" _unchecked( const char* c, size_t len )
+inline logic::term operator ""_unchecked( const char* c, size_t len )
    { return logic::term( logic::op_unchecked, identifier() + c ); }
 
 #endif 

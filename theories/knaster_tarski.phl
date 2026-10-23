@@ -14,7 +14,6 @@ thm kt::implies::prop :
    [ strict(D) ] [ stricton( D, P1 ) & stricton( D, P2 ) ] 
       # kt::implies( D, P1, P2 ) ;
 
- 
 def kt::ismonotonic( D : Prop( Obj, Obj );
                      T : Prop( Obj, Obj ) ( Prop( Obj, Obj ) )) : Prop := 
       forall{ P1,P2: Prop( Obj, Obj ) } :

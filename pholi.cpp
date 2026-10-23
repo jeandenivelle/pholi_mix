@@ -148,15 +148,15 @@ int main( int argc, char* argv[] )
    errorvector err;
    logic::beliefstate blfs;  
 
-   includebeliefs( blfs, "examples/tuple.phl", err );
-   includebeliefs( blfs, "examples/standard.phl", err ); 
-   includebeliefs( blfs, "examples/natural.phl", err );
-   includebeliefs( blfs, "examples/orders.phl", err );
-   includebeliefs( blfs, "examples/multiset.phl", err );
-   includebeliefs( blfs, "examples/knaster_tarski.phl", err );
-   includebeliefs( blfs, "examples/settheory.phl", err );
+   includebeliefs( blfs, "theories/tuple.phl", err );
+   includebeliefs( blfs, "theories/standard.phl", err ); 
+   includebeliefs( blfs, "theories/natural.phl", err );
+   includebeliefs( blfs, "theories/orders.phl", err );
+   includebeliefs( blfs, "theories/multiset.phl", err );
+   includebeliefs( blfs, "theories/knaster_tarski.phl", err );
+   includebeliefs( blfs, "theories/settheory.phl", err );
 
-   // includebeliefs( blfs, "examples/automata.phl", err );
+   // includebeliefs( blfs, "theories/automata.phl", err );
 
    std::cout << "(before type checking)\n";
    std::cout << blfs << "\n";
@@ -170,9 +170,10 @@ int main( int argc, char* argv[] )
 
    // tests::truthtables( );
 
-   checkproofs( blfs, "examples/knaster_tarski.prf", err );
-   checkproofs( blfs, "examples/standard.prf", err );
-   checkproofs( blfs, "examples/natural.prf", err );
+   checkproofs( blfs, "theories/knaster_tarski.prf", err );
+   checkproofs( blfs, "theories/standard.prf", err );
+   checkproofs( blfs, "theories/natural.prf", err );
+   checkproofs( blfs, "theories/orders.prf", err );
 
    // tests::smallproofs( blfs, err );
    // tests::bigproof( blfs, err );

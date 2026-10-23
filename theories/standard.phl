@@ -53,6 +53,17 @@ def univ2( x1, x2 : Obj ) : Prop := true;
 def univ3( x1, x2, x3: Obj ) : Prop := true;
 
 
+def extends( P1, P2 : Prop ) : Prop :=
+   P1 -> P2;
+def extends( P1, P2 : Prop( Obj )) : Prop :=
+   forall{ x1 : Obj } : P1(x1) -> P2(x1);
+def extends( P1, P2 : Prop( Obj, Obj )) : Prop :=
+   forall{ x1, x2 : Obj } : P1(x1,x2) -> P2(x1,x2);
+def extends( P1, P2 : Prop( Obj, Obj, Obj )) : Prop :=
+   forall{ x1, x2, x3 : Obj } : P1(x1,x2,x3) -> P2(x1,x2,x3);
+
+
+
 def serial( Q : Prop( Obj )) : Prop := 
    exists{ y : Obj } : Q(y);
 def serial( P : Prop( Obj ); Q : Prop( Obj, Obj )) : Prop :=

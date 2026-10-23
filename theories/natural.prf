@@ -113,6 +113,7 @@ isclosed_prop{ Nat, Prop( Obj ) } :
    }
 }
 
+
 %seqcalc justification { Nat, Nat, Obj, Obj }:
 {
    %branch #0 #0 { } :
@@ -255,6 +256,7 @@ isclosed_prop{ Nat, Prop( Obj ) } :
                } 
             }
          }
+
          // Here comes stricton:
 
          %expand #-1 stricton #0;

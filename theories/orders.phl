@@ -1,0 +1,55 @@
+
+struct Order :=
+   D : Prop( Obj );
+   le : Prop( Obj, Obj );
+end;
+
+def strict( ord : Order ) : Prop :=
+   < strict( ord.D ) > 
+   stricton( prod( ord.D, ord.D ), ord.le );  
+
+def trans( ord : Order ) : Prop :=
+   forall{ d1, d2, d3 : Obj } : 
+      [ ord.D(d1) & ord.D(d2) & ord.D(d3) ]
+      ord.le(d1,d2) & ord.le(d2,d3) -> ord.le(d1,d3);
+ 
+def total( ord : Order ) : Prop :=
+   forall{ d1, d2 : Obj } :
+      [ ord.D(d1) & ord.D(d2) ] ord.le(d1,d2) | ord.le(d2,d1);
+
+def weak( ord : Order ) : Prop := 
+   trans( ord ) & total( ord );
+
+def eq( ord : Order )( d1, d2 : Obj ) : Prop := 
+   ord.le( d1, d2 ) & ord.le( d2, d1 );
+
+def lt( ord : Order )( d1, d2 : Obj ) : Prop :=
+   ord.le(d1,d2) & !ord.le(d2,d1);
+
+def ge( ord : Order )( d1, d2 : Obj ) : Prop :=
+   ord.le(d2,d1);
+
+def gt( ord : Order )( d1, d2 : Obj ) : Prop :=
+   ord.ge(d1,d2) & !ord.ge(d2,d1);
+
+def reverse( ord : Order ) : Order :=
+   Order( ord.D, ord.gt );
+
+thm reverse: forall{ ord : Order } : 
+   [ strict( ord ) ] weak( ord ) -> weak( reverse( ord ));
+
+def allbelow( ord : Order ) ( d2 : Obj ) ( P : Prop( Obj )) : Prop :=
+   forall{ d1 : Obj } : [ ord. D(d1) ] ord.lt(d1,d2) -> P(d1);
+
+def inductive( ord : Order ) ( P : Prop( Obj )) : Prop :=
+   forall{ d : Obj } : [ ord. D(d) ] ord. allbelow(d,P) -> P(d);
+
+def wellfounded( ord : Order ) : Prop :=
+   forall{ P : Prop( Obj ) } : [ stricton( ord.D, P ) ] ord. inductive(P) ->
+   extends( ord.D, P );
+
+thm strict_prop : forall{ ord : Order } : # strict( ord );
+thm trans_prop : forall{ ord: Order } : # trans( ord );
+thm total_prop : forall{ ord: Order } : # total( ord );
+thm weak_prop: forall{ ord: Order } : # weak( ord );
+
