@@ -50,8 +50,10 @@ trans_prop{ Order } :
    %branch #0 #0 { } :
    {
       %expand #-1 goal #0;
+      %show "inside";
       %flatten #-1;
    }
+   %show "restart";
    %expand #-1 goal #0;
    %flatten #-1;
    %branch #0 #0 { "ord" } :
@@ -61,7 +63,17 @@ trans_prop{ Order } :
       %flatten #-1;
       %branch #-1 #0 { "d1", "d2", "d3" } :
       {
-         %show "unfinished";
+         %import strict_prop{ Order };
+         %flatten #-1;
+         %instantiate #-1 { ord };
+         %expand #-1 strict #0; 
+         %flatten #-1;
+         %normalize #-1;
+         %flatten #-1;
+         %expand #-2 strict #0;
+         %normalize #-1;
+         %flatten #-1;
+         %show "before"; 
       }
    }
 }

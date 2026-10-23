@@ -11,7 +11,7 @@ def strict( ord : Order ) : Prop :=
 def trans( ord : Order ) : Prop :=
    forall{ d1, d2, d3 : Obj } : 
       [ ord.D(d1) & ord.D(d2) & ord.D(d3) ]
-      ord.le(d1,d2) & ord.le(d2,d3) -> ord.le(d1,d3);
+         ord.le(d1,d2) & ord.le(d2,d3) -> ord.le(d1,d3);
  
 def total( ord : Order ) : Prop :=
    forall{ d1, d2 : Obj } :
@@ -49,7 +49,7 @@ def wellfounded( ord : Order ) : Prop :=
    extends( ord.D, P );
 
 thm strict_prop : forall{ ord : Order } : # strict( ord );
-thm trans_prop : forall{ ord: Order } : # trans( ord );
+thm trans_prop : forall{ ord: Order } : strict( ord ) -> # trans( ord );
 thm total_prop : forall{ ord: Order } : # total( ord );
 thm weak_prop: forall{ ord: Order } : # weak( ord );
 

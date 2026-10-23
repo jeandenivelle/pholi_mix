@@ -58,7 +58,6 @@
       %flatten #-1;
       %givename #-3 strictP;
       %givename #-2 strictQ;
-
       %expand #-1 fromto #0; 
       %normalize #-1; 
       %flatten #-1;

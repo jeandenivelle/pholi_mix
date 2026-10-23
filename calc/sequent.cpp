@@ -81,7 +81,11 @@ void calc::sequent::hide( size_t ind )
    if( !stack. at( ind ). hidden )
    {
       stack. at( ind ). hidden = true;
-      if( decisions. size( ) > 0 )
+
+      // If there decisions, it will be never unhidden.
+      // If it is after the last decision, it will be removed before it is unhidden.
+
+      if( decisions. size( ) != 0 && ind < decisions. back( ). stacksize ) 
          decisions. back( ). hidden. push_back( ind ); 
    }
 }

@@ -532,7 +532,6 @@ size_t calc::proofchecker::simplify( )
 
 size_t calc::proofchecker::merge( )
 { 
-
    if( seq. nrdecisions( ) == 0 )
    {
       errortree::builder bld;
@@ -579,10 +578,10 @@ size_t calc::proofchecker::merge( )
           seq. stack. back( ). hidden )
    {
       // This can happen when simplify subsumes the last formula:
- 
+
       seq. stack. pop_back( );
    }
-   
+  
    if( seq. decisions. back( ). stacksize >= seq. stack. size( ))
    {
       errortree::builder bld;
@@ -684,8 +683,9 @@ size_t calc::proofchecker::merge( )
    }
 
    seq. popdecision( );
+
    db. restore( seq. ctxt. size( ));
- 
+
    if( subsumes( resolvent, seq. stack. at( parind ). get_dnf( )))
       seq. hide( parind );
 
